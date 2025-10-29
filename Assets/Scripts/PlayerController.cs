@@ -11,6 +11,9 @@ public class PlayerController : MonoBehaviour
     private BuildingData buildingToPlace;
     private GameObject buildingPreview;
 
+    [Header("Building Placement Settings")]
+    [SerializeField] private float gridSize = 1f; // Assuming 32 pixels per unit = 1 unit grid
+
     // Selection Mode
     private Building selectedBuilding;
 
@@ -80,10 +83,12 @@ public class PlayerController : MonoBehaviour
         }
 
         // If not in build mode, handle selection
-        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out RaycastHit hit, 1000f, LayerMask.GetMask("Building")))
+        Vector2 worldPoint = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        Collider2D hitCollider = Physics2D.OverlapPoint(worldPoint, LayerMask.GetMask("Building"));
+
+        if (hitCollider != null)
         {
-            if (hit.collider.TryGetComponent<Building>(out Building building))
+            if (hitCollider.TryGetComponent<Building>(out Building building))
             {
                 SelectBuilding(building);
             }
@@ -100,12 +105,10 @@ public class PlayerController : MonoBehaviour
 
     private void PlaceBuilding()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out RaycastHit hit, 1000f, LayerMask.GetMask("Ground")))
-        {
-            BuildingManager.Instance.PlaceBuilding(hit.point);
-            ExitBuildMode();
-        }
+        Vector2 worldPoint = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        Vector3 snappedPosition = SnapToGrid(worldPoint);
+        BuildingManager.Instance.PlaceBuilding(snappedPosition);
+        ExitBuildMode();
     }
 
     private void SelectBuilding(Building building)
@@ -133,10 +136,16 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateBuildingPreview()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out RaycastHit hit, 1000f, LayerMask.GetMask("Ground")))
-        {
-            buildingPreview.transform.position = hit.point;
-        }
+        if (buildingPreview == null) return;
+
+        Vector2 worldPoint = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        Vector3 snappedPosition = SnapToGrid(worldPoint);
+        buildingPreview.transform.position = snappedPosition;
     }
-}
+
+    private Vector3 SnapToGrid(Vector3 position)
+    {
+        float snappedX = Mathf.Round(position.x / gridSize) * gridSize;
+        float snappedY = Mathf.Round(position.y / gridSize) * gridSize;
+        return new Vector3(snappedX, snappedY, position.z);
+    }}

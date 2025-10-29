@@ -16,5 +16,15 @@ public class BuildingButton : MonoBehaviour
         button = GetComponent<Button>();
     }
 
+    public void Configure(BuildingData data)
+    {
+        buildingData = data;
+        Image buttonIcon = GetComponent<Image>();
+        if (buttonIcon != null && buildingData.icon != null)
+        {
+            buttonIcon.sprite = buildingData.icon;
+        }
+    }
+
     public Button GetButton() => button;
 }

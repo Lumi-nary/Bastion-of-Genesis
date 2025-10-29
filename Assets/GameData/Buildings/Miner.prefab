@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1142684387639500513}
   - component: {fileID: 3078680197260093461}
   m_Layer: 7
-  m_Name: Generator
+  m_Name: Miner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -81,7 +81,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.8962264, g: 0.50985223, b: 0.04650232, a: 1}
+  m_Color: {r: 0.41460276, g: 0.8980392, b: 0.047058802, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -103,5 +103,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44bb7e0f0fae87844a628cabf4b114df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Building
-  buildingData: {fileID: 11400000, guid: 98b686f2c4591fa459bcb351eb8876dc, type: 2}
-  workerCapacity: 3
+  buildingData: {fileID: 11400000, guid: 0e1fb5fe47260784ab6118c88fecaa3f, type: 2}
+  workerCapacity: 1
