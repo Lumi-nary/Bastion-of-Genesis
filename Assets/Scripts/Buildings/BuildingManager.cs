@@ -5,8 +5,6 @@ public class BuildingManager : MonoBehaviour
 {
     public static BuildingManager Instance { get; private set; }
 
-    private BuildingData selectedBuilding;
-
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -19,29 +17,22 @@ public class BuildingManager : MonoBehaviour
         }
     }
 
-    public void SelectBuilding(BuildingData building)
+    public void PlaceBuilding(BuildingData building, Vector3 position)
     {
-        selectedBuilding = building;
-    }
-
-    public void PlaceBuilding(Vector3 position)
-    {
-        if (selectedBuilding == null)
+        if (building == null)
         {
             return; // No building selected
         }
 
-        if (HasEnoughResources(selectedBuilding.resourceCost) && HasEnoughBuilders(selectedBuilding))
+        if (HasEnoughResources(building.resourceCost) && HasEnoughBuilders(building))
         {
-            SpendResources(selectedBuilding.resourceCost);
-            ConsumeBuilders(selectedBuilding);
-            Instantiate(selectedBuilding.prefab, position, Quaternion.identity);
-            // Deselect building after placing
-            selectedBuilding = null; 
+            SpendResources(building.resourceCost);
+            ConsumeBuilders(building);
+            Instantiate(building.prefab, position, Quaternion.identity);
         }
         else
         {
-            Debug.Log("Not enough resources or builders to build " + selectedBuilding.buildingName);
+            Debug.Log("Not enough resources or builders to build " + building.buildingName);
         }
     }
 
