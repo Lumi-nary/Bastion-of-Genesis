@@ -107,7 +107,7 @@ public class PlayerController : MonoBehaviour
     {
         Vector2 worldPoint = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
         Vector3 snappedPosition = SnapToGrid(worldPoint);
-        BuildingManager.Instance.PlaceBuilding(snappedPosition);
+        BuildingManager.Instance.PlaceBuilding(buildingToPlace, snappedPosition);
         ExitBuildMode();
     }
 
