@@ -66,7 +66,7 @@ public class BuildingSelectionPanel : MonoBehaviour
     {
         if (buildingData != null)
         {
-            PlayerController.Instance.EnterBuildMode(buildingData);
+            PlacementSystem.Instance.EnterBuildMode(buildingData);
             HidePanel(); // Hide after selection
         }
     }

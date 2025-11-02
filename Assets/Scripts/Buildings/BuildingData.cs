@@ -9,15 +9,29 @@ public class BuildingData : ScriptableObject
     [TextArea] public string description;
     public Sprite icon;
 
-    [Header("Building Prefab")]
-    public GameObject prefab;
+        [Header("Building Prefab") ]
 
-    [Header("Construction Cost")]
-    public List<ResourceCost> resourceCost = new List<ResourceCost>();
+        public GameObject prefab;
+
+    
+
+        [Header("Building Stats")]
+
+        public float maxHealth = 100f;
+
+    
+
+        [Header("Construction Cost")]
+
+        public List<ResourceCost> resourceCost = new List<ResourceCost>();
     public WorkerData builderType;
     public int buildersConsumed;
 
     [Header("Resource Generation")]
     public ResourceType generatedResourceType;
     public float generationRate; // per worker per second
+
+    [Header("Grid Properties")]
+    public int width = 1;
+    public int height = 1;
 }

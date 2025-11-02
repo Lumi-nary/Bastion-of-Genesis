@@ -105,3 +105,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Building
   buildingData: {fileID: 11400000, guid: 98b686f2c4591fa459bcb351eb8876dc, type: 2}
   workerCapacity: 3
+  gridPosition: {x: 0, y: 0}
+  width: 1
+  height: 1

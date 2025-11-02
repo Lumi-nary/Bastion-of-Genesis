@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "unityMCP": {
+      "command": "C:\\Users\\Maple\\.local\\bin\\uv.exe",
+      "args": [
+        "run",
+        "--directory",
+        "C:\\Users\\Maple\\AppData\\Local\\UnityMCP\\UnityMcpServer\\src",
+        "server.py"
+      ]
+    }
+  }
+}

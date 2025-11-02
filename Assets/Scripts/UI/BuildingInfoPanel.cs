@@ -7,6 +7,8 @@ public class BuildingInfoPanel : MonoBehaviour
     [SerializeField] private GameObject panel;
     [SerializeField] private TextMeshProUGUI buildingNameText;
     [SerializeField] private TextMeshProUGUI workerCountText;
+    [SerializeField] private TextMeshProUGUI healthText;
+    [SerializeField] private TextMeshProUGUI resourceGenerationText;
     // Note: You will need to assign a specific WorkerData for the buttons to use.
     // For a more advanced implementation, you would have different buttons for different worker types.
     [SerializeField] private WorkerData workerTypeToAdd;
@@ -18,7 +20,7 @@ public class BuildingInfoPanel : MonoBehaviour
         // Continuously update the worker count while the panel is active
         if (panel.activeSelf && currentBuilding != null)
         {
-            UpdateWorkerCount();
+            UpdatePanelUI();
         }
     }
 
@@ -27,7 +29,7 @@ public class BuildingInfoPanel : MonoBehaviour
         currentBuilding = building;
         panel.SetActive(true);
         buildingNameText.text = currentBuilding.BuildingData.buildingName;
-        UpdateWorkerCount();
+        UpdatePanelUI();
     }
 
     public void HidePanel()
@@ -52,15 +54,27 @@ public class BuildingInfoPanel : MonoBehaviour
         }
     }
 
-    private void UpdateWorkerCount()
+    private void UpdatePanelUI()
     {
         if (currentBuilding != null)
         {
-            // This is a simplified display. A real implementation would need to know which worker type to count.
-            // For now, we'll just count all assigned workers.
+            // Worker Count
             int assigned = currentBuilding.GetAssignedWorkerCount();
             int capacity = currentBuilding.GetWorkerCapacity();
             workerCountText.text = $"Workers: {assigned} / {capacity}";
+
+            // Health
+            healthText.text = $"Health: {currentBuilding.CurrentHealth} / {currentBuilding.BuildingData.maxHealth}";
+
+            // Resource Generation
+            if (currentBuilding.BuildingData.generatedResourceType != null && currentBuilding.BuildingData.generationRate > 0)
+            {
+                resourceGenerationText.text = $"Generates: {currentBuilding.BuildingData.generationRate} {currentBuilding.BuildingData.generatedResourceType.ResourceName}/s";
+            }
+            else
+            {
+                resourceGenerationText.text = "Generates: None";
+            }
         }
     }
 }

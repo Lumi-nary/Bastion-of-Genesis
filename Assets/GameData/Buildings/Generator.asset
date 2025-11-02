@@ -23,3 +23,5 @@ MonoBehaviour:
   buildersConsumed: 1
   generatedResourceType: {fileID: 11400000, guid: bb2aea2cb49421c46aabf3bfd3252158, type: 2}
   generationRate: 5
+  width: 1
+  height: 1

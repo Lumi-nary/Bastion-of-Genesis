@@ -28,6 +28,8 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float maxOrthographicSize = 15f;
     [SerializeField] private float zoomSmoothing = 5f;
 
+    private PlacementSystem placementSystem;
+
     // State Variables
     private bool isDragging;
     private Vector2 lastMousePosition;
@@ -54,6 +56,8 @@ public class CameraController : MonoBehaviour
         moveAction = playerControls.Camera.Movement;
         zoomAction = playerControls.Camera.Zoom;
         dragAction = playerControls.Camera.Drag;
+
+        placementSystem = PlacementSystem.Instance;
     }
 
     private void OnEnable()

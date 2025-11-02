@@ -12,7 +12,18 @@ public class Building : MonoBehaviour
     [SerializeField] private int workerCapacity;
     private List<WorkerData> assignedWorkers = new List<WorkerData>();
 
+    [Header("Grid Information")]
+    public Vector2Int gridPosition;
+    public int width;
+    public int height;
+
     private float accumulatedResources = 0f;
+    public float CurrentHealth { get; private set; }
+
+    private void Start()
+    {
+        CurrentHealth = buildingData.maxHealth;
+    }
 
     private void Update()
     {

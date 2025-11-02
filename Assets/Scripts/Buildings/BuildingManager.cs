@@ -17,22 +17,31 @@ public class BuildingManager : MonoBehaviour
         }
     }
 
-    public void PlaceBuilding(BuildingData building, Vector3 position)
+    public void PlaceBuilding(BuildingData buildingData, Vector3 position)
     {
-        if (building == null)
+        if (buildingData == null)
         {
             return; // No building selected
         }
 
-        if (HasEnoughResources(building.resourceCost) && HasEnoughBuilders(building))
+        if (HasEnoughResources(buildingData.resourceCost) && HasEnoughBuilders(buildingData))
         {
-            SpendResources(building.resourceCost);
-            ConsumeBuilders(building);
-            Instantiate(building.prefab, position, Quaternion.identity);
+            SpendResources(buildingData.resourceCost);
+            ConsumeBuilders(buildingData);
+            
+            GameObject newBuildingGO = Instantiate(buildingData.prefab, position, Quaternion.identity);
+            Building newBuilding = newBuildingGO.GetComponent<Building>();
+
+            Vector2Int gridPos = GridManager.Instance.WorldToGridPosition(position);
+            newBuilding.gridPosition = gridPos;
+            newBuilding.width = buildingData.width;
+            newBuilding.height = buildingData.height;
+
+            GridManager.Instance.PlaceBuilding(newBuilding, gridPos, buildingData.width, buildingData.height);
         }
         else
         {
-            Debug.Log("Not enough resources or builders to build " + building.buildingName);
+            Debug.Log("Not enough resources or builders to build " + buildingData.buildingName);
         }
     }
 
