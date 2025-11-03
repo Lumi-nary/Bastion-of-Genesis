@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Building : MonoBehaviour
@@ -8,8 +9,6 @@ public class Building : MonoBehaviour
     [SerializeField] private BuildingData buildingData;
     public BuildingData BuildingData => buildingData;
 
-    [Header("Worker Settings")]
-    [SerializeField] private int workerCapacity;
     private List<WorkerData> assignedWorkers = new List<WorkerData>();
 
     [Header("Grid Information")]
@@ -27,7 +26,7 @@ public class Building : MonoBehaviour
 
     private void Update()
     {
-        if (buildingData.generatedResourceType != null && buildingData.generationRate > 0)
+        if (buildingData.generatedResourceType != null && buildingData.generationAmount > 0 && buildingData.generationInterval > 0)
         {
             GenerateResources();
         }
@@ -35,7 +34,7 @@ public class Building : MonoBehaviour
 
     private void GenerateResources()
     {
-        accumulatedResources += buildingData.generationRate * assignedWorkers.Count * Time.deltaTime;
+        accumulatedResources += (buildingData.generationAmount / buildingData.generationInterval) * assignedWorkers.Count * Time.deltaTime;
 
         if (accumulatedResources >= 1)
         {
@@ -50,15 +49,20 @@ public class Building : MonoBehaviour
         return assignedWorkers.Count;
     }
 
-    public int GetWorkerCapacity()
+    public int GetAssignedWorkerCount(WorkerData workerData)
     {
-        return workerCapacity;
+        return assignedWorkers.Count(w => w == workerData);
     }
 
+    public int GetWorkerCapacity()
+    {
+        return buildingData.workerCapacity;
+    }
 
     public bool AssignWorker(WorkerData workerData)
     {
-        if (assignedWorkers.Count < workerCapacity)
+        // Check if this worker type is allowed and if there is capacity
+        if (buildingData.allowedWorkerTypes.Contains(workerData) && assignedWorkers.Count < GetWorkerCapacity())
         {
             if (WorkerManager.Instance.AssignWorker(workerData))
             {

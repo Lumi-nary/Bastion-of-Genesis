@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 
 public class PlacementSystem : MonoBehaviour
 {
@@ -40,23 +41,69 @@ public class PlacementSystem : MonoBehaviour
 
     private void OnEnable()
     {
-        inputActions.UI.Enable();
-        inputActions.UI.Click.performed += OnClick;
+        inputActions.Enable();
         inputActions.UI.RightClick.performed += OnRightClick;
     }
 
     private void OnDisable()
     {
-        inputActions.UI.Click.performed -= OnClick;
         inputActions.UI.RightClick.performed -= OnRightClick;
-        inputActions.UI.Disable();
+        inputActions.Disable();
     }
 
     private void Update()
     {
+        // If we are in build mode, update the preview
         if (buildingToPlace != null)
         {
             UpdateBuildingPreview();
+        }
+
+        // Check for left-click
+        if (Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            // Ignore the click if the pointer is over any UI element
+            if (EventSystem.current.IsPointerOverGameObject())
+            {
+                return;
+            }
+
+            if (buildingToPlace != null)
+            {
+                // If in build mode, place the building
+                PlaceBuilding();
+            }
+            else
+            {
+                // If not in build mode, handle selection
+                SelectBuilding();
+            }
+        }
+    }
+
+    private void SelectBuilding()
+    {
+        Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+        RaycastHit2D hit = Physics2D.GetRayIntersection(ray);
+
+        if (hit.collider != null)
+        {
+            Building clickedBuilding = hit.collider.GetComponent<Building>();
+            if (clickedBuilding != null)
+            {
+                // Clicked on a building, show its info
+                UIManager.Instance.ShowBuildingInfoPanel(clickedBuilding);
+            }
+            else
+            {
+                // Clicked on something that isn't a building (e.g., the ground, an enemy)
+                UIManager.Instance.HideBuildingInfoPanel();
+            }
+        }
+        else
+        {
+            // Clicked on empty space
+            UIManager.Instance.HideBuildingInfoPanel();
         }
     }
 
@@ -73,29 +120,6 @@ public class PlacementSystem : MonoBehaviour
     {
         buildingToPlace = null;
         if (buildingPreview != null) Destroy(buildingPreview);
-    }
-
-    private void OnClick(InputAction.CallbackContext context)
-    {
-        if (buildingToPlace != null)
-        {
-            PlaceBuilding();
-        }
-        else
-        {
-            // Not in build mode, check if a building was clicked
-            Vector3 mousePos = GetMouseWorldPosition();
-            RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
-
-            if (hit.collider != null)
-            {
-                Building clickedBuilding = hit.collider.GetComponent<Building>();
-                if (clickedBuilding != null)
-                {
-                    UIManager.Instance.ShowBuildingInfoPanel(clickedBuilding);
-                }
-            }
-        }
     }
 
     private void OnRightClick(InputAction.CallbackContext context)
@@ -115,6 +139,8 @@ public class PlacementSystem : MonoBehaviour
         {
             Vector3 worldPos = gridManager.GridToWorldPosition(gridPos);
             BuildingManager.Instance.PlaceBuilding(buildingToPlace, worldPos);
+            // After placing, we exit build mode. The click has been consumed by this action,
+            // so the SelectBuilding() logic in Update() won't run in the same frame.
             ExitBuildMode();
         }
     }

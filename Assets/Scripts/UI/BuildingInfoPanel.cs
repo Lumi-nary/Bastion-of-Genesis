@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -6,18 +7,19 @@ public class BuildingInfoPanel : MonoBehaviour
     [Header("UI References")]
     [SerializeField] private GameObject panel;
     [SerializeField] private TextMeshProUGUI buildingNameText;
-    [SerializeField] private TextMeshProUGUI workerCountText;
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private TextMeshProUGUI resourceGenerationText;
-    // Note: You will need to assign a specific WorkerData for the buttons to use.
-    // For a more advanced implementation, you would have different buttons for different worker types.
-    [SerializeField] private WorkerData workerTypeToAdd;
+
+    [Header("Worker Slot UI")]
+    [SerializeField] private GameObject workerSlotPrefab; // A prefab for displaying one worker type
+    [SerializeField] private Transform workerSlotsContainer; // The parent object for the worker slots
 
     private Building currentBuilding;
+    private List<WorkerSlotUI> currentWorkerSlots = new List<WorkerSlotUI>();
 
     private void Update()
     {
-        // Continuously update the worker count while the panel is active
+        // Continuously update the UI while the panel is active
         if (panel.activeSelf && currentBuilding != null)
         {
             UpdatePanelUI();
@@ -29,6 +31,26 @@ public class BuildingInfoPanel : MonoBehaviour
         currentBuilding = building;
         panel.SetActive(true);
         buildingNameText.text = currentBuilding.BuildingData.buildingName;
+        
+        // Clear old worker slots
+        foreach (Transform child in workerSlotsContainer)
+        {
+            Destroy(child.gameObject);
+        }
+        currentWorkerSlots.Clear();
+
+        // Create new worker slots based on building data
+        foreach (var workerType in currentBuilding.BuildingData.allowedWorkerTypes)
+        {
+            GameObject slotGO = Instantiate(workerSlotPrefab, workerSlotsContainer);
+            WorkerSlotUI slotUI = slotGO.GetComponent<WorkerSlotUI>();
+            if (slotUI != null)
+            {
+                slotUI.Setup(currentBuilding, workerType);
+                currentWorkerSlots.Add(slotUI);
+            }
+        }
+
         UpdatePanelUI();
     }
 
@@ -38,43 +60,29 @@ public class BuildingInfoPanel : MonoBehaviour
         panel.SetActive(false);
     }
 
-    public void OnAddWorkerClicked()
-    {
-        if (currentBuilding != null && workerTypeToAdd != null)
-        {
-            currentBuilding.AssignWorker(workerTypeToAdd);
-        }
-    }
-
-    public void OnRemoveWorkerClicked()
-    {
-        if (currentBuilding != null && workerTypeToAdd != null)
-        {
-            currentBuilding.RemoveWorker(workerTypeToAdd);
-        }
-    }
-
     private void UpdatePanelUI()
     {
         if (currentBuilding != null)
         {
-            // Worker Count
-            int assigned = currentBuilding.GetAssignedWorkerCount();
-            int capacity = currentBuilding.GetWorkerCapacity();
-            workerCountText.text = $"Workers: {assigned} / {capacity}";
-
             // Health
             healthText.text = $"Health: {currentBuilding.CurrentHealth} / {currentBuilding.BuildingData.maxHealth}";
 
             // Resource Generation
-            if (currentBuilding.BuildingData.generatedResourceType != null && currentBuilding.BuildingData.generationRate > 0)
+            if (currentBuilding.BuildingData.generatedResourceType != null && currentBuilding.BuildingData.generationAmount > 0 && currentBuilding.BuildingData.generationInterval > 0)
             {
-                resourceGenerationText.text = $"Generates: {currentBuilding.BuildingData.generationRate} {currentBuilding.BuildingData.generatedResourceType.ResourceName}/s";
+                resourceGenerationText.text = $"Generates: {currentBuilding.BuildingData.generationAmount} {currentBuilding.BuildingData.generatedResourceType.ResourceName} every {currentBuilding.BuildingData.generationInterval}s";
             }
             else
             {
                 resourceGenerationText.text = "Generates: None";
             }
+
+            // Update all worker slot UIs
+            foreach (var slot in currentWorkerSlots)
+            {
+                slot.UpdateUI();
+            }
         }
     }
 }
+

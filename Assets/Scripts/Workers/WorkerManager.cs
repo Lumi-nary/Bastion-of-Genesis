@@ -1,9 +1,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable] // Make this class serializable to show in Inspector
+public class WorkerStartConfig
+{
+    public WorkerData workerData;
+    public int initialCount;
+}
+
 public class WorkerManager : MonoBehaviour
 {
     public static WorkerManager Instance { get; private set; }
+
+    [Header("Worker Configuration")]
+    [SerializeField] private List<WorkerStartConfig> startingWorkers = new List<WorkerStartConfig>();
 
     private Dictionary<WorkerData, int> availableWorkers = new Dictionary<WorkerData, int>();
 
@@ -18,6 +28,21 @@ public class WorkerManager : MonoBehaviour
         else
         {
             Instance = this;
+        }
+
+        InitializeWorkers();
+    }
+
+    private void InitializeWorkers()
+    {
+        foreach (var config in startingWorkers)
+        {
+            if (config.workerData != null)
+            {
+                availableWorkers[config.workerData] = config.initialCount;
+                // Notify UI or other systems about the initial count
+                OnWorkerCountChanged?.Invoke(config.workerData, config.initialCount);
+            }
         }
     }
 
