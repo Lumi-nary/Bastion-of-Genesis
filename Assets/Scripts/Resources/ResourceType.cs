@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewResourceType", menuName = "Planetfall/Resource Type")]
-public class ResourceType : ScriptableObject
+public class ResourceType : ScriptableObject, ITooltipProvider
 {
     [Header("Resource Properties")]
     [Tooltip("The name of the resource.")]
@@ -16,4 +16,15 @@ public class ResourceType : ScriptableObject
     public string ResourceName => resourceName;
     public string Description => description;
     public Sprite Icon => icon;
+
+    // ITooltipProvider implementation
+    public string GetTooltipHeader()
+    {
+        return resourceName;
+    }
+
+    public string GetTooltipDescription()
+    {
+        return description;
+    }
 }

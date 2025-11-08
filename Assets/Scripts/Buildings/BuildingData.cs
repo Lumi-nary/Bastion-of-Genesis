@@ -1,6 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Enum to define how worker capacity is handled
+public enum WorkerCapacityType { Shared, PerType }
+
+// Class to define requirements for each worker type in a building
+[System.Serializable]
+public class WorkerRequirement
+{
+    public WorkerData workerType;
+    public int capacity; // Used for PerType capacity
+    public int requiredCount; // Minimum needed for the building to function
+}
+
 [CreateAssetMenu(fileName = "NewBuildingData", menuName = "Planetfall/Building Data")]
 public class BuildingData : ScriptableObject
 {
@@ -9,27 +21,21 @@ public class BuildingData : ScriptableObject
     [TextArea] public string description;
     public Sprite icon;
 
-        [Header("Building Prefab") ]
+    [Header("Building Prefab")]
+    public GameObject prefab;
 
-        public GameObject prefab;
+    [Header("Building Stats")]
+    public float maxHealth = 100f;
 
-    
-
-        [Header("Building Stats")]
-
-        public float maxHealth = 100f;
-
-    
-
-        [Header("Construction Cost")]
-
-        public List<ResourceCost> resourceCost = new List<ResourceCost>();
+    [Header("Construction Cost")]
+    public List<ResourceCost> resourceCost = new List<ResourceCost>();
     public WorkerData builderType;
     public int buildersConsumed;
 
-    [Header("Worker Capacity")]
-    public List<WorkerData> allowedWorkerTypes = new List<WorkerData>();
-    public int workerCapacity; // Total number of workers this building can hold
+    [Header("Worker Configuration")]
+    public WorkerCapacityType capacityType = WorkerCapacityType.Shared;
+    public int totalWorkerCapacity; // Used for Shared capacity
+    public List<WorkerRequirement> workerRequirements = new List<WorkerRequirement>();
 
     [Header("Resource Generation")]
     public ResourceType generatedResourceType;
@@ -40,3 +46,4 @@ public class BuildingData : ScriptableObject
     public int width = 1;
     public int height = 1;
 }
+

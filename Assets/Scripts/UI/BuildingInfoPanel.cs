@@ -9,6 +9,8 @@ public class BuildingInfoPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI buildingNameText;
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private TextMeshProUGUI resourceGenerationText;
+    [SerializeField] private TextMeshProUGUI statusText; // To show operational status
+    [SerializeField] private TextMeshProUGUI totalWorkerCountText; // To show total assigned workers / total capacity
 
     [Header("Worker Slot UI")]
     [SerializeField] private GameObject workerSlotPrefab; // A prefab for displaying one worker type
@@ -16,6 +18,11 @@ public class BuildingInfoPanel : MonoBehaviour
 
     private Building currentBuilding;
     private List<WorkerSlotUI> currentWorkerSlots = new List<WorkerSlotUI>();
+
+    private void Awake()
+    {
+        panel.SetActive(false);
+    }
 
     private void Update()
     {
@@ -40,13 +47,13 @@ public class BuildingInfoPanel : MonoBehaviour
         currentWorkerSlots.Clear();
 
         // Create new worker slots based on building data
-        foreach (var workerType in currentBuilding.BuildingData.allowedWorkerTypes)
+        foreach (var requirement in currentBuilding.BuildingData.workerRequirements)
         {
             GameObject slotGO = Instantiate(workerSlotPrefab, workerSlotsContainer);
             WorkerSlotUI slotUI = slotGO.GetComponent<WorkerSlotUI>();
             if (slotUI != null)
             {
-                slotUI.Setup(currentBuilding, workerType);
+                slotUI.Setup(currentBuilding, requirement.workerType);
                 currentWorkerSlots.Add(slotUI);
             }
         }
@@ -67,14 +74,33 @@ public class BuildingInfoPanel : MonoBehaviour
             // Health
             healthText.text = $"Health: {currentBuilding.CurrentHealth} / {currentBuilding.BuildingData.maxHealth}";
 
-            // Resource Generation
-            if (currentBuilding.BuildingData.generatedResourceType != null && currentBuilding.BuildingData.generationAmount > 0 && currentBuilding.BuildingData.generationInterval > 0)
+            // Total Worker Count
+            totalWorkerCountText.text = $"Total Workers: {currentBuilding.GetTotalAssignedWorkerCount()} / {currentBuilding.GetTotalWorkerCapacity()}";
+
+            // Status Text
+            if (currentBuilding.IsOperational)
             {
-                resourceGenerationText.text = $"Generates: {currentBuilding.BuildingData.generationAmount} {currentBuilding.BuildingData.generatedResourceType.ResourceName} every {currentBuilding.BuildingData.generationInterval}s";
+                statusText.text = "Status: Operational";
+                statusText.color = Color.green;
+                resourceGenerationText.gameObject.SetActive(true);
+
+                // Resource Generation Text
+                if (currentBuilding.BuildingData.generatedResourceType != null && currentBuilding.BuildingData.generationAmount > 0)
+                {
+                    float efficiency = (float)currentBuilding.GetTotalAssignedWorkerCount() / currentBuilding.GetTotalWorkerCapacity();
+                    float effectiveRate = currentBuilding.BuildingData.generationAmount * efficiency;
+                    resourceGenerationText.text = $"Generates: {effectiveRate:F2} {currentBuilding.BuildingData.generatedResourceType.ResourceName}/s";
+                }
+                else
+                {
+                    resourceGenerationText.text = "Generates: None";
+                }
             }
             else
             {
-                resourceGenerationText.text = "Generates: None";
+                statusText.text = "Status: Needs Workers";
+                statusText.color = Color.red;
+                resourceGenerationText.gameObject.SetActive(false);
             }
 
             // Update all worker slot UIs

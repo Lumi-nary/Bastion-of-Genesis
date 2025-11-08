@@ -11,6 +11,7 @@ public class ResourceManager : MonoBehaviour
 
     // Dictionaries to store resource amounts and capacities
     private Dictionary<ResourceType, int> resourceAmounts = new Dictionary<ResourceType, int>();
+    public IReadOnlyDictionary<ResourceType, int> ResourceAmounts => resourceAmounts;
     private Dictionary<ResourceType, int> resourceCapacities = new Dictionary<ResourceType, int>();
 
     // Event to notify when a resource amount changes

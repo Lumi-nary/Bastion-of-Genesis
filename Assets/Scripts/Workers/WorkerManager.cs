@@ -19,6 +19,9 @@ public class WorkerManager : MonoBehaviour
 
     public event System.Action<WorkerData, int> OnWorkerCountChanged;
 
+    // Public property to allow UI to query all workers
+    public Dictionary<WorkerData, int> AvailableWorkers => availableWorkers;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)

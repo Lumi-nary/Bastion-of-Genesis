@@ -47,11 +47,20 @@ public class WorkerSlotUI : MonoBehaviour
         if (currentBuilding != null && workerData != null)
         {
             int assignedCount = currentBuilding.GetAssignedWorkerCount(workerData);
-            int totalCapacity = currentBuilding.GetWorkerCapacity(); // This is total capacity, might need adjustment if capacity is per-type
-            workerCountText.text = $"{assignedCount} / {totalCapacity}";
+            int totalAssigned = currentBuilding.GetTotalAssignedWorkerCount();
+            int totalCapacity = currentBuilding.GetTotalWorkerCapacity();
 
-            // Disable add button if building is full or no workers are available
-            addButton.interactable = assignedCount < totalCapacity && WorkerManager.Instance.GetAvailableWorkerCount(workerData) > 0;
+            if (currentBuilding.BuildingData.capacityType == WorkerCapacityType.PerType)
+            {
+                int typeCapacity = currentBuilding.GetCapacityForWorker(workerData);
+                workerCountText.text = $"{assignedCount} / {typeCapacity}";
+                addButton.interactable = assignedCount < typeCapacity && WorkerManager.Instance.GetAvailableWorkerCount(workerData) > 0;
+            }
+            else // Shared Capacity
+            {
+                workerCountText.text = $"{assignedCount}"; // For shared, just show the count for this type
+                addButton.interactable = totalAssigned < totalCapacity && WorkerManager.Instance.GetAvailableWorkerCount(workerData) > 0;
+            }
 
             // Disable remove button if there are no workers of this type to remove
             removeButton.interactable = assignedCount > 0;
