@@ -70,6 +70,9 @@ public class ChapterManager : MonoBehaviour
         currentChapter = chapter;
         currentMissionIndex = 0;
 
+        // Notify listeners that chapter changed
+        OnChapterChanged?.Invoke(currentChapterIndex);
+
         // Reset chapter state (resources, pollution)
         ResetChapterState();
 
