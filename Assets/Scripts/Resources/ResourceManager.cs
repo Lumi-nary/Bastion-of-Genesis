@@ -126,4 +126,13 @@ public class ResourceManager : MonoBehaviour
 
         return 0;
     }
+
+    /// <summary>
+    /// Gets a copy of all current resource amounts
+    /// </summary>
+    /// <returns>Dictionary of resource types and their current amounts</returns>
+    public Dictionary<ResourceType, int> GetAllResources()
+    {
+        return new Dictionary<ResourceType, int>(resourceAmounts);
+    }
 }

@@ -31,5 +31,9 @@ MonoBehaviour:
   generatedResourceType: {fileID: 11400000, guid: bb2aea2cb49421c46aabf3bfd3252158, type: 2}
   generationAmount: 1
   generationInterval: 3
+  pollutionGeneration: 1
+  pollutionInterval: 5
+  generatesIdlePollution: 0
+  idlePollutionAmount: 0
   width: 1
   height: 1

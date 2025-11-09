@@ -16,10 +16,21 @@ MonoBehaviour:
   description: Generator to generate energy
   icon: {fileID: 0}
   prefab: {fileID: 5267069963637012161, guid: 4b7698e687b1bd84594c9a65692abb6e, type: 3}
+  maxHealth: 100
   resourceCost:
   - resourceType: {fileID: 11400000, guid: f44ba9d81749962419739a7656fee1cc, type: 2}
     amount: 5
   builderType: {fileID: 11400000, guid: 91c98282305e56e4ebff8c175e677795, type: 2}
   buildersConsumed: 1
+  capacityType: 0
+  totalWorkerCapacity: 0
+  workerRequirements: []
   generatedResourceType: {fileID: 11400000, guid: bb2aea2cb49421c46aabf3bfd3252158, type: 2}
-  generationRate: 5
+  generationAmount: 1
+  generationInterval: 1
+  pollutionGeneration: 1
+  pollutionInterval: 1
+  generatesIdlePollution: 0
+  idlePollutionAmount: 0
+  width: 1
+  height: 1

@@ -17,6 +17,7 @@ public class Building : MonoBehaviour
     public int height;
 
     private float generationTimer = 0f;
+    private float pollutionTimer = 0f;
     public float CurrentHealth { get; private set; }
 
     // Property to check if the building has the minimum required workers to function
@@ -48,6 +49,12 @@ public class Building : MonoBehaviour
         {
             GenerateResources();
         }
+
+        // Generate pollution
+        if (buildingData.pollutionGeneration > 0 || buildingData.generatesIdlePollution)
+        {
+            GeneratePollution();
+        }
     }
 
     private void GenerateResources()
@@ -67,6 +74,39 @@ public class Building : MonoBehaviour
             if (resourcesToGenerate > 0)
             {
                 ResourceManager.Instance.AddResource(buildingData.generatedResourceType, resourcesToGenerate);
+            }
+        }
+    }
+
+    private void GeneratePollution()
+    {
+        if (PollutionManager.Instance == null) return;
+
+        pollutionTimer += Time.deltaTime;
+
+        if (pollutionTimer >= buildingData.pollutionInterval)
+        {
+            pollutionTimer -= buildingData.pollutionInterval;
+
+            float pollutionToGenerate = 0f;
+
+            // Check if building generates pollution with workers
+            if (IsOperational && buildingData.pollutionGeneration > 0)
+            {
+                // Pollution scales with number of workers
+                int workerCount = GetTotalAssignedWorkerCount();
+                pollutionToGenerate += buildingData.pollutionGeneration * workerCount;
+            }
+
+            // Check if building generates idle pollution
+            if (buildingData.generatesIdlePollution && buildingData.idlePollutionAmount > 0)
+            {
+                pollutionToGenerate += buildingData.idlePollutionAmount;
+            }
+
+            if (pollutionToGenerate > 0)
+            {
+                PollutionManager.Instance.AddPollution(pollutionToGenerate);
             }
         }
     }

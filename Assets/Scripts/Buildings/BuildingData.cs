@@ -42,6 +42,16 @@ public class BuildingData : ScriptableObject
     public float generationAmount = 1f; // Amount of resource generated per interval per worker
     public float generationInterval = 1f; // Time in seconds between each generation cycle
 
+    [Header("Pollution")]
+    [Tooltip("Amount of pollution generated per interval per worker")]
+    public float pollutionGeneration = 0f;
+    [Tooltip("Time in seconds between each pollution generation cycle")]
+    public float pollutionInterval = 1f;
+    [Tooltip("Does this building generate pollution even without workers?")]
+    public bool generatesIdlePollution = false;
+    [Tooltip("Pollution generated per interval when idle (no workers)")]
+    public float idlePollutionAmount = 0f;
+
     [Header("Grid Properties")]
     public int width = 1;
     public int height = 1;
