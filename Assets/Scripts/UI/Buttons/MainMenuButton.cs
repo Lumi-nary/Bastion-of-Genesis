@@ -22,9 +22,9 @@ public class MainMenuButton : MonoBehaviour
         }
 
         // End current mission
-        if (MissionManager.Instance != null)
+        if (MissionChapterManager.Instance != null)
         {
-            MissionManager.Instance.EndMission();
+            MissionChapterManager.Instance.EndMission();
         }
 
         // Load main menu scene

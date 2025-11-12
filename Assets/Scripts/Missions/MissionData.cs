@@ -10,12 +10,6 @@ public class MissionData : ScriptableObject
     public string missionDescription;
     public int missionNumber; // 1-10 within the chapter
 
-    [Header("Starting Resources")]
-    public List<ResourceCost> startingResources = new List<ResourceCost>();
-
-    [Header("Starting Workers")]
-    public List<WorkerStartConfig> startingWorkers = new List<WorkerStartConfig>();
-
     [Header("Mission Objectives")]
     public List<MissionObjective> objectives = new List<MissionObjective>();
 

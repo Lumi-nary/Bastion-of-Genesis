@@ -40,14 +40,10 @@ public class ProgressionManager : MonoBehaviour
         LoadProgress();
 
         // Subscribe to events for auto-save
-        if (ChapterManager.Instance != null)
+        if (MissionChapterManager.Instance != null)
         {
-            ChapterManager.Instance.OnChapterCompleted += OnChapterCompleted;
-        }
-
-        if (MissionManager.Instance != null)
-        {
-            MissionManager.Instance.OnMissionCompleted += OnMissionCompleted;
+            MissionChapterManager.Instance.OnChapterCompleted += OnChapterCompleted;
+            MissionChapterManager.Instance.OnMissionCompleted += OnMissionCompleted;
         }
     }
 
@@ -82,21 +78,21 @@ public class ProgressionManager : MonoBehaviour
         ProgressionData data = new ProgressionData();
 
         // Save chapter progression
-        if (ChapterManager.Instance != null)
+        if (MissionChapterManager.Instance != null)
         {
-            data.currentChapterIndex = ChapterManager.Instance.CurrentChapterIndex;
-            data.currentMissionIndex = ChapterManager.Instance.CurrentMissionIndex;
+            data.currentChapterIndex = MissionChapterManager.Instance.CurrentChapterIndex;
+            data.currentMissionIndex = MissionChapterManager.Instance.CurrentMissionIndex;
 
             // Save chapter unlock states
             data.unlockedChapters = new List<bool>();
-            foreach (var chapter in ChapterManager.Instance.Chapters)
+            foreach (var chapter in MissionChapterManager.Instance.Chapters)
             {
                 data.unlockedChapters.Add(chapter.isUnlocked);
             }
 
             // Save mission completion states for each chapter
             data.completedMissions = new List<List<bool>>();
-            foreach (var chapter in ChapterManager.Instance.Chapters)
+            foreach (var chapter in MissionChapterManager.Instance.Chapters)
             {
                 List<bool> chapterMissions = new List<bool>();
                 foreach (var mission in chapter.missions)
@@ -149,23 +145,23 @@ public class ProgressionManager : MonoBehaviour
         }
 
         // Restore chapter progression
-        if (ChapterManager.Instance != null)
+        if (MissionChapterManager.Instance != null)
         {
             // Restore chapter unlock states
             if (data.unlockedChapters != null)
             {
-                for (int i = 0; i < Mathf.Min(data.unlockedChapters.Count, ChapterManager.Instance.Chapters.Count); i++)
+                for (int i = 0; i < Mathf.Min(data.unlockedChapters.Count, MissionChapterManager.Instance.Chapters.Count); i++)
                 {
-                    ChapterManager.Instance.Chapters[i].isUnlocked = data.unlockedChapters[i];
+                    MissionChapterManager.Instance.Chapters[i].isUnlocked = data.unlockedChapters[i];
                 }
             }
 
             // Restore mission completion states
             if (data.completedMissions != null)
             {
-                for (int i = 0; i < Mathf.Min(data.completedMissions.Count, ChapterManager.Instance.Chapters.Count); i++)
+                for (int i = 0; i < Mathf.Min(data.completedMissions.Count, MissionChapterManager.Instance.Chapters.Count); i++)
                 {
-                    var chapter = ChapterManager.Instance.Chapters[i];
+                    var chapter = MissionChapterManager.Instance.Chapters[i];
                     for (int j = 0; j < Mathf.Min(data.completedMissions[i].Count, chapter.missions.Count); j++)
                     {
                         // Restore objective completion state
@@ -212,14 +208,10 @@ public class ProgressionManager : MonoBehaviour
     private void OnDestroy()
     {
         // Unsubscribe from events
-        if (ChapterManager.Instance != null)
+        if (MissionChapterManager.Instance != null)
         {
-            ChapterManager.Instance.OnChapterCompleted -= OnChapterCompleted;
-        }
-
-        if (MissionManager.Instance != null)
-        {
-            MissionManager.Instance.OnMissionCompleted -= OnMissionCompleted;
+            MissionChapterManager.Instance.OnChapterCompleted -= OnChapterCompleted;
+            MissionChapterManager.Instance.OnMissionCompleted -= OnMissionCompleted;
         }
     }
 }

@@ -21,20 +21,15 @@ public class MissionPanel : MonoBehaviour
 
     private void Start()
     {
-        // Subscribe to mission events
-        if (MissionManager.Instance != null)
+        // Subscribe to mission and chapter events
+        if (MissionChapterManager.Instance != null)
         {
-            MissionManager.Instance.OnMissionStarted += OnMissionStarted;
-            MissionManager.Instance.OnMissionCompleted += OnMissionCompleted;
-            MissionManager.Instance.OnMissionFailed += OnMissionFailed;
-            MissionManager.Instance.OnObjectiveCompleted += OnObjectiveCompleted;
-            MissionManager.Instance.OnMissionTimerUpdate += OnMissionTimerUpdate;
-        }
-
-        // Subscribe to chapter events
-        if (ChapterManager.Instance != null)
-        {
-            ChapterManager.Instance.OnChapterStarted += OnChapterStarted;
+            MissionChapterManager.Instance.OnMissionStarted += OnMissionStarted;
+            MissionChapterManager.Instance.OnMissionCompleted += OnMissionCompleted;
+            MissionChapterManager.Instance.OnMissionFailed += OnMissionFailed;
+            MissionChapterManager.Instance.OnObjectiveCompleted += OnObjectiveCompleted;
+            MissionChapterManager.Instance.OnMissionTimerUpdate += OnMissionTimerUpdate;
+            MissionChapterManager.Instance.OnChapterStarted += OnChapterStarted;
         }
 
         // Hide panel initially
@@ -44,18 +39,14 @@ public class MissionPanel : MonoBehaviour
     private void OnDestroy()
     {
         // Unsubscribe from events
-        if (MissionManager.Instance != null)
+        if (MissionChapterManager.Instance != null)
         {
-            MissionManager.Instance.OnMissionStarted -= OnMissionStarted;
-            MissionManager.Instance.OnMissionCompleted -= OnMissionCompleted;
-            MissionManager.Instance.OnMissionFailed -= OnMissionFailed;
-            MissionManager.Instance.OnObjectiveCompleted -= OnObjectiveCompleted;
-            MissionManager.Instance.OnMissionTimerUpdate -= OnMissionTimerUpdate;
-        }
-
-        if (ChapterManager.Instance != null)
-        {
-            ChapterManager.Instance.OnChapterStarted -= OnChapterStarted;
+            MissionChapterManager.Instance.OnMissionStarted -= OnMissionStarted;
+            MissionChapterManager.Instance.OnMissionCompleted -= OnMissionCompleted;
+            MissionChapterManager.Instance.OnMissionFailed -= OnMissionFailed;
+            MissionChapterManager.Instance.OnObjectiveCompleted -= OnObjectiveCompleted;
+            MissionChapterManager.Instance.OnMissionTimerUpdate -= OnMissionTimerUpdate;
+            MissionChapterManager.Instance.OnChapterStarted -= OnChapterStarted;
         }
     }
 
@@ -114,9 +105,9 @@ public class MissionPanel : MonoBehaviour
         }
 
         // Update chapter info
-        if (ChapterManager.Instance != null && ChapterManager.Instance.CurrentChapter != null)
+        if (MissionChapterManager.Instance != null && MissionChapterManager.Instance.CurrentChapter != null)
         {
-            UpdateChapterInfo(ChapterManager.Instance.CurrentChapter);
+            UpdateChapterInfo(MissionChapterManager.Instance.CurrentChapter);
         }
     }
 
@@ -146,10 +137,10 @@ public class MissionPanel : MonoBehaviour
 
     private void UpdateChapterInfo(ChapterData chapter)
     {
-        if (chapterInfoText != null && ChapterManager.Instance != null)
+        if (chapterInfoText != null && MissionChapterManager.Instance != null)
         {
-            int chapterNum = ChapterManager.Instance.CurrentChapterIndex + 1;
-            int missionNum = ChapterManager.Instance.CurrentMissionIndex + 1;
+            int chapterNum = MissionChapterManager.Instance.CurrentChapterIndex + 1;
+            int missionNum = MissionChapterManager.Instance.CurrentMissionIndex + 1;
             int totalMissions = chapter.missions.Count;
 
             chapterInfoText.text = $"Chapter {chapterNum}: {chapter.chapterName} - Mission {missionNum}/{totalMissions}";
@@ -160,7 +151,7 @@ public class MissionPanel : MonoBehaviour
     {
         if (missionTimerText == null) return;
 
-        MissionData mission = MissionManager.Instance.CurrentMission;
+        MissionData mission = MissionChapterManager.Instance.CurrentMission;
         if (mission != null && mission.timeLimit > 0)
         {
             float remaining = mission.timeLimit - time;

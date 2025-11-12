@@ -39,9 +39,9 @@ public class LoadGameButton : MonoBehaviour
 
             // Load the current chapter's scene
             string sceneName = defaultSceneName;
-            if (ChapterManager.Instance != null && ChapterManager.Instance.CurrentChapter != null)
+            if (MissionChapterManager.Instance != null && MissionChapterManager.Instance.CurrentChapter != null)
             {
-                sceneName = ChapterManager.Instance.CurrentChapter.sceneName;
+                sceneName = MissionChapterManager.Instance.CurrentChapter.sceneName;
             }
 
             SceneManager.LoadSceneAsync(sceneName);

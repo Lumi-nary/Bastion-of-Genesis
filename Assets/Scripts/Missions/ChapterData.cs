@@ -16,6 +16,14 @@ public class ChapterData : ScriptableObject
     [TextArea(5, 10)]
     public string chapterOutroText;
 
+    [Header("Starting Resources")]
+    [Tooltip("Resources given at the start of this chapter")]
+    public List<ResourceCost> startingResources = new List<ResourceCost>();
+
+    [Header("Starting Workers")]
+    [Tooltip("Workers given at the start of this chapter")]
+    public List<WorkerStartConfig> startingWorkers = new List<WorkerStartConfig>();
+
     [Header("Chapter Missions")]
     public List<MissionData> missions = new List<MissionData>(); // 10 missions
 
