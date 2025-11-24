@@ -2,6 +2,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// LoadGameButton navigates to the Load Game browser screen.
+/// Follows Pattern 7 (UI Canvas Management) - calls MenuManager, never manipulates canvas directly.
+/// </summary>
 public class LoadGameButton : MonoBehaviour
 {
     [SerializeField] private string defaultSceneName = "SampleScene";
@@ -27,7 +31,20 @@ public class LoadGameButton : MonoBehaviour
     }
 
     /// <summary>
-    /// Assign this method to the button's OnClick() in inspector
+    /// OnClick event handler - navigates to Load Game canvas.
+    /// Called by Unity Button.onClick event (wired in Inspector).
+    /// Story 1.2: Shows Load Game canvas (placeholder screen).
+    /// Epic 3: Will implement save browser and load functionality.
+    /// </summary>
+    public void OnClick()
+    {
+        MenuManager.Instance.ShowLoadGameCanvas();
+    }
+
+    /// <summary>
+    /// Legacy method - loads game directly (bypasses menu flow).
+    /// Retained for backward compatibility but not used in Story 1.2.
+    /// Will be integrated with Load Game browser in Epic 3.
     /// </summary>
     public void OnLoadGameClicked()
     {

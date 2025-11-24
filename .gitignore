@@ -77,3 +77,5 @@ crashlytics-build.properties
 /.bmad
 /Assets/_Documentation
 /docs
+/.agent
+/.bmad-ephemeral

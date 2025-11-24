@@ -1,9 +1,30 @@
 using UnityEngine;
 
+/// <summary>
+/// QuitButton exits the application gracefully.
+/// Handles both Unity Editor (stops play mode) and standalone builds (quits application).
+/// </summary>
 public class QuitButton : MonoBehaviour
 {
     /// <summary>
-    /// Assign this method to the button's OnClick() in inspector
+    /// OnClick event handler - quits the application.
+    /// Called by Unity Button.onClick event (wired in Inspector).
+    /// In Editor: Stops play mode (UnityEditor.EditorApplication.isPlaying = false)
+    /// In Build: Calls Application.Quit() for graceful shutdown
+    /// </summary>
+    public void OnClick()
+    {
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #else
+        Application.Quit();
+        #endif
+    }
+
+    /// <summary>
+    /// Legacy method - quits with save progress.
+    /// Retained for backward compatibility but not used in Story 1.2.
+    /// Note: Epic 7 will handle autosave, manual save at quit may not be needed.
     /// </summary>
     public void OnQuitClicked()
     {
@@ -15,10 +36,10 @@ public class QuitButton : MonoBehaviour
             ProgressionManager.Instance.SaveProgress();
         }
 
-#if UNITY_EDITOR
+        #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
-#else
+        #else
         Application.Quit();
-#endif
+        #endif
     }
 }
