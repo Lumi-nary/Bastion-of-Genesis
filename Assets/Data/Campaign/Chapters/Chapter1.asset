@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: Chapter1
   m_EditorClassIdentifier: Assembly-CSharp::ChapterData
   chapterNumber: 0
-  chapterName: cunny
-  chapterDescription: nignanganga
-  chapterIntroText: cunny in
-  chapterOutroText: cunny out
+  chapterName: debug
+  chapterDescription: yummers
+  chapterIntroText: DebugInt
+  chapterOutroText: Debugout
   startingResources: []
   startingWorkers: []
   missions:
   - {fileID: 11400000, guid: 6bbcd645cef2e5a499a4995c7ebdf274, type: 2}
-  activeRaces: 
+  activeRaces: 00000000
   sceneName: 
   chapterThumbnail: {fileID: 0}
   isUnlocked: 1

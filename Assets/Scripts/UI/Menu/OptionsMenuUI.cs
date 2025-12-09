@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections.Generic; // Required for List<>
 
 /// <summary>
 /// OptionsMenuUI - Controller for Options Menu canvas.
@@ -28,13 +29,40 @@ public class OptionsMenuUI : MonoBehaviour
     private SettingsData workingSettings;
 
     /// <summary>
-    /// OnEnable - Load current settings when canvas is shown (AC3).
-    /// Pattern 2: Initialize in OnEnable() for canvas that may be disabled on scene load.
+    /// OnEnable - Setup UI when canvas is shown (AC3).
+    /// Always sets up buttons and loads current settings.
     /// </summary>
     private void OnEnable()
     {
-        LoadCurrentSettings();
+        Debug.Log($"[OptionsMenuUI] OnEnable called. SettingsManager={(SettingsManager.Instance != null ? "exists" : "null")}");
+
+        // Always setup buttons (needed for clicks to work)
         SetupButtons();
+
+        // Load current settings if SettingsManager is ready
+        if (SettingsManager.Instance != null)
+        {
+            LoadCurrentSettings();
+        }
+        else
+        {
+            Debug.LogWarning("[OptionsMenuUI] SettingsManager not ready in OnEnable, will try in Start()");
+        }
+    }
+
+    /// <summary>
+    /// Start - Fallback to load settings if OnEnable ran before SettingsManager was ready.
+    /// </summary>
+    private void Start()
+    {
+        Debug.Log($"[OptionsMenuUI] Start called. workingSettings={(workingSettings != null ? "exists" : "null")}");
+
+        // If settings weren't loaded in OnEnable (because SettingsManager wasn't ready), load them now
+        if (workingSettings == null && SettingsManager.Instance != null)
+        {
+            Debug.Log("[OptionsMenuUI] Loading settings in Start() as fallback");
+            LoadCurrentSettings();
+        }
     }
 
     /// <summary>
@@ -49,8 +77,23 @@ public class OptionsMenuUI : MonoBehaviour
             return;
         }
 
+        // Check if CurrentSettings is null
+        if (SettingsManager.Instance.CurrentSettings == null)
+        {
+            Debug.LogError("[OptionsMenuUI] SettingsManager.CurrentSettings is null - cannot clone");
+            return;
+        }
+
         // Clone current settings to working copy (so we can cancel changes)
         workingSettings = SettingsManager.Instance.CurrentSettings.Clone();
+
+        if (workingSettings == null)
+        {
+            Debug.LogError("[OptionsMenuUI] workingSettings is null after Clone() - something went wrong");
+            return;
+        }
+
+        Debug.Log($"[OptionsMenuUI] Settings cloned: Master={workingSettings.masterVolume:F2}, ResolutionIndex={workingSettings.resolutionIndex}");
 
         // Populate UI with current values
         PopulateUI();
@@ -60,10 +103,11 @@ public class OptionsMenuUI : MonoBehaviour
 
     /// <summary>
     /// Populate UI elements with settings values (AC3, AC4, AC5).
+    /// Includes Auto-Detection for Resolution on first run.
     /// </summary>
     private void PopulateUI()
     {
-        // Audio sliders (AC4) - Map 0.0-1.0 to 0-100
+        // Audio sliders (AC4) - Map 0.0-1.0
         if (masterVolumeSlider != null)
         {
             masterVolumeSlider.value = workingSettings.masterVolume;
@@ -85,15 +129,29 @@ public class OptionsMenuUI : MonoBehaviour
             sfxVolumeSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
         }
 
-        // Resolution dropdown (AC5)
+        // Resolution dropdown (AC5) with Auto-Detect Logic
         if (resolutionDropdown != null)
         {
-            // Populate dropdown with available resolutions
+            // 1. Get available resolution strings from manager
             resolutionDropdown.ClearOptions();
             string[] resolutions = SettingsManager.Instance.GetAvailableResolutions();
-            resolutionDropdown.AddOptions(new System.Collections.Generic.List<string>(resolutions));
+            resolutionDropdown.AddOptions(new List<string>(resolutions));
 
-            // Set current value
+            // 2. Check for "First Run" flag (-1)
+            if (workingSettings.resolutionIndex == -1)
+            {
+                // Auto-detect based on current screen hardware
+                int nativeIndex = GetAutoDetectedResolutionIndex(resolutions);
+
+                // Update working settings immediately
+                workingSettings.resolutionIndex = nativeIndex;
+                Debug.Log($"[OptionsMenuUI] Auto-detected resolution index: {nativeIndex} ({resolutions[nativeIndex]})");
+            }
+
+            // 3. Safety Clamp to ensure we don't crash if index is out of bounds
+            workingSettings.resolutionIndex = Mathf.Clamp(workingSettings.resolutionIndex, 0, resolutions.Length - 1);
+
+            // 4. Set UI value
             resolutionDropdown.value = workingSettings.resolutionIndex;
             resolutionDropdown.onValueChanged.RemoveAllListeners();
             resolutionDropdown.onValueChanged.AddListener(OnResolutionChanged);
@@ -106,6 +164,30 @@ public class OptionsMenuUI : MonoBehaviour
             fullscreenToggle.onValueChanged.RemoveAllListeners();
             fullscreenToggle.onValueChanged.AddListener(OnFullscreenChanged);
         }
+    }
+
+    /// <summary>
+    /// Helper to find the index of the user's current screen resolution in the available list.
+    /// </summary>
+    private int GetAutoDetectedResolutionIndex(string[] availableResolutions)
+    {
+        // Get the current screen resolution (native monitor resolution)
+        Resolution currentRes = Screen.currentResolution;
+
+        // Construct the expected string format (Width x Height)
+        string targetResString = $"{currentRes.width} x {currentRes.height}";
+
+        for (int i = 0; i < availableResolutions.Length; i++)
+        {
+            // Check if the dropdown option contains the width and height
+            if (availableResolutions[i].Contains(targetResString))
+            {
+                return i;
+            }
+        }
+
+        // Fallback: If exact match not found, return the last one (usually highest/best res)
+        return Mathf.Max(0, availableResolutions.Length - 1);
     }
 
     /// <summary>

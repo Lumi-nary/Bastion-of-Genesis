@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 549fa760c959a954d83336ebea1ee97b, type: 3}
+  m_Name: Tile_IronMound
+  m_EditorClassIdentifier: Assembly-CSharp::TileData
+  tileName: 
+  description: 
+  tileSprite: {fileID: 0}
+  previewColor: {r: 1, g: 1, b: 1, a: 1}
+  properties:
+  - {fileID: 11400000, guid: ccb4902bfb4e09441a957aac4d59e714, type: 2}

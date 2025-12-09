@@ -17,6 +17,24 @@ public class ModalDialog : MonoBehaviour
 {
     public static ModalDialog Instance { get; private set; }
 
+    /// <summary>
+    /// Check if a modal is currently active/visible.
+    /// Used by MenuManager to prevent ESC key conflicts (Story 3.3).
+    /// </summary>
+    public bool IsModalActive()
+    {
+        return isModalActive;
+    }
+
+    /// <summary>
+    /// Check if modal just handled ESC this frame.
+    /// Used by MenuManager to prevent double-handling ESC (Story 3.3).
+    /// </summary>
+    public bool JustHandledEscThisFrame()
+    {
+        return justHandledEscThisFrame;
+    }
+
     [Header("UI Components")]
     [SerializeField] private GameObject modalPanel;
     [SerializeField] private GameObject backgroundOverlay;
@@ -31,6 +49,7 @@ public class ModalDialog : MonoBehaviour
     // Modal queue for sequential display (AC7)
     private Queue<ModalRequest> modalQueue = new Queue<ModalRequest>();
     private bool isModalActive = false;
+    private bool justHandledEscThisFrame = false; // Story 3.3: Prevent MenuManager from also handling ESC
 
     // Current modal state
     private Action<int> currentCallback;
@@ -134,11 +153,34 @@ public class ModalDialog : MonoBehaviour
     /// </summary>
     private void OnEscapePressed(InputAction.CallbackContext context)
     {
+        Debug.Log($"[ModalDialog] ESC pressed. isModalActive={isModalActive}, buttonCount={currentButtons.Count}");
+
         if (isModalActive && currentButtons.Count > 0)
         {
+            // Set flag to prevent MenuManager from also handling ESC this frame
+            justHandledEscThisFrame = true;
+
             // Trigger rightmost button (last button in list)
             int lastButtonIndex = currentButtons.Count - 1;
+            Debug.Log($"[ModalDialog] Triggering rightmost button (index {lastButtonIndex}), set ESC handled flag");
             OnButtonClick(lastButtonIndex);
+        }
+        else
+        {
+            Debug.LogWarning("[ModalDialog] ESC pressed but modal not active or no buttons available");
+        }
+    }
+
+    /// <summary>
+    /// LateUpdate - Clear ESC handled flag at end of frame.
+    /// Story 3.3: Ensures flag is only true for one frame.
+    /// </summary>
+    private void LateUpdate()
+    {
+        if (justHandledEscThisFrame)
+        {
+            justHandledEscThisFrame = false;
+            Debug.Log("[ModalDialog] Cleared ESC handled flag in LateUpdate");
         }
     }
 

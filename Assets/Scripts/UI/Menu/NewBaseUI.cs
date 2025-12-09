@@ -22,9 +22,6 @@ public class NewBaseUI : MonoBehaviour
     [Header("COOP Panel")]
     [SerializeField] private GameObject coopServerPanel;
 
-    [Header("Confirmation Dialog")]
-    [SerializeField] private GameObject confirmationDialog;
-
     // ============================================================================
     // PRIVATE FIELDS
     // ============================================================================
@@ -56,14 +53,32 @@ public class NewBaseUI : MonoBehaviour
     private Difficulty initialDifficulty = Difficulty.Medium;
     private GameMode initialMode = GameMode.Singleplayer;
     private bool isFormDirty = false;
+    private bool hasInitialized = false;
 
     // ============================================================================
     // LIFECYCLE METHODS
     // ============================================================================
 
+    private void Start()
+    {
+        hasInitialized = true;
+
+        // If canvas is currently active when Start runs, initialize now
+        Canvas parentCanvas = GetComponentInParent<Canvas>();
+        if (parentCanvas != null && parentCanvas.enabled)
+        {
+            InitializeForm();
+        }
+    }
+
     private void OnEnable()
     {
-        InitializeForm();
+        // Only initialize after Start() has run (hasInitialized = true)
+        // This prevents initialization during scene load
+        if (hasInitialized)
+        {
+            InitializeForm();
+        }
     }
 
     private void OnDisable()
@@ -131,11 +146,7 @@ public class NewBaseUI : MonoBehaviour
             coopServerPanel.SetActive(false);
         }
 
-        // Hide confirmation dialog initially
-        if (confirmationDialog != null)
-        {
-            confirmationDialog.SetActive(false);
-        }
+        // Story 3.3: Old confirmationDialog GameObject no longer used (now using ModalDialog)
 
         // Reset dirty flag
         isFormDirty = false;
@@ -284,41 +295,45 @@ public class NewBaseUI : MonoBehaviour
 
     /// <summary>
     /// Show confirmation dialog when user tries to go back with unsaved changes.
-    /// Dialog has Yes/No buttons (wired in Inspector to OnConfirmBack/OnCancelBack).
+    /// Story 3.3: Uses ModalDialog system instead of old confirmationDialog GameObject.
     /// </summary>
     public void ShowConfirmationDialog()
     {
-        if (confirmationDialog != null)
+        // Story 3.3: Use ModalDialog instead of old GameObject system
+        if (ModalDialog.Instance != null)
         {
-            confirmationDialog.SetActive(true);
-            Debug.Log("[NewBaseUI] Confirmation dialog displayed");
+            ModalDialog.Instance.ShowConfirmation(
+                message: "You have unsaved changes. Discard changes and return to main menu?",
+                onConfirm: OnConfirmBack,
+                onCancel: OnCancelBack
+            );
+            Debug.Log("[NewBaseUI] Confirmation dialog displayed via ModalDialog");
+        }
+        else
+        {
+            Debug.LogError("[NewBaseUI] ModalDialog.Instance is null - cannot show confirmation");
         }
     }
 
     /// <summary>
-    /// Called when user confirms going back (Yes button).
+    /// Called when user confirms going back (Confirm button in ModalDialog).
     /// Returns to main menu without saving changes.
+    /// Story 3.3: ModalDialog closes itself automatically.
     /// </summary>
     public void OnConfirmBack()
     {
         Debug.Log("[NewBaseUI] User confirmed going back, discarding changes");
-        if (confirmationDialog != null)
-        {
-            confirmationDialog.SetActive(false);
-        }
         MenuManager.Instance.ShowMainMenuCanvas();
     }
 
     /// <summary>
-    /// Called when user cancels going back (No button).
-    /// Hides confirmation dialog and stays on NewBaseCanvas.
+    /// Called when user cancels going back (Cancel button in ModalDialog).
+    /// Stays on NewBaseCanvas.
+    /// Story 3.3: ModalDialog closes itself automatically.
     /// </summary>
     public void OnCancelBack()
     {
         Debug.Log("[NewBaseUI] User cancelled going back, staying on NewBaseCanvas");
-        if (confirmationDialog != null)
-        {
-            confirmationDialog.SetActive(false);
-        }
+        // Modal closes automatically, nothing else needed
     }
 }

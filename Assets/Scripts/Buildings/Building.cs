@@ -16,9 +16,34 @@ public class Building : MonoBehaviour
     public int width;
     public int height;
 
-    private float generationTimer = 0f;
-    private float pollutionTimer = 0f;
     public float CurrentHealth { get; private set; }
+    private bool isDestroyed = false;
+    public bool IsDestroyed => isDestroyed;
+
+    // Events
+    public event Action<Building, float> OnBuildingDamaged;
+    public event Action<Building> OnBuildingDestroyed;
+
+    private void Awake()
+    {
+        // Ensure BoxCollider2D exists for physics-based placement detection
+        BoxCollider2D collider = GetComponent<BoxCollider2D>();
+        if (collider == null)
+        {
+            collider = gameObject.AddComponent<BoxCollider2D>();
+        }
+
+        // Set collider size based on BuildingData dimensions
+        if (buildingData != null)
+        {
+            collider.size = new Vector2(buildingData.width, buildingData.height);
+            collider.offset = Vector2.zero;
+
+            // Also set width/height from BuildingData if not already set
+            if (width == 0) width = buildingData.width;
+            if (height == 0) height = buildingData.height;
+        }
+    }
 
     // Property to check if the building has the minimum required workers to function
     public bool IsOperational
@@ -41,72 +66,52 @@ public class Building : MonoBehaviour
     private void Start()
     {
         CurrentHealth = buildingData.maxHealth;
+
+        // Register with GridManager if placed in scene editor (gridPosition not set by BuildingManager)
+        if (GridManager.Instance != null && gridPosition == Vector2Int.zero)
+        {
+            // Calculate grid position from world position
+            Vector2Int worldGridPos = GridManager.Instance.WorldToGridPosition(transform.position);
+
+            // Calculate bottom-left grid position based on building size
+            int centerOffsetX = width / 2;
+            int centerOffsetY = height / 2;
+            gridPosition = new Vector2Int(worldGridPos.x - centerOffsetX, worldGridPos.y - centerOffsetY);
+
+            // Register with grid
+            GridManager.Instance.PlaceBuilding(this, gridPosition, width, height);
+        }
+
+        // Register with BuildingManager if not already tracked (scene-placed buildings)
+        if (BuildingManager.Instance != null)
+        {
+            BuildingManager.Instance.RegisterBuilding(this);
+        }
+
+        // Initialize all features
+        foreach (var feature in buildingData.features)
+        {
+            if (feature != null)
+            {
+                feature.OnBuilt(this);
+            }
+        }
     }
 
     private void Update()
     {
-        if (IsOperational && buildingData.generatedResourceType != null && buildingData.generationAmount > 0)
+        // Execute all features (modular system)
+        foreach (var feature in buildingData.features)
         {
-            GenerateResources();
-        }
-
-        // Generate pollution
-        if (buildingData.pollutionGeneration > 0 || buildingData.generatesIdlePollution)
-        {
-            GeneratePollution();
-        }
-    }
-
-    private void GenerateResources()
-    {
-        // Timer-based generation instead of accumulating per frame
-        generationTimer += Time.deltaTime;
-
-        if (generationTimer >= buildingData.generationInterval)
-        {
-            generationTimer -= buildingData.generationInterval;
-
-            // Simple efficiency model: generation is proportional to the number of assigned workers vs. total capacity.
-            // This can be made more complex later.
-            float efficiency = (float)GetTotalAssignedWorkerCount() / GetTotalWorkerCapacity();
-            int resourcesToGenerate = Mathf.FloorToInt(buildingData.generationAmount * efficiency);
-
-            if (resourcesToGenerate > 0)
+            if (feature != null)
             {
-                ResourceManager.Instance.AddResource(buildingData.generatedResourceType, resourcesToGenerate);
-            }
-        }
-    }
+                feature.OnUpdate(this);
 
-    private void GeneratePollution()
-    {
-        if (PollutionManager.Instance == null) return;
-
-        pollutionTimer += Time.deltaTime;
-
-        if (pollutionTimer >= buildingData.pollutionInterval)
-        {
-            pollutionTimer -= buildingData.pollutionInterval;
-
-            float pollutionToGenerate = 0f;
-
-            // Check if building generates pollution with workers
-            if (IsOperational && buildingData.pollutionGeneration > 0)
-            {
-                // Pollution scales with number of workers
-                int workerCount = GetTotalAssignedWorkerCount();
-                pollutionToGenerate += buildingData.pollutionGeneration * workerCount;
-            }
-
-            // Check if building generates idle pollution
-            if (buildingData.generatesIdlePollution && buildingData.idlePollutionAmount > 0)
-            {
-                pollutionToGenerate += buildingData.idlePollutionAmount;
-            }
-
-            if (pollutionToGenerate > 0)
-            {
-                PollutionManager.Instance.AddPollution(pollutionToGenerate);
+                // Execute operational features if building is operational
+                if (IsOperational)
+                {
+                    feature.OnOperate(this);
+                }
             }
         }
     }
@@ -185,5 +190,108 @@ public class Building : MonoBehaviour
             assignedWorkers.Remove(workerToRemove);
             WorkerManager.Instance.ReturnWorker(workerData);
         }
+    }
+
+    /// <summary>
+    /// Take damage from enemies
+    /// Features can react to damage
+    /// </summary>
+    public void TakeDamage(float damage)
+    {
+        if (isDestroyed) return;
+
+        CurrentHealth -= damage;
+
+        OnBuildingDamaged?.Invoke(this, damage);
+
+        // Notify features about damage
+        foreach (var feature in buildingData.features)
+        {
+            if (feature != null)
+            {
+                feature.OnDamaged(this, damage);
+            }
+        }
+
+        if (CurrentHealth <= 0)
+        {
+            DestroyBuilding();
+        }
+    }
+
+    /// <summary>
+    /// Destroy this building
+    /// Features execute cleanup logic
+    /// </summary>
+    private void DestroyBuilding()
+    {
+        if (isDestroyed) return;
+
+        isDestroyed = true;
+
+        // Notify features about destruction
+        foreach (var feature in buildingData.features)
+        {
+            if (feature != null)
+            {
+                feature.OnDestroyed(this);
+            }
+        }
+
+        // Kill all assigned workers (as per design doc)
+        foreach (WorkerData worker in assignedWorkers.ToList())
+        {
+            // Worker is killed, don't return to pool
+            Debug.Log($"[Building] Worker killed in {buildingData.buildingName} destruction");
+        }
+        assignedWorkers.Clear();
+
+        // Unregister from GridManager (free up cells for pathfinding)
+        if (GridManager.Instance != null)
+        {
+            GridManager.Instance.RemoveBuilding(this, gridPosition, width, height);
+            Debug.Log($"[Building] Unregistered from GridManager at {gridPosition}");
+        }
+
+        // Notify listeners
+        OnBuildingDestroyed?.Invoke(this);
+
+        // Notify BuildingManager
+        if (BuildingManager.Instance != null)
+        {
+            BuildingManager.Instance.OnBuildingDestroyed(this);
+        }
+
+        Debug.Log($"[Building] {buildingData.buildingName} destroyed!");
+
+        // Destroy GameObject
+        Destroy(gameObject);
+    }
+
+    /// <summary>
+    /// Repair building to full health
+    /// </summary>
+    public void Repair()
+    {
+        CurrentHealth = buildingData.maxHealth;
+    }
+
+    /// <summary>
+    /// Apply curse effect from Demon enemies
+    /// Reduces max HP temporarily
+    /// </summary>
+    public void ApplyCurse(float maxHPReduction, float duration)
+    {
+        // TODO: Implement curse debuff system
+        // For now, just log the effect
+        Debug.Log($"[Building] {buildingData.buildingName} cursed! Max HP reduced by {maxHPReduction * 100}% for {duration}s");
+    }
+
+    /// <summary>
+    /// Repair building by specific amount
+    /// </summary>
+    public void Repair(float amount)
+    {
+        CurrentHealth = Mathf.Min(CurrentHealth + amount, buildingData.maxHealth);
     }
 }

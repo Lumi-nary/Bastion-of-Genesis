@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0085d395165c104bbca07356b52ab46, type: 3}
+  m_Name: IronExtractor
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingData
+  buildingName: Iron Extractor
+  description: 
+  icon: {fileID: 0}
+  category: 2
+  prefab: {fileID: 2606344867460193498, guid: 9c2d7ca2e6f192b4f8c7f6946686a388, type: 3}
+  requiredTech: {fileID: 0}
+  maxHealth: 100
+  resourceCost:
+  - resourceType: {fileID: 11400000, guid: bb2aea2cb49421c46aabf3bfd3252158, type: 2}
+    amount: 50
+  builderType: {fileID: 11400000, guid: 91c98282305e56e4ebff8c175e677795, type: 2}
+  buildersConsumed: 1
+  capacityType: 1
+  totalWorkerCapacity: 2
+  workerRequirements:
+  - workerType: {fileID: 11400000, guid: 4032d19a78fcf444596b3b15ff750222, type: 2}
+    capacity: 2
+    requiredCount: 1
+  features:
+  - {fileID: 11400000, guid: 21af3974ab9d9704699134e94ddbc5fc, type: 2}
+  - {fileID: 11400000, guid: b53ada442e8dc4d46a673f572da4aa09, type: 2}
+  width: 3
+  height: 3

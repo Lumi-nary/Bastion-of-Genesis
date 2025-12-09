@@ -43,7 +43,7 @@ public class ChapterData : ScriptableObject
     {
         foreach (var mission in missions)
         {
-            if (!mission.AreAllObjectivesComplete())
+            if (!mission.AreMainObjectivesComplete())
             {
                 return false;
             }
@@ -56,7 +56,7 @@ public class ChapterData : ScriptableObject
         int count = 0;
         foreach (var mission in missions)
         {
-            if (mission.AreAllObjectivesComplete())
+            if (mission.AreMainObjectivesComplete())
             {
                 count++;
             }

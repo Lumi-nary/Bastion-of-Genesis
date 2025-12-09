@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9926cba1070fb5843991ae8ee51182c6, type: 3}
+  m_Name: DifficultySettings
+  m_EditorClassIdentifier: Assembly-CSharp::DifficultySettings
+  tier2Threshold: 250
+  tier3Threshold: 500
+  tier4Threshold: 750
+  tier1:
+    spawnInterval: 90
+    minEnemies: 5
+    maxEnemies: 10
+    statModifier: 1
+  tier2:
+    spawnInterval: 60
+    minEnemies: 10
+    maxEnemies: 20
+    statModifier: 1
+  tier3:
+    spawnInterval: 45
+    minEnemies: 20
+    maxEnemies: 30
+    statModifier: 1.15
+  tier4:
+    spawnInterval: 30
+    minEnemies: 30
+    maxEnemies: 50
+    statModifier: 1.3
+  easyModifiers:
+    enemyHPModifier: 0.75
+    enemyDamageModifier: 0.75
+    spawnRateModifier: 1.3
+    waveSizeModifier: 0.75
+  mediumModifiers:
+    enemyHPModifier: 1
+    enemyDamageModifier: 1
+    spawnRateModifier: 1
+    waveSizeModifier: 1
+  hardModifiers:
+    enemyHPModifier: 1.25
+    enemyDamageModifier: 1.25
+    spawnRateModifier: 0.7
+    waveSizeModifier: 1.25

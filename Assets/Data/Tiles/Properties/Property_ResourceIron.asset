@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57761a6d648854845a22dc0608cd3cff, type: 3}
+  m_Name: Property_ResourceIron
+  m_EditorClassIdentifier: Assembly-CSharp::ResourceNodeProperty
+  propertyName: Iron Mound
+  description: 
+  icon: {fileID: 0}
+  resourceType: {fileID: 11400000, guid: f44ba9d81749962419739a7656fee1cc, type: 2}
+  totalAmount: 1000
+  claimedSprite: {fileID: 8136626158238951979, guid: a5f1b19c8c2422242a3a6fc357b022b1, type: 3}
+  isClaimed: 0
+  claimedBy: {fileID: 0}

@@ -45,10 +45,41 @@ public class WakeUpButton : MonoBehaviour
         SaveManager.Instance.CreateNewSave(baseName, difficulty, mode);
 
         Debug.Log($"[WakeUpButton] Save created: {baseName}, {difficulty}, {mode}, Chapter {chapter}");
-        Debug.Log("[WakeUpButton] Save created, loading GameWorld scene");
 
-        // AC5: Load GameWorld scene via SceneManager.LoadSceneAsync (ADR-6: Scene Flow)
+        // Get the correct scene name for the selected chapter
+        string sceneToLoad = GetChapterSceneName(chapter);
+        Debug.Log($"[WakeUpButton] Save created, loading {sceneToLoad} scene");
+
+        // AC5: Load chapter scene via SceneManager.LoadSceneAsync (ADR-6: Scene Flow)
         // NFR-1: Scene transition completes within <2 seconds
-        SceneManager.LoadSceneAsync("GameWorld");
+        SceneManager.LoadSceneAsync(sceneToLoad);
+    }
+
+    /// <summary>
+    /// Get the scene name for a specific chapter.
+    /// Queries MissionChapterManager for chapter data if available,
+    /// otherwise falls back to default naming convention.
+    /// </summary>
+    private string GetChapterSceneName(int chapterNumber)
+    {
+        // Try to get scene name from MissionChapterManager
+        if (MissionChapterManager.Instance != null && MissionChapterManager.Instance.Chapters.Count > 0)
+        {
+            // Chapter numbers are 1-indexed, list is 0-indexed
+            int chapterIndex = chapterNumber - 1;
+
+            if (chapterIndex >= 0 && chapterIndex < MissionChapterManager.Instance.Chapters.Count)
+            {
+                ChapterData chapterData = MissionChapterManager.Instance.Chapters[chapterIndex];
+                if (!string.IsNullOrEmpty(chapterData.sceneName))
+                {
+                    return chapterData.sceneName;
+                }
+            }
+        }
+
+        // Fallback: Use default naming convention if ChapterData not available
+        // Assumes scenes named: Chapter1Map, Chapter2Map, etc.
+        return $"Chapter{chapterNumber}Map";
     }
 }

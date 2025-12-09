@@ -11,8 +11,9 @@ public class TooltipUI : MonoBehaviour
     [SerializeField] private RectTransform backgroundRect;
 
     [Header("Settings")]
-    [SerializeField] private int characterWrapLimit = 50;
     [SerializeField] private Vector2 offset = new Vector2(10, -10);
+    [SerializeField] private float maxWidth = 400f;
+    [SerializeField] private float maxHeight = 300f;
 
     private RectTransform rectTransform;
     private Canvas parentCanvas;
@@ -45,28 +46,31 @@ public class TooltipUI : MonoBehaviour
         headerText.text = header;
         descriptionText.text = description;
 
-        // Update layout
-        int headerLength = headerText.text.Length;
-        int descriptionLength = descriptionText.text.Length;
+        // Update layout element with max constraints
+        if (layoutElement != null)
+        {
+            layoutElement.enabled = true;
+            layoutElement.preferredWidth = maxWidth;
+            layoutElement.preferredHeight = -1; // Let height expand
 
-        if (headerLength > characterWrapLimit || descriptionLength > characterWrapLimit)
-        {
-            if (layoutElement != null)
+            // Set maximum size constraints
+            if (layoutElement.preferredWidth > maxWidth)
             {
-                layoutElement.enabled = true;
-            }
-        }
-        else
-        {
-            if (layoutElement != null)
-            {
-                layoutElement.enabled = false;
+                layoutElement.preferredWidth = maxWidth;
             }
         }
 
         // Force layout rebuild
         Canvas.ForceUpdateCanvases();
         LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
+
+        // Clamp size to maximum after layout calculation
+        Vector2 tooltipSize = rectTransform.rect.size;
+        if (tooltipSize.x > maxWidth || tooltipSize.y > maxHeight)
+        {
+            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Mathf.Min(tooltipSize.x, maxWidth));
+            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Min(tooltipSize.y, maxHeight));
+        }
     }
 
     public void Hide()
@@ -79,7 +83,7 @@ public class TooltipUI : MonoBehaviour
         if (parentCanvas == null) return;
 
         // Convert mouse position to canvas space
-        Vector2 position = mousePosition;
+        Vector2 position;
 
         if (parentCanvas.renderMode == RenderMode.ScreenSpaceCamera ||
             parentCanvas.renderMode == RenderMode.WorldSpace)
@@ -105,26 +109,37 @@ public class TooltipUI : MonoBehaviour
         // Apply offset
         position += offset;
 
-        // Keep tooltip within canvas bounds
-        Vector2 pivot = rectTransform.pivot;
-        Vector3[] canvasCorners = new Vector3[4];
-        (parentCanvas.transform as RectTransform).GetWorldCorners(canvasCorners);
-
+        // Get canvas and tooltip dimensions
         RectTransform canvasRect = parentCanvas.transform as RectTransform;
         Vector2 canvasSize = canvasRect.rect.size;
-
-        // Get tooltip size
         Vector2 tooltipSize = rectTransform.rect.size;
 
-        // Adjust position to keep within bounds
-        if (position.x + tooltipSize.x > canvasSize.x / 2)
+        // Calculate bounds in local space (canvas is centered at origin)
+        float halfCanvasWidth = canvasSize.x / 2f;
+        float halfCanvasHeight = canvasSize.y / 2f;
+
+        // Check right edge - if tooltip would go off right side, flip to left of cursor
+        if (position.x + tooltipSize.x > halfCanvasWidth)
         {
-            position.x = mousePosition.x - tooltipSize.x - offset.x;
+            position.x -= (tooltipSize.x + offset.x * 2); // Flip to left side
         }
 
-        if (position.y - tooltipSize.y < -canvasSize.y / 2)
+        // Check left edge
+        if (position.x < -halfCanvasWidth)
         {
-            position.y = mousePosition.y + tooltipSize.y - offset.y;
+            position.x = -halfCanvasWidth;
+        }
+
+        // Check bottom edge - if tooltip would go off bottom, flip to top of cursor
+        if (position.y - tooltipSize.y < -halfCanvasHeight)
+        {
+            position.y += (tooltipSize.y - offset.y * 2); // Flip to top side
+        }
+
+        // Check top edge
+        if (position.y > halfCanvasHeight)
+        {
+            position.y = halfCanvasHeight;
         }
 
         rectTransform.localPosition = position;

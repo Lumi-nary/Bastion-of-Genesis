@@ -85,11 +85,12 @@ public class BuildingInfoPanel : MonoBehaviour
                 resourceGenerationText.gameObject.SetActive(true);
 
                 // Resource Generation Text
-                if (currentBuilding.BuildingData.generatedResourceType != null && currentBuilding.BuildingData.generationAmount > 0)
+                ResourceExtractorFeature extractorFeature = currentBuilding.BuildingData.GetFeature<ResourceExtractorFeature>();
+                if (extractorFeature != null && extractorFeature.resourceType != null && extractorFeature.extractionAmount > 0)
                 {
-                    float efficiency = (float)currentBuilding.GetTotalAssignedWorkerCount() / currentBuilding.GetTotalWorkerCapacity();
-                    float effectiveRate = currentBuilding.BuildingData.generationAmount * efficiency;
-                    resourceGenerationText.text = $"Generates: {effectiveRate:F2} {currentBuilding.BuildingData.generatedResourceType.ResourceName}/s";
+                    float cycleTime = extractorFeature.productionCycle;
+                    float ratePerSecond = extractorFeature.extractionAmount / cycleTime;
+                    resourceGenerationText.text = $"Generates: {ratePerSecond:F2} {extractorFeature.resourceType.ResourceName}/s";
                 }
                 else
                 {

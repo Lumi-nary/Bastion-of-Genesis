@@ -14,7 +14,7 @@ public class SettingsData
     public float sfxVolume = 0.8f;     // 0.0 to 1.0 (0% to 100%)
 
     // Graphics Settings
-    public int resolutionIndex = 0;    // Index into Screen.resolutions array
+    public int resolutionIndex = -1;    // Index into Screen.resolutions array
     public bool fullscreen = true;
 
     /// <summary>

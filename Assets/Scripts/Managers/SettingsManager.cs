@@ -50,6 +50,34 @@ public class SettingsManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Create default settings with current screen resolution detected.
+    /// </summary>
+    private SettingsData CreateDefaultSettings()
+    {
+        SettingsData defaults = new SettingsData();
+
+        // Find current screen resolution in available resolutions
+        Resolution currentRes = Screen.currentResolution;
+        Resolution[] availableResolutions = Screen.resolutions;
+
+        for (int i = 0; i < availableResolutions.Length; i++)
+        {
+            if (availableResolutions[i].width == currentRes.width &&
+                availableResolutions[i].height == currentRes.height)
+            {
+                defaults.resolutionIndex = i;
+                Debug.Log($"[SettingsManager] Default resolution set to: {currentRes.width}x{currentRes.height} (index {i})");
+                break;
+            }
+        }
+
+        // Set fullscreen to match current state
+        defaults.fullscreen = Screen.fullScreen;
+
+        return defaults;
+    }
+
+    /// <summary>
     /// Load settings from JSON file (AC2, AC7).
     /// If file doesn't exist or is corrupted, use defaults.
     /// </summary>
@@ -62,15 +90,31 @@ public class SettingsManager : MonoBehaviour
                 // Read JSON file
                 string json = File.ReadAllText(settingsFilePath);
 
+                // Check if file is empty or whitespace
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    Debug.LogWarning($"[SettingsManager] Settings file is empty, using defaults");
+                    currentSettings = CreateDefaultSettings();
+                    return;
+                }
+
                 // Deserialize to SettingsData
                 currentSettings = JsonUtility.FromJson<SettingsData>(json);
+
+                // JsonUtility can return null on invalid JSON
+                if (currentSettings == null)
+                {
+                    Debug.LogWarning($"[SettingsManager] Settings file invalid, using defaults");
+                    currentSettings = CreateDefaultSettings();
+                    return;
+                }
 
                 Debug.Log($"[SettingsManager] Settings loaded from: {settingsFilePath}");
             }
             else
             {
                 // No settings file found, use defaults
-                currentSettings = new SettingsData();
+                currentSettings = CreateDefaultSettings();
 
                 Debug.LogWarning($"[SettingsManager] No settings file found, using defaults");
             }
@@ -79,7 +123,7 @@ public class SettingsManager : MonoBehaviour
         {
             // File corrupted, use defaults
             Debug.LogError($"[SettingsManager] Failed to load settings: {ex.Message}. Using defaults.");
-            currentSettings = new SettingsData();
+            currentSettings = CreateDefaultSettings();
         }
     }
 
@@ -172,8 +216,14 @@ public class SettingsManager : MonoBehaviour
     /// </summary>
     public void UpdateSettings(SettingsData newSettings)
     {
+        if (newSettings == null)
+        {
+            Debug.LogError("[SettingsManager] UpdateSettings called with null newSettings - aborting");
+            return;
+        }
+
         currentSettings = newSettings;
-        Debug.Log("[SettingsManager] Settings updated (not yet saved/applied)");
+        Debug.Log($"[SettingsManager] Settings updated: Master={newSettings.masterVolume:F2}, Resolution={newSettings.resolutionIndex}");
     }
 
     /// <summary>

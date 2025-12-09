@@ -97,20 +97,14 @@ public class ProgressionManager : MonoBehaviour
                 List<bool> chapterMissions = new List<bool>();
                 foreach (var mission in chapter.missions)
                 {
-                    chapterMissions.Add(mission.AreAllObjectivesComplete());
+                    chapterMissions.Add(mission.AreMainObjectivesComplete());
                 }
                 data.completedMissions.Add(chapterMissions);
             }
         }
 
-        // Save enemy hostility state (persists across chapters)
-        if (PollutionManager.Instance != null)
-        {
-            data.humansHostile = PollutionManager.Instance.IsRaceHostile(RaceType.Human);
-            data.elvesHostile = PollutionManager.Instance.IsRaceHostile(RaceType.Elf);
-            data.dwarvesHostile = PollutionManager.Instance.IsRaceHostile(RaceType.Dwarf);
-            data.demonsHostile = PollutionManager.Instance.IsRaceHostile(RaceType.Demon);
-        }
+        // Note: Enemy hostility is no longer tracked - difficulty is based on current pollution tier
+        // Pollution resets each chapter, so difficulty always starts at Tier 1
 
         // TODO: Save research/technology state when TechnologyManager is implemented
         // data.unlockedTechnologies = TechnologyManager.Instance.GetUnlockedTechnologies();
@@ -174,11 +168,7 @@ public class ProgressionManager : MonoBehaviour
             }
         }
 
-        // Restore enemy hostility state (persists across chapters)
-        if (PollutionManager.Instance != null)
-        {
-            PollutionManager.Instance.RestoreHostilityState(data.humansHostile, data.elvesHostile, data.dwarvesHostile, data.demonsHostile);
-        }
+        // Note: Enemy hostility is no longer tracked - difficulty is based on current pollution tier
 
         // TODO: Restore research/technology state when TechnologyManager is implemented
         // TechnologyManager.Instance.RestoreUnlockedTechnologies(data.unlockedTechnologies);
@@ -231,10 +221,14 @@ public class ProgressionData
     // Mission completion (per chapter, per mission)
     public List<List<bool>> completedMissions = new List<List<bool>>();
 
-    // Enemy hostility state (persists across chapters)
+    // Legacy hostility fields (kept for save compatibility, no longer used)
+    [Obsolete("Hostility system replaced by pollution tier system")]
     public bool humansHostile;
+    [Obsolete("Hostility system replaced by pollution tier system")]
     public bool elvesHostile;
+    [Obsolete("Hostility system replaced by pollution tier system")]
     public bool dwarvesHostile;
+    [Obsolete("Hostility system replaced by pollution tier system")]
     public bool demonsHostile;
 
     // TODO: Add research/technology data when TechnologyManager is implemented

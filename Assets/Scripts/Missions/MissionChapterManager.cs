@@ -90,8 +90,8 @@ public class MissionChapterManager : MonoBehaviour
         // Update time-based objectives
         UpdateTimeBasedObjectives();
 
-        // Check if all objectives are complete
-        if (currentMission.AreAllObjectivesComplete())
+        // Check if all main objectives are complete
+        if (currentMission.AreMainObjectivesComplete())
         {
             CompleteMission();
         }
@@ -425,14 +425,9 @@ public class MissionChapterManager : MonoBehaviour
 
         missionActive = false;
 
-        // Award completion rewards
-        foreach (var reward in currentMission.completionRewards)
-        {
-            if (ResourceManager.Instance != null && reward.resourceType != null)
-            {
-                ResourceManager.Instance.AddResource(reward.resourceType, reward.amount);
-            }
-        }
+        // Award completion rewards (main + optional if all optional objectives complete)
+        bool includeOptional = currentMission.AreOptionalObjectivesComplete();
+        currentMission.ApplyRewards(includeOptional);
 
         OnMissionCompleted?.Invoke(currentMission);
         Debug.Log($"Mission Completed: {currentMission.missionName}");

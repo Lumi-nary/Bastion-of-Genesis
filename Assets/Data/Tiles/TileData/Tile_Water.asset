@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 549fa760c959a954d83336ebea1ee97b, type: 3}
+  m_Name: Tile_Water
+  m_EditorClassIdentifier: Assembly-CSharp::TileData
+  tileName: Water
+  description: 
+  tileSprite: {fileID: 0}
+  previewColor: {r: 0.003070495, g: 0.15483059, b: 0.6509434, a: 1}
+  properties:
+  - {fileID: 11400000, guid: 26b25c986f2530347ae38981d0fed825, type: 2}

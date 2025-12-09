@@ -22,6 +22,12 @@ public class MenuManager : MonoBehaviour
     // Track currently active canvas
     private Canvas currentCanvas;
 
+    /// <summary>
+    /// Get the currently active canvas (Story 3.3 fix).
+    /// Used by UI controllers to check if they should initialize.
+    /// </summary>
+    public Canvas CurrentCanvas => currentCanvas;
+
     // Unity Input System actions for ESC key
     private InputAction escapeAction;
 
@@ -103,12 +109,27 @@ public class MenuManager : MonoBehaviour
 
     /// <summary>
     /// ESC key callback - Return to main menu from any subscreen (AC4.4).
+    /// Story 3.3: Do not process ESC if ModalDialog is active or just handled ESC.
     /// </summary>
     private void OnEscapePressed(InputAction.CallbackContext context)
     {
+        // Story 3.3: Check if modal is active OR just handled ESC this frame
+        // Both handlers fire on same frame, so ModalDialog sets a flag when it handles ESC
+        bool modalActive = ModalDialog.Instance != null && ModalDialog.Instance.IsModalActive();
+        bool modalJustHandledEsc = ModalDialog.Instance != null && ModalDialog.Instance.JustHandledEscThisFrame();
+
+        Debug.Log($"[MenuManager] ESC pressed. Modal active: {modalActive}, just handled: {modalJustHandledEsc}");
+
+        if (modalActive || modalJustHandledEsc)
+        {
+            Debug.Log("[MenuManager] Modal is handling ESC, skipping menu navigation");
+            return; // Modal has priority over MenuManager ESC handling
+        }
+
         // Only navigate back if not already on main menu
         if (currentCanvas != mainMenuCanvas && mainMenuCanvas != null)
         {
+            Debug.Log("[MenuManager] Navigating back to main menu");
             ShowMainMenuCanvas();
         }
         // If already on main menu, do nothing (no quit confirmation)

@@ -18,14 +18,18 @@ public class LoadGameUI : MonoBehaviour
     [SerializeField] private GameObject saveListItemPrefab;
     [SerializeField] private GameObject emptyStatePanel;
 
+    private bool hasInitialized = false;
+
     /// <summary>
-    /// Start - Initial refresh after all Awake() methods complete.
-    /// Ensures SaveManager is initialized before first refresh.
+    /// Start - Mark as initialized, prevents loading during scene initialization.
     /// </summary>
     private void Start()
     {
-        // Refresh on Start to ensure SaveManager.Awake() has completed
-        if (SaveManager.Instance != null && gameObject.activeInHierarchy)
+        hasInitialized = true;
+
+        // If canvas is currently active when Start runs, refresh now
+        Canvas parentCanvas = GetComponentInParent<Canvas>();
+        if (SaveManager.Instance != null && parentCanvas != null && parentCanvas.enabled)
         {
             RefreshSaveList();
         }
@@ -34,12 +38,13 @@ public class LoadGameUI : MonoBehaviour
     /// <summary>
     /// OnEnable - Auto-refresh save list when canvas becomes active (AC2).
     /// Pattern 2: Initialize in OnEnable() for canvas that may be disabled on scene load.
+    /// Only refreshes after Start() has run (prevents scene load issues).
     /// </summary>
     private void OnEnable()
     {
-        // Safety: Only refresh if SaveManager is initialized
-        // (prevents errors if canvas is enabled before SaveManager.Awake runs)
-        if (SaveManager.Instance != null)
+        // Only refresh after Start() has run (hasInitialized = true)
+        // This prevents refresh during scene initialization
+        if (hasInitialized && SaveManager.Instance != null)
         {
             RefreshSaveList();
         }
@@ -62,6 +67,16 @@ public class LoadGameUI : MonoBehaviour
 
         // AC2.2: Call SaveManager.GetAllSaves() to scan filesystem
         List<SaveMetadata> saves = SaveManager.Instance.GetAllSaves();
+
+        // Story 3.3: Check for corrupted saves and show info modal
+        int corruptedCount = SaveManager.Instance.GetLastCorruptedCount();
+        if (corruptedCount > 0 && ModalDialog.Instance != null)
+        {
+            string message = corruptedCount == 1
+                ? "1 corrupted save file was found and skipped."
+                : $"{corruptedCount} corrupted save files were found and skipped.";
+            ModalDialog.Instance.ShowInfo("Corrupted Saves", message);
+        }
 
         // Clear existing save list items (AC: Clear list before refresh)
         ClearSaveList();

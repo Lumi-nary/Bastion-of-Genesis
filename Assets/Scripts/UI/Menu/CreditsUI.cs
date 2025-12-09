@@ -13,13 +13,36 @@ public class CreditsUI : MonoBehaviour
     [Header("UI Components")]
     [SerializeField] private TextMeshProUGUI creditsText;
 
+    private bool hasInitialized = false;
+
+    /// <summary>
+    /// Start - Mark as initialized, prevents loading during scene initialization.
+    /// </summary>
+    private void Start()
+    {
+        hasInitialized = true;
+
+        // If canvas is currently active when Start runs, load now
+        Canvas parentCanvas = GetComponentInParent<Canvas>();
+        if (parentCanvas != null && parentCanvas.enabled)
+        {
+            LoadAndDisplayCredits();
+        }
+    }
+
     /// <summary>
     /// OnEnable - Load and display credits when canvas is shown.
     /// Pattern 2: Initialize in OnEnable() for canvas that may be disabled on scene load.
+    /// Only loads after Start() has run (prevents scene load issues).
     /// </summary>
     private void OnEnable()
     {
-        LoadAndDisplayCredits();
+        // Only load after Start() has run (hasInitialized = true)
+        // This prevents loading during scene initialization
+        if (hasInitialized)
+        {
+            LoadAndDisplayCredits();
+        }
     }
 
     /// <summary>

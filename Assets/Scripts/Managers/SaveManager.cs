@@ -153,14 +153,27 @@ public class SaveManager : MonoBehaviour
         }
     }
 
+    // Track corrupted saves for user notification (Story 3.3)
+    private int lastCorruptedCount = 0;
+
+    /// <summary>
+    /// Get count of corrupted saves from last GetAllSaves() call (Story 3.3).
+    /// </summary>
+    public int GetLastCorruptedCount()
+    {
+        return lastCorruptedCount;
+    }
+
     /// <summary>
     /// Get all save files in Saves directory with metadata.
     /// Used by LoadGameUI to display save list (Epic 3).
+    /// Story 3.3: Tracks corrupted saves for error notification.
     /// </summary>
     /// <returns>List of SaveMetadata sorted by timestamp (newest first)</returns>
     public List<SaveMetadata> GetAllSaves()
     {
         List<SaveMetadata> saves = new List<SaveMetadata>();
+        lastCorruptedCount = 0; // Reset counter
 
         try
         {
@@ -200,7 +213,8 @@ public class SaveManager : MonoBehaviour
                 }
                 catch (Exception ex)
                 {
-                    // Skip corrupted files, log warning
+                    // Skip corrupted files, log warning, increment counter (Story 3.3)
+                    lastCorruptedCount++;
                     Debug.LogWarning($"[SaveManager] Skipping corrupted save file {Path.GetFileName(filePath)}: {ex.Message}");
                 }
             }
