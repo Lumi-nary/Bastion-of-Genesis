@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BuildingData
   buildingName: Iron Extractor
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 4d044c6a188f3104db0ebe9403655847, type: 3}
   category: 2
   prefab: {fileID: 2606344867460193498, guid: 9c2d7ca2e6f192b4f8c7f6946686a388, type: 3}
   requiredTech: {fileID: 0}

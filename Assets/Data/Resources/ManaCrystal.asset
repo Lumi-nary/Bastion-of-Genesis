@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ResourceType
   resourceName: Mana Crystal
   description: Mana mana mana mana
-  icon: {fileID: 0}
+  icon: {fileID: -6043657294105173317, guid: c8f433fbaf6ad0441940abd85946022e, type: 3}

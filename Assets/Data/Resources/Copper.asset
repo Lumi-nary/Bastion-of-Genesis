@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ResourceType
   resourceName: Copper
   description: copper
-  icon: {fileID: 0}
+  icon: {fileID: 6398492527668056779, guid: 9058ac4dce34f064d81e81f280c80d92, type: 3}

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WorkerData
   workerName: Builders
   description: Build Building
-  icon: {fileID: 0}
+  icon: {fileID: 4688266795139732916, guid: 7a06794e592fc32469f72201e2ebb6c7, type: 3}
   cost:
   - resourceType: {fileID: 11400000, guid: f44ba9d81749962419739a7656fee1cc, type: 2}
     amount: 5

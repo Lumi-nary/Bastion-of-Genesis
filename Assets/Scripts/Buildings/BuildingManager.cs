@@ -9,9 +9,14 @@ public class BuildingManager : MonoBehaviour
     private List<Building> allBuildings = new List<Building>();
     public IReadOnlyList<Building> AllBuildings => allBuildings;
 
+    // Factory tracking
+    private List<WorkerFactoryComponent> allFactories = new List<WorkerFactoryComponent>();
+    private Dictionary<WorkerData, List<WorkerFactoryComponent>> factoriesByWorkerType = new Dictionary<WorkerData, List<WorkerFactoryComponent>>();
+
     // Events
     public event System.Action<Building> OnBuildingPlaced;
     public event System.Action<Building> OnBuildingDestroyedEvent;
+    public event System.Action OnFactoriesChanged;
 
     private void Awake()
     {
@@ -199,5 +204,164 @@ public class BuildingManager : MonoBehaviour
     public List<Building> GetAllBuildings()
     {
         return new List<Building>(allBuildings);
+    }
+
+    // ============================================================================
+    // FACTORY MANAGEMENT
+    // ============================================================================
+
+    /// <summary>
+    /// Register a factory when it's built.
+    /// </summary>
+    public void RegisterFactory(WorkerFactoryComponent factory)
+    {
+        if (factory == null || allFactories.Contains(factory)) return;
+
+        allFactories.Add(factory);
+
+        WorkerData workerType = factory.WorkerType;
+        if (workerType != null)
+        {
+            if (!factoriesByWorkerType.ContainsKey(workerType))
+            {
+                factoriesByWorkerType[workerType] = new List<WorkerFactoryComponent>();
+            }
+            factoriesByWorkerType[workerType].Add(factory);
+        }
+
+        OnFactoriesChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Unregister a factory when it's destroyed.
+    /// </summary>
+    public void UnregisterFactory(WorkerFactoryComponent factory)
+    {
+        if (factory == null) return;
+
+        allFactories.Remove(factory);
+
+        WorkerData workerType = factory.WorkerType;
+        if (workerType != null && factoriesByWorkerType.ContainsKey(workerType))
+        {
+            factoriesByWorkerType[workerType].Remove(factory);
+            if (factoriesByWorkerType[workerType].Count == 0)
+            {
+                factoriesByWorkerType.Remove(workerType);
+            }
+        }
+
+        OnFactoriesChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Get all factories.
+    /// </summary>
+    public List<WorkerFactoryComponent> GetAllFactories()
+    {
+        return new List<WorkerFactoryComponent>(allFactories);
+    }
+
+    /// <summary>
+    /// Get factories by worker type.
+    /// </summary>
+    public List<WorkerFactoryComponent> GetFactoriesForWorkerType(WorkerData workerType)
+    {
+        if (workerType != null && factoriesByWorkerType.ContainsKey(workerType))
+        {
+            return new List<WorkerFactoryComponent>(factoriesByWorkerType[workerType]);
+        }
+        return new List<WorkerFactoryComponent>();
+    }
+
+    /// <summary>
+    /// Get all worker types that have factories.
+    /// </summary>
+    public List<WorkerData> GetAvailableWorkerTypes()
+    {
+        return new List<WorkerData>(factoriesByWorkerType.Keys);
+    }
+
+    /// <summary>
+    /// Get total factory count for a worker type.
+    /// </summary>
+    public int GetFactoryCount(WorkerData workerType)
+    {
+        if (workerType != null && factoriesByWorkerType.ContainsKey(workerType))
+        {
+            return factoriesByWorkerType[workerType].Count;
+        }
+        return 0;
+    }
+
+    /// <summary>
+    /// Get total queued workers across all factories for a type.
+    /// </summary>
+    public int GetTotalQueuedForType(WorkerData workerType)
+    {
+        int total = 0;
+        if (workerType != null && factoriesByWorkerType.ContainsKey(workerType))
+        {
+            foreach (var factory in factoriesByWorkerType[workerType])
+            {
+                total += factory.QueueCount;
+            }
+        }
+        return total;
+    }
+
+    /// <summary>
+    /// Get total max queue size across all factories for a type.
+    /// </summary>
+    public int GetTotalMaxQueueForType(WorkerData workerType)
+    {
+        int total = 0;
+        if (workerType != null && factoriesByWorkerType.ContainsKey(workerType))
+        {
+            foreach (var factory in factoriesByWorkerType[workerType])
+            {
+                total += factory.MaxQueueSize;
+            }
+        }
+        return total;
+    }
+
+    /// <summary>
+    /// Queue a worker at the first available factory of that type.
+    /// </summary>
+    public bool QueueWorker(WorkerData workerType)
+    {
+        if (workerType == null || !factoriesByWorkerType.ContainsKey(workerType))
+            return false;
+
+        foreach (var factory in factoriesByWorkerType[workerType])
+        {
+            if (factory.QueueCount < factory.MaxQueueSize)
+            {
+                return factory.QueueWorker();
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Cancel a worker from the last factory with queued workers of that type.
+    /// </summary>
+    public bool CancelWorker(WorkerData workerType)
+    {
+        if (workerType == null || !factoriesByWorkerType.ContainsKey(workerType))
+            return false;
+
+        for (int i = factoriesByWorkerType[workerType].Count - 1; i >= 0; i--)
+        {
+            var factory = factoriesByWorkerType[workerType][i];
+            if (factory.QueueCount > 0)
+            {
+                return factory.CancelWorker();
+            }
+        }
+
+        return false;
     }
 }

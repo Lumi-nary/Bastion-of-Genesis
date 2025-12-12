@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BuildingData
   buildingName: Steam Generator
   description: Generator to generate energy tite
-  icon: {fileID: 0}
-  category: 0
+  icon: {fileID: 21300000, guid: 42d5146dbe26a974fb091cc1c0da24c7, type: 3}
+  category: 1
   prefab: {fileID: 5267069963637012161, guid: c1a4c9a8f2d60e34e933915d239a508b, type: 3}
   requiredTech: {fileID: 0}
   maxHealth: 100

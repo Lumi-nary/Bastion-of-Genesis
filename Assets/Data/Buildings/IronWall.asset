@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0085d395165c104bbca07356b52ab46, type: 3}
   m_Name: IronWall
   m_EditorClassIdentifier: Assembly-CSharp::BuildingData
-  buildingName: IronWall
+  buildingName: Iron Wall
   description: 
-  icon: {fileID: 0}
-  category: 0
+  icon: {fileID: -7227225381432144484, guid: 2311ff31dc9beee4ba97cef3300cc750, type: 3}
+  category: 4
   prefab: {fileID: 5433590470182939469, guid: de3b61389a8ae144b8400263aa8f604b, type: 3}
   requiredTech: {fileID: 0}
   maxHealth: 100

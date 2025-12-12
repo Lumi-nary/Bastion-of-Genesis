@@ -13,16 +13,16 @@ MonoBehaviour:
   m_Name: Chapter1
   m_EditorClassIdentifier: Assembly-CSharp::ChapterData
   chapterNumber: 0
-  chapterName: debug
+  chapterName: Chapter 1
   chapterDescription: yummers
-  chapterIntroText: DebugInt
-  chapterOutroText: Debugout
+  chapterIntroText: Chapter1 - Intro
+  chapterOutroText: Chapter1 - Outro
   startingResources: []
   startingWorkers: []
   missions:
   - {fileID: 11400000, guid: 6bbcd645cef2e5a499a4995c7ebdf274, type: 2}
   activeRaces: 00000000
-  sceneName: 
+  sceneName: Chapter1Scene
   chapterThumbnail: {fileID: 0}
   isUnlocked: 1
   previousChapter: {fileID: 0}

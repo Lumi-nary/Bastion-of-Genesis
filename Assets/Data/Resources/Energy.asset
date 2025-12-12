@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ResourceType
   resourceName: Energy
   description: Energy is Energy
-  icon: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  icon: {fileID: -7213742777133032008, guid: 2358d14db2bd13d47badca432aa9fb4f, type: 3}
