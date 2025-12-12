@@ -79,6 +79,10 @@ public class TileStateManager : MonoBehaviour
     private Dictionary<Vector2Int, GroundState> tileStates = new Dictionary<Vector2Int, GroundState>();
     private BoundsInt tilemapBounds;
 
+    // Event for ground state changes (used by vegetation system)
+    public delegate void GroundStateChangedHandler(Vector2Int gridPos, GroundState oldState, GroundState newState);
+    public event GroundStateChangedHandler OnGroundStateChanged;
+
     // Cached tiles to avoid creating new ScriptableObjects every update
     private Dictionary<Sprite, Tile> tileCache = new Dictionary<Sprite, Tile>();
 
@@ -285,10 +289,19 @@ public class TileStateManager : MonoBehaviour
                 }
 
                 // Check if state changed
-                if (!tileStates.TryGetValue(gridPos, out GroundState oldState) || oldState != newState)
+                GroundState oldState = GroundState.Alive;
+                bool hadOldState = tileStates.TryGetValue(gridPos, out oldState);
+
+                if (!hadOldState || oldState != newState)
                 {
                     tileStates[gridPos] = newState;
                     changedTiles.Add(gridPos);
+
+                    // Fire event for state change (vegetation system listens for this)
+                    if (hadOldState && oldState != newState)
+                    {
+                        OnGroundStateChanged?.Invoke(gridPos, oldState, newState);
+                    }
 
                     // Also mark neighbors as needing update (for transition sprites)
                     changedTiles.Add(gridPos + Vector2Int.up);
@@ -347,11 +360,30 @@ public class TileStateManager : MonoBehaviour
         float dy = Mathf.Abs(worldPos.y - centerPos.y);
         float distance = Mathf.Max(dx, dy);
 
-        bool isBuildable = distance < innerRadius;
+        return distance < innerRadius;
+    }
 
-        Debug.Log($"[TileState] Check pos {worldPos}, center {centerPos}, radius {innerRadius}, distance {distance}, buildable: {isBuildable}");
+    /// <summary>
+    /// Check if a grid position is in the Alive (grass) zone - outside integration radius
+    /// Uses direct distance check - safe to call before tile states are initialized
+    /// </summary>
+    public bool IsInAliveZone(Vector2Int gridPos)
+    {
+        if (integrationCenter == null) return true; // No center = all grass
 
-        return isBuildable;
+        Vector3 worldPos = GridManager.Instance != null
+            ? GridManager.Instance.GridToWorldPosition(gridPos)
+            : new Vector3(gridPos.x + 0.5f, gridPos.y + 0.5f, 0);
+
+        Vector2 centerPos = integrationCenter.position;
+
+        // Square distance (Chebyshev) = max of X and Y distance
+        float dx = Mathf.Abs(worldPos.x - centerPos.x);
+        float dy = Mathf.Abs(worldPos.y - centerPos.y);
+        float distance = Mathf.Max(dx, dy);
+
+        // Alive zone is OUTSIDE the integration radius
+        return distance >= integrationRadius;
     }
 
     /// <summary>
@@ -423,6 +455,7 @@ public class TileStateManager : MonoBehaviour
 
     /// <summary>
     /// Get transition sprite for terrain type based on neighbor analysis
+    /// Sprite names indicate where the CURRENT terrain is, not where outer terrain is
     /// </summary>
     private Sprite GetTerrainTransitionSprite(Vector2Int gridPos, TerrainType currentTerrain,
         TerrainType[] outerTerrains, Sprite[] sprites, Sprite fallbackSprite)
@@ -440,20 +473,22 @@ public class TileStateManager : MonoBehaviour
         bool bottomRight = IsOuterTerrain(GetTerrainType(gridPos + Vector2Int.down + Vector2Int.right), outerTerrains);
 
         // If no cardinal neighbors are outer terrain, check diagonals for inner corners
+        // Outer at diagonal = current terrain piece at OPPOSITE corner
         if (!top && !bottom && !left && !right)
         {
-            if (topLeft) return sprites[INNER_CORNER_TL];
-            if (topRight) return sprites[INNER_CORNER_TR];
-            if (bottomLeft) return sprites[INNER_CORNER_BL];
-            if (bottomRight) return sprites[INNER_CORNER_BR];
+            if (topLeft) return sprites[INNER_CORNER_BR];
+            if (topRight) return sprites[INNER_CORNER_BL];
+            if (bottomLeft) return sprites[INNER_CORNER_TR];
+            if (bottomRight) return sprites[INNER_CORNER_TL];
             return fallbackSprite;
         }
 
         // Outer corners: two adjacent cardinals are outer terrain
-        if (top && left && !bottom && !right) return sprites[OUTER_CORNER_TL];
-        if (top && right && !bottom && !left) return sprites[OUTER_CORNER_TR];
-        if (bottom && left && !top && !right) return sprites[OUTER_CORNER_BL];
-        if (bottom && right && !top && !left) return sprites[OUTER_CORNER_BR];
+        // Outer at top+left = current terrain corner at bottom+right
+        if (top && left && !bottom && !right) return sprites[OUTER_CORNER_BR];
+        if (top && right && !bottom && !left) return sprites[OUTER_CORNER_BL];
+        if (bottom && left && !top && !right) return sprites[OUTER_CORNER_TR];
+        if (bottom && right && !top && !left) return sprites[OUTER_CORNER_TL];
 
         // Edges: one cardinal is outer terrain
         if (top && !bottom && !left && !right) return sprites[EDGE_TOP];
@@ -556,6 +591,7 @@ public class TileStateManager : MonoBehaviour
 
     /// <summary>
     /// Get transition sprite for ground state bordering Sand terrain
+    /// Ground tile draws transition toward Sand (ground is "inner", sand is "outer")
     /// </summary>
     private Sprite GetGroundToSandSprite(Vector2Int gridPos, Sprite[] sprites, Sprite fallbackSprite)
     {
@@ -572,20 +608,26 @@ public class TileStateManager : MonoBehaviour
         bool bottomRight = GetTerrainType(gridPos + Vector2Int.down + Vector2Int.right) == TerrainType.Sand;
 
         // If no cardinal neighbors are Sand, check diagonals for inner corners
+        // (Sand only touches diagonally = grass has small inner corner piece remaining)
+        // Sprite names from grass perspective - innerTL means grass piece at TL, sand fills rest
+        // So sand at TL diagonal means grass piece at BR = innerBR sprite
         if (!top && !bottom && !left && !right)
         {
-            if (topLeft) return sprites[INNER_CORNER_TL];
-            if (topRight) return sprites[INNER_CORNER_TR];
-            if (bottomLeft) return sprites[INNER_CORNER_BL];
-            if (bottomRight) return sprites[INNER_CORNER_BR];
+            if (topLeft) return sprites[INNER_CORNER_BR];
+            if (topRight) return sprites[INNER_CORNER_BL];
+            if (bottomLeft) return sprites[INNER_CORNER_TR];
+            if (bottomRight) return sprites[INNER_CORNER_TL];
             return fallbackSprite;
         }
 
         // Outer corners: two adjacent cardinals are Sand
-        if (top && left && !bottom && !right) return sprites[OUTER_CORNER_TL];
-        if (top && right && !bottom && !left) return sprites[OUTER_CORNER_TR];
-        if (bottom && left && !top && !right) return sprites[OUTER_CORNER_BL];
-        if (bottom && right && !top && !left) return sprites[OUTER_CORNER_BR];
+        // (Sand on two sides = grass has outer corner pointing into sand)
+        // Note: Sprite names are from grass perspective - outerTL means grass corner at TL, sand at BR
+        // So sand at top+left means grass corner at bottom+right = outerBR sprite
+        if (top && left && !bottom && !right) return sprites[OUTER_CORNER_BR];
+        if (top && right && !bottom && !left) return sprites[OUTER_CORNER_BL];
+        if (bottom && left && !top && !right) return sprites[OUTER_CORNER_TR];
+        if (bottom && right && !top && !left) return sprites[OUTER_CORNER_TL];
 
         // Edges: one cardinal is Sand
         if (top && !bottom && !left && !right) return sprites[EDGE_TOP];

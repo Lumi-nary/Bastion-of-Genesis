@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dbfb76276df3427448565e656cd0d585, type: 3}
   m_Name: PFTile_Water
   m_EditorClassIdentifier: Assembly-CSharp::PlanetfallTile
-  m_Sprite: {fileID: 6161102077478231428, guid: 5f9c2f9e23fc446488c7158ffcd5b8f8, type: 3}
+  m_Sprite: {fileID: 1178407866709564434, guid: 7fa5ee30d7d9cba45ae9b35b3863f703, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1

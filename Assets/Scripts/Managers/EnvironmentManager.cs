@@ -2,75 +2,120 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Unified manager for tile-based visual environment objects (trees, rocks, etc.)
-/// Spawns GameObjects based on TileProperty types and manages lifecycle
-/// Note: OreMounds are manually placed in scenes and managed by OreMoundManager
+/// Unified manager for decorative vegetation (grass, trees).
+/// - Grass: Simple GameObjects (no component overhead, static batched)
+/// - Trees: Uses Vegetation component for Y-sorting
+/// Both destroyed when pollution spreads to their tile.
 /// </summary>
 public class EnvironmentManager : MonoBehaviour
 {
     public static EnvironmentManager Instance { get; private set; }
 
-    [Header("Prefabs")]
-    [Tooltip("Tree prefab (must have Tree component)")]
+    [Header("Vegetation Prefabs")]
+    [Tooltip("Grass prefabs for random spawning (picks randomly) - NO Vegetation component needed")]
+    [SerializeField] private GameObject[] grassPrefabs;
+
+    [Tooltip("Tree prefab - MUST have Vegetation component for Y-sorting")]
     [SerializeField] private GameObject treePrefab;
 
-    [Tooltip("Large rock prefab (must have VisualObject component)")]
-    [SerializeField] private GameObject largRockPrefab;
+    [Header("Grass Spawning")]
+    [Tooltip("Chance to spawn grass per tile (0-1)")]
+    [Range(0f, 1f)]
+    [SerializeField] private float grassDensity = 0.3f;
+
+    [Tooltip("Random offset range within tile for grass placement")]
+    [Range(0f, 0.4f)]
+    [SerializeField] private float grassPositionJitter = 0.3f;
+
+    [Header("Performance")]
+    [Tooltip("Enable static batching for grass (better FPS, uses more memory)")]
+    [SerializeField] private bool useStaticBatching = true;
 
     [Header("Containers")]
+    [Tooltip("Parent transform for grass")]
+    [SerializeField] private Transform grassContainer;
+
     [Tooltip("Parent transform for trees")]
     [SerializeField] private Transform treeContainer;
 
-    [Tooltip("Parent transform for environment objects (rocks, etc.)")]
-    [SerializeField] private Transform environmentContainer;
+    // Track grass by grid position - simple GameObjects
+    private Dictionary<Vector2Int, List<GameObject>> grassByPosition = new Dictionary<Vector2Int, List<GameObject>>();
 
-    [Header("Default Sprites")]
-    [Tooltip("Default tree sprites (fallback if TileProperty doesn't provide)")]
-    [SerializeField] private Sprite defaultHealthyTreeSprite;
-    [SerializeField] private Sprite defaultWitherTreeSprite;
-    [SerializeField] private Sprite defaultDeadTreeSprite;
-
-    // Track all spawned objects by grid position
-    private Dictionary<Vector2Int, VisualObject> objectsByPosition = new Dictionary<Vector2Int, VisualObject>();
-
-    // Track objects by type
-    private Dictionary<Vector2Int, Tree> trees = new Dictionary<Vector2Int, Tree>();
+    // Track trees separately - with Vegetation component for Y-sorting
+    private Dictionary<Vector2Int, Vegetation> trees = new Dictionary<Vector2Int, Vegetation>();
 
     private void Awake()
     {
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
+            return;
         }
-        else
-        {
-            Instance = this;
-        }
+        Instance = this;
 
         // Create containers if not assigned
+        if (grassContainer == null)
+        {
+            grassContainer = new GameObject("Grass").transform;
+            grassContainer.SetParent(transform);
+        }
+
         if (treeContainer == null)
         {
             treeContainer = new GameObject("Trees").transform;
             treeContainer.SetParent(transform);
         }
-
-        if (environmentContainer == null)
-        {
-            environmentContainer = new GameObject("Environment").transform;
-            environmentContainer.SetParent(transform);
-        }
     }
 
     private void Start()
     {
-        // Spawn objects after GridManager initializes
-        SpawnAllEnvironmentObjects();
+        // Subscribe to ground state changes
+        if (TileStateManager.Instance != null)
+        {
+            TileStateManager.Instance.OnGroundStateChanged += HandleGroundStateChanged;
+        }
+
+        // Spawn vegetation after GridManager initializes
+        SpawnAllVegetation();
+
+        // Apply static batching to grass only (trees need dynamic sorting)
+        if (useStaticBatching && grassContainer != null)
+        {
+            StaticBatchingUtility.Combine(grassContainer.gameObject);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (TileStateManager.Instance != null)
+        {
+            TileStateManager.Instance.OnGroundStateChanged -= HandleGroundStateChanged;
+        }
+
+        ClearAll();
+
+        if (Instance == this)
+        {
+            Instance = null;
+        }
     }
 
     /// <summary>
-    /// Scan tilemap for all environment property tiles and spawn visual GameObjects
+    /// Handle ground state changes - destroy vegetation when tiles become polluted
     /// </summary>
-    public void SpawnAllEnvironmentObjects()
+    private void HandleGroundStateChanged(Vector2Int gridPos, GroundState oldState, GroundState newState)
+    {
+        // Vegetation dies when tile becomes Polluted (withered)
+        if (newState == GroundState.Polluted && oldState == GroundState.Alive)
+        {
+            DestroyVegetationAt(gridPos);
+        }
+    }
+
+    /// <summary>
+    /// Spawn all vegetation: trees from TreeProperty tiles, grass randomly in Alive tiles
+    /// </summary>
+    public void SpawnAllVegetation()
     {
         if (GridManager.Instance == null)
         {
@@ -78,135 +123,310 @@ public class EnvironmentManager : MonoBehaviour
             return;
         }
 
-        Debug.Log("[EnvironmentManager] Scanning for environment objects...");
+        Debug.Log("[EnvironmentManager] Spawning vegetation...");
 
-        // Spawn trees
-        SpawnObjectsOfType<TreeProperty>(SpawnTree);
+        // Spawn trees from TreeProperty tiles first
+        SpawnTreesFromProperties();
 
-        // Add more types as needed
-        // SpawnObjectsOfType<RockProperty>(SpawnRock);
+        // Spawn random grass in grass (Alive) tiles
+        SpawnRandomGrass();
 
-        Debug.Log($"[EnvironmentManager] Spawned {objectsByPosition.Count} total objects.");
+        int grassCount = 0;
+        foreach (var list in grassByPosition.Values)
+        {
+            grassCount += list.Count;
+        }
+        Debug.Log($"[EnvironmentManager] Spawned {grassCount} grass, {trees.Count} trees.");
     }
 
     /// <summary>
-    /// Generic method to spawn objects of a specific TileProperty type
+    /// Spawn trees based on TreeProperty tiles in the grid
     /// </summary>
-    private void SpawnObjectsOfType<T>(System.Func<Vector2Int, VisualObject> spawnFunc) where T : TileProperty
+    private void SpawnTreesFromProperties()
     {
-        List<Vector2Int> positions = GridManager.Instance.GetTilesWithProperty<T>();
-        Debug.Log($"[EnvironmentManager] Found {positions.Count} tiles with {typeof(T).Name}");
+        if (treePrefab == null)
+        {
+            Debug.LogWarning("[EnvironmentManager] Tree prefab not assigned, skipping tree spawning.");
+            return;
+        }
+
+        List<Vector2Int> positions = GridManager.Instance.GetTilesWithProperty<TreeProperty>();
+        Debug.Log($"[EnvironmentManager] Found {positions.Count} tiles with TreeProperty");
 
         foreach (Vector2Int pos in positions)
         {
-            spawnFunc?.Invoke(pos);
+            SpawnTree(pos);
         }
     }
 
     /// <summary>
-    /// Spawn a tree at grid position
+    /// Spawn a tree at grid position (with Vegetation component for Y-sorting)
     /// </summary>
-    public Tree SpawnTree(Vector2Int gridPos)
+    public Vegetation SpawnTree(Vector2Int gridPos)
     {
-        // Check if object already exists
-        if (objectsByPosition.ContainsKey(gridPos))
-        {
-            return objectsByPosition[gridPos] as Tree;
-        }
+        if (trees.ContainsKey(gridPos)) return trees[gridPos];
+        if (treePrefab == null) return null;
 
-        if (treePrefab == null)
+        // Only spawn in Alive zone
+        if (TileStateManager.Instance != null && !TileStateManager.Instance.IsInAliveZone(gridPos))
         {
-            Debug.LogError("[EnvironmentManager] Tree prefab not assigned!");
             return null;
         }
 
-        // Get TileData and TreeProperty
-        TileData tileData = GridManager.Instance.GetTileData(gridPos);
-        if (tileData == null) return null;
+        // Check if there's a tile at this position
+        if (!GridManager.Instance.HasTileAt(gridPos))
+        {
+            return null;
+        }
 
-        TreeProperty treeProperty = tileData.GetProperty<TreeProperty>();
-        if (treeProperty == null) return null;
-
-        // Spawn GameObject
         Vector3 worldPos = GridManager.Instance.GridToWorldPosition(gridPos);
         GameObject treeObj = Instantiate(treePrefab, worldPos, Quaternion.identity, treeContainer);
         treeObj.name = $"Tree_{gridPos.x}_{gridPos.y}";
 
-        Tree tree = treeObj.GetComponent<Tree>();
-        if (tree == null)
+        // Get Vegetation component for Y-sorting
+        Vegetation vegetation = treeObj.GetComponent<Vegetation>();
+        if (vegetation == null)
         {
-            Debug.LogError("[EnvironmentManager] Tree prefab missing Tree component!");
+            Debug.LogError("[EnvironmentManager] Tree prefab missing Vegetation component! Y-sorting won't work.");
             Destroy(treeObj);
             return null;
         }
 
-        // Get sprites (from property or defaults)
-        Sprite healthySprite = treeProperty.healthySprite != null ? treeProperty.healthySprite : defaultHealthyTreeSprite;
-        Sprite witherSprite = treeProperty.witherSprite != null ? treeProperty.witherSprite : defaultWitherTreeSprite;
-        Sprite deadSprite = treeProperty.deadSprite != null ? treeProperty.deadSprite : defaultDeadTreeSprite;
-
         // Initialize
-        tree.Initialize(gridPos, treeProperty, healthySprite, witherSprite, deadSprite);
-
-        // Register with property
-        treeProperty.RegisterTreeGameObject(tree);
+        vegetation.Initialize(gridPos);
 
         // Track
-        objectsByPosition[gridPos] = tree;
-        trees[gridPos] = tree;
+        trees[gridPos] = vegetation;
 
-        return tree;
+        return vegetation;
     }
 
     /// <summary>
-    /// Remove object at grid position
+    /// Spawn random grass in all Alive (grass) tiles
     /// </summary>
-    public void RemoveObject(Vector2Int gridPos)
+    private void SpawnRandomGrass()
     {
-        if (objectsByPosition.TryGetValue(gridPos, out VisualObject obj))
+        if (grassPrefabs == null || grassPrefabs.Length == 0)
         {
-            objectsByPosition.Remove(gridPos);
+            Debug.LogWarning("[EnvironmentManager] No grass prefabs assigned, skipping grass spawning.");
+            return;
+        }
+
+        if (GridManager.Instance == null) return;
+
+        int grassCount = 0;
+        int skipAlive = 0, skipNoTile = 0, skipTerrain = 0, skipTree = 0, skipResource = 0, skipRandom = 0;
+        BoundsInt bounds = GridManager.Instance.GetTilemapBounds();
+
+        for (int x = bounds.xMin; x < bounds.xMax; x++)
+        {
+            for (int y = bounds.yMin; y < bounds.yMax; y++)
+            {
+                Vector2Int gridPos = new Vector2Int(x, y);
+
+                // Only spawn in Alive zone
+                if (TileStateManager.Instance != null && !TileStateManager.Instance.IsInAliveZone(gridPos))
+                {
+                    skipAlive++;
+                    continue;
+                }
+
+                // Check if there's a tile at this position
+                if (!GridManager.Instance.HasTileAt(gridPos))
+                {
+                    skipNoTile++;
+                    continue;
+                }
+
+                // Get tile data for terrain and property checks
+                TileData tileData = GridManager.Instance.GetTileData(gridPos);
+
+                // Skip non-grass terrain (sand, water, etc.)
+                if (tileData != null && tileData.terrainType != TerrainType.None && tileData.terrainType != TerrainType.Grass)
+                {
+                    skipTerrain++;
+                    continue;
+                }
+
+                // Skip if tree here
+                if (trees.ContainsKey(gridPos))
+                {
+                    skipTree++;
+                    continue;
+                }
+
+                // Skip if resource node (ore mound) here - check both TileData and obstacle registry
+                if (GridManager.Instance.IsObstacle(gridPos) || (tileData != null && tileData.HasProperty<ResourceNodeProperty>()))
+                {
+                    skipResource++;
+                    continue;
+                }
+
+                // Random chance
+                if (Random.value > grassDensity)
+                {
+                    skipRandom++;
+                    continue;
+                }
+
+                SpawnGrass(gridPos);
+                grassCount++;
+            }
+        }
+
+        Debug.Log($"[EnvironmentManager] Grass stats - Spawned: {grassCount}, SkipAlive: {skipAlive}, SkipNoTile: {skipNoTile}, SkipTerrain: {skipTerrain}, SkipTree: {skipTree}, SkipResource: {skipResource}, SkipRandom: {skipRandom}");
+    }
+
+    /// <summary>
+    /// Spawn a grass object at grid position with random offset (no Vegetation component)
+    /// </summary>
+    private GameObject SpawnGrass(Vector2Int gridPos)
+    {
+        if (grassPrefabs == null || grassPrefabs.Length == 0) return null;
+
+        // Pick random grass prefab
+        GameObject prefab = grassPrefabs[Random.Range(0, grassPrefabs.Length)];
+        if (prefab == null) return null;
+
+        // Calculate world position with jitter
+        Vector3 worldPos = GridManager.Instance.GridToWorldPosition(gridPos);
+        worldPos.x += Random.Range(-grassPositionJitter, grassPositionJitter);
+        worldPos.y += Random.Range(-grassPositionJitter, grassPositionJitter);
+
+        GameObject grassObj = Instantiate(prefab, worldPos, Quaternion.identity, grassContainer);
+        grassObj.name = $"Grass_{gridPos.x}_{gridPos.y}";
+
+        // Set sorting order to render behind trees
+        // Trees use Y-sorting: 200 + (-Y * 100), at Y=100 tree order = -9800
+        // Use minimum int value range to guarantee grass is always behind
+        SpriteRenderer sr = grassObj.GetComponent<SpriteRenderer>();
+        if (sr != null)
+        {
+            sr.sortingOrder = -32000; // Near int16 min, always behind trees
+        }
+
+        // Mark as static for batching
+        if (useStaticBatching)
+        {
+            grassObj.isStatic = true;
+        }
+
+        // Track
+        if (!grassByPosition.TryGetValue(gridPos, out List<GameObject> list))
+        {
+            list = new List<GameObject>(1);
+            grassByPosition[gridPos] = list;
+        }
+        list.Add(grassObj);
+
+        return grassObj;
+    }
+
+    /// <summary>
+    /// Destroy all vegetation at a grid position
+    /// </summary>
+    public void DestroyVegetationAt(Vector2Int gridPos)
+    {
+        // Destroy grass
+        if (grassByPosition.TryGetValue(gridPos, out List<GameObject> list))
+        {
+            foreach (GameObject obj in list)
+            {
+                if (obj != null)
+                {
+                    Destroy(obj);
+                }
+            }
+            grassByPosition.Remove(gridPos);
+        }
+
+        // Destroy tree
+        if (trees.TryGetValue(gridPos, out Vegetation tree))
+        {
+            if (tree != null && tree.gameObject != null)
+            {
+                Destroy(tree.gameObject);
+            }
             trees.Remove(gridPos);
-            obj.DestroyObject();
         }
     }
 
     /// <summary>
-    /// Get any object at grid position
+    /// Check if there's vegetation at a position
     /// </summary>
-    public VisualObject GetObject(Vector2Int gridPos)
+    public bool HasVegetationAt(Vector2Int gridPos)
     {
-        objectsByPosition.TryGetValue(gridPos, out VisualObject obj);
-        return obj;
+        if (grassByPosition.ContainsKey(gridPos) && grassByPosition[gridPos].Count > 0)
+            return true;
+        if (trees.ContainsKey(gridPos))
+            return true;
+        return false;
     }
 
     /// <summary>
-    /// Get tree at grid position
+    /// Check if there's a tree at a position
     /// </summary>
-    public Tree GetTree(Vector2Int gridPos)
+    public bool HasTreeAt(Vector2Int gridPos)
     {
-        trees.TryGetValue(gridPos, out Tree tree);
+        return trees.ContainsKey(gridPos);
+    }
+
+    /// <summary>
+    /// Get tree at position (if any)
+    /// </summary>
+    public Vegetation GetTree(Vector2Int gridPos)
+    {
+        trees.TryGetValue(gridPos, out Vegetation tree);
         return tree;
     }
 
     /// <summary>
-    /// Clear all environment objects
+    /// Clear all vegetation
     /// </summary>
     public void ClearAll()
     {
-        foreach (var obj in objectsByPosition.Values)
+        // Clear grass
+        foreach (var list in grassByPosition.Values)
         {
-            if (obj != null)
+            foreach (var obj in list)
             {
-                obj.DestroyObject();
+                if (obj != null)
+                {
+                    Destroy(obj);
+                }
             }
         }
-        objectsByPosition.Clear();
+        grassByPosition.Clear();
+
+        // Clear trees
+        foreach (var tree in trees.Values)
+        {
+            if (tree != null && tree.gameObject != null)
+            {
+                Destroy(tree.gameObject);
+            }
+        }
         trees.Clear();
     }
 
-    private void OnDestroy()
+    /// <summary>
+    /// Get grass count (for debugging)
+    /// </summary>
+    public int GetGrassCount()
     {
-        ClearAll();
+        int count = 0;
+        foreach (var list in grassByPosition.Values)
+        {
+            count += list.Count;
+        }
+        return count;
+    }
+
+    /// <summary>
+    /// Get tree count (for debugging)
+    /// </summary>
+    public int GetTreeCount()
+    {
+        return trees.Count;
     }
 }

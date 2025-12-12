@@ -170,19 +170,23 @@ public class SettingsManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Apply audio settings (AC4).
-    /// MVP: Only Master Volume uses AudioListener.volume (global).
-    /// Music/SFX require AudioMixer (post-MVP).
+    /// Apply audio settings via AudioManager (uses AudioMixer).
+    /// Falls back to AudioListener.volume if AudioManager not available.
     /// </summary>
     private void ApplyAudioSettings()
     {
-        // Master Volume (MVP implementation using AudioListener)
-        AudioListener.volume = currentSettings.masterVolume;
-
-        // TODO: Music and SFX volumes require AudioMixer setup (post-MVP)
-        // For now, they're stored but not applied
-
-        Debug.Log($"[SettingsManager] Audio applied: Master={currentSettings.masterVolume:F2}");
+        if (AudioManager.Instance != null)
+        {
+            // Use AudioManager (preferred - uses AudioMixer)
+            AudioManager.Instance.ApplySettingsVolumes();
+            Debug.Log($"[SettingsManager] Audio applied via AudioManager: Master={currentSettings.masterVolume:F2}, Music={currentSettings.musicVolume:F2}, SFX={currentSettings.sfxVolume:F2}");
+        }
+        else
+        {
+            // Fallback: Master Volume only via AudioListener
+            AudioListener.volume = currentSettings.masterVolume;
+            Debug.Log($"[SettingsManager] Audio applied (fallback): Master={currentSettings.masterVolume:F2}");
+        }
     }
 
     /// <summary>

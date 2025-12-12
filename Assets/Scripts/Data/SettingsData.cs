@@ -12,6 +12,7 @@ public class SettingsData
     public float masterVolume = 1.0f;  // 0.0 to 1.0 (0% to 100%)
     public float musicVolume = 0.7f;   // 0.0 to 1.0 (0% to 100%)
     public float sfxVolume = 0.8f;     // 0.0 to 1.0 (0% to 100%)
+    public float voiceVolume = 1.0f;   // 0.0 to 1.0 (0% to 100%)
 
     // Graphics Settings
     public int resolutionIndex = -1;    // Index into Screen.resolutions array
@@ -29,11 +30,12 @@ public class SettingsData
     /// <summary>
     /// Constructor with explicit values (for testing or custom defaults).
     /// </summary>
-    public SettingsData(float master, float music, float sfx, int resolution, bool isFullscreen)
+    public SettingsData(float master, float music, float sfx, float voice, int resolution, bool isFullscreen)
     {
         masterVolume = master;
         musicVolume = music;
         sfxVolume = sfx;
+        voiceVolume = voice;
         resolutionIndex = resolution;
         fullscreen = isFullscreen;
     }
@@ -43,6 +45,6 @@ public class SettingsData
     /// </summary>
     public SettingsData Clone()
     {
-        return new SettingsData(masterVolume, musicVolume, sfxVolume, resolutionIndex, fullscreen);
+        return new SettingsData(masterVolume, musicVolume, sfxVolume, voiceVolume, resolutionIndex, fullscreen);
     }
 }

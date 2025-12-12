@@ -11,6 +11,9 @@ public class MainMenuUI : MonoBehaviour
     [Header("UI References")]
     [SerializeField] private TextMeshProUGUI titleText;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip menuMusic;
+
     /// <summary>
     /// Initialize main menu display.
     /// Sets game title from GameSettings.Instance.
@@ -18,6 +21,24 @@ public class MainMenuUI : MonoBehaviour
     private void Start()
     {
         DisplayGameTitle();
+        PlayMenuMusic();
+    }
+
+    /// <summary>
+    /// Play menu background music via AudioManager.
+    /// </summary>
+    private void PlayMenuMusic()
+    {
+        if (menuMusic == null)
+        {
+            Debug.LogWarning("[MainMenuUI] Menu music clip not assigned.");
+            return;
+        }
+
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayMusic(menuMusic);
+        }
     }
 
     /// <summary>

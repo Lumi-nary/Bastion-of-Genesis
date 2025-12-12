@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dbfb76276df3427448565e656cd0d585, type: 3}
   m_Name: PFTile_Tree
   m_EditorClassIdentifier: Assembly-CSharp::PlanetfallTile
-  m_Sprite: {fileID: 21300000, guid: 9e0bb38aca14a1c44abaca8335b01a14, type: 3}
+  m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1
@@ -31,7 +31,7 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  m_InstancedGameObject: {fileID: 4459145452315635483, guid: b6554c984f4a6674e8288d56f3454f73, type: 3}
+  m_InstancedGameObject: {fileID: 0}
   m_Flags: 1
   m_ColliderType: 1
   tileData: {fileID: 11400000, guid: 86ff37f4c12186145851b01dc95eb27e, type: 2}

@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d5a9f480e83b4444ae489ff6f618bd3, type: 3}
+  m_Name: TransitionIntegratedSand
+  m_EditorClassIdentifier: Assembly-CSharp::TransitionTileset
+  baseFromSprite: {fileID: 3959574454317049628, guid: 3a6783aed3adf3c43a30a8929baa2dc0, type: 3}
+  baseToSprite: {fileID: -1675835941, guid: 3a6783aed3adf3c43a30a8929baa2dc0, type: 3}
+  outerCornerTL: {fileID: 8240637420851359305, guid: 3a6783aed3adf3c43a30a8929baa2dc0, type: 3}
+  outerCornerTR: {fileID: -2517037000647149687, guid: 3a6783aed3adf3c43a30a8929baa2dc0, type: 3}
+  outerCornerBL: {fileID: 7333603812589061846, guid: 3a6783aed3adf3c43a30a8929baa2dc0, type: 3}
+  outerCornerBR: {fileID: 8980852927120753458, guid: 3a6783aed3adf3c43a30a8929baa2dc0, type: 3}
+  edgeTop: {fileID: -2400490361167594197, guid: 3a6783aed3adf3c43a30a8929baa2dc0, type: 3}
+  edgeBottom: {fileID: 6051608371944967988, guid: 3a6783aed3adf3c43a30a8929baa2dc0, type: 3}
+  edgeLeft: {fileID: 555010408585292414, guid: 3a6783aed3adf3c43a30a8929baa2dc0, type: 3}
+  edgeRight: {fileID: -3483773293004077568, guid: 3a6783aed3adf3c43a30a8929baa2dc0, type: 3}
+  center: {fileID: -1675835941, guid: 3a6783aed3adf3c43a30a8929baa2dc0, type: 3}
+  innerCornerTL: {fileID: 6017067723162578009, guid: 3a6783aed3adf3c43a30a8929baa2dc0, type: 3}
+  innerCornerTR: {fileID: -3066092578291258954, guid: 3a6783aed3adf3c43a30a8929baa2dc0, type: 3}
+  innerCornerBL: {fileID: -5234991789654373522, guid: 3a6783aed3adf3c43a30a8929baa2dc0, type: 3}
+  innerCornerBR: {fileID: 2618415069826232775, guid: 3a6783aed3adf3c43a30a8929baa2dc0, type: 3}

@@ -15,4 +15,4 @@ MonoBehaviour:
   propertyName: Water
   description: Shallow
   icon: {fileID: 0}
-  isDeepWater: 1
+  isDeepWater: 0

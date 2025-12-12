@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d5a9f480e83b4444ae489ff6f618bd3, type: 3}
+  m_Name: TranstionGrassSand
+  m_EditorClassIdentifier: Assembly-CSharp::TransitionTileset
+  baseFromSprite: {fileID: 6145321315629791239, guid: dd2d7070a8579e0458197d770ca244fc, type: 3}
+  baseToSprite: {fileID: -1761945159, guid: dd2d7070a8579e0458197d770ca244fc, type: 3}
+  outerCornerTL: {fileID: 8220444072725285770, guid: dd2d7070a8579e0458197d770ca244fc, type: 3}
+  outerCornerTR: {fileID: -1528072377076246837, guid: dd2d7070a8579e0458197d770ca244fc, type: 3}
+  outerCornerBL: {fileID: -3088489073425193139, guid: dd2d7070a8579e0458197d770ca244fc, type: 3}
+  outerCornerBR: {fileID: -6884026707755453982, guid: dd2d7070a8579e0458197d770ca244fc, type: 3}
+  edgeTop: {fileID: -7213743661072316452, guid: dd2d7070a8579e0458197d770ca244fc, type: 3}
+  edgeBottom: {fileID: 3699475651827201647, guid: dd2d7070a8579e0458197d770ca244fc, type: 3}
+  edgeLeft: {fileID: -3097471821350015139, guid: dd2d7070a8579e0458197d770ca244fc, type: 3}
+  edgeRight: {fileID: 6719036916512859939, guid: dd2d7070a8579e0458197d770ca244fc, type: 3}
+  center: {fileID: -3365553789379893973, guid: 55dd48567356f064aa36e8c2db1b64e2, type: 3}
+  innerCornerTL: {fileID: 3912382471519885538, guid: dd2d7070a8579e0458197d770ca244fc, type: 3}
+  innerCornerTR: {fileID: 3968058395271211474, guid: dd2d7070a8579e0458197d770ca244fc, type: 3}
+  innerCornerBL: {fileID: -6138364802550018366, guid: dd2d7070a8579e0458197d770ca244fc, type: 3}
+  innerCornerBR: {fileID: -873086985389962871, guid: dd2d7070a8579e0458197d770ca244fc, type: 3}

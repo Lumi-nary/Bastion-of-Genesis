@@ -16,6 +16,7 @@ public class OptionsMenuUI : MonoBehaviour
     [SerializeField] private Slider masterVolumeSlider;
     [SerializeField] private Slider musicVolumeSlider;
     [SerializeField] private Slider sfxVolumeSlider;
+    [SerializeField] private Slider voiceVolumeSlider;
 
     [Header("Graphics Settings UI")]
     [SerializeField] private TMP_Dropdown resolutionDropdown;
@@ -129,6 +130,13 @@ public class OptionsMenuUI : MonoBehaviour
             sfxVolumeSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
         }
 
+        if (voiceVolumeSlider != null)
+        {
+            voiceVolumeSlider.value = workingSettings.voiceVolume;
+            voiceVolumeSlider.onValueChanged.RemoveAllListeners();
+            voiceVolumeSlider.onValueChanged.AddListener(OnVoiceVolumeChanged);
+        }
+
         // Resolution dropdown (AC5) with Auto-Detect Logic
         if (resolutionDropdown != null)
         {
@@ -237,6 +245,15 @@ public class OptionsMenuUI : MonoBehaviour
     {
         workingSettings.sfxVolume = value;
         Debug.Log($"[OptionsMenuUI] SFX Volume changed: {value:F2}");
+    }
+
+    /// <summary>
+    /// Voice volume slider changed.
+    /// </summary>
+    private void OnVoiceVolumeChanged(float value)
+    {
+        workingSettings.voiceVolume = value;
+        Debug.Log($"[OptionsMenuUI] Voice Volume changed: {value:F2}");
     }
 
     /// <summary>

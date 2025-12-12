@@ -150,60 +150,33 @@ public class TilesetPreviewWindow : EditorWindow
 
     private void DrawPreviewGrid()
     {
-        EditorGUILayout.HelpBox(
-            "This shows how tiles would appear in a 5x5 sample with a center integrated zone.\n" +
-            "Green = Integrated, Yellow = Wither/Polluted, Gray = Alive/Grass",
-            MessageType.None);
-
         float tileSize = 32 * previewScale;
+        Color outerColor = new Color(0.76f, 0.70f, 0.50f, 1f);  // Tan/sand
+        Color innerColor = new Color(0.3f, 0.6f, 0.3f, 1f);     // Green/grass
 
-        // 5x5 preview grid showing transition zones
-        // Pattern: GGGGG
-        //          GWWWG
-        //          GWIWG
-        //          GWWWG
-        //          GGGGG
-        // G = Grass (outer), W = Wither (border), I = Integrated (center)
+        // === SQUARE PREVIEW (Outer corners + Edges) ===
+        EditorGUILayout.LabelField("Square Preview (Outer Corners 0,2,6,8 + Edges 1,3,5,7 + Center 4)", EditorStyles.boldLabel);
+        EditorGUILayout.HelpBox("Shows a square island of inner terrain. Outer corners point outward.", MessageType.None);
 
-        // Map of what sprite index to use at each position
-        int[,] previewMap = new int[5, 5]
+        int[,] squareMap = new int[3, 3]
         {
-            // Row 0 (top) - All grass
-            { -1, -1, -1, -1, -1 },
-            // Row 1 - Grass, Wither top-left outer, Wither top, Wither top-right outer, Grass
-            { -1, 0, 1, 2, -1 },
-            // Row 2 - Grass, Wither left, Integrated center, Wither right, Grass
-            { -1, 3, 4, 5, -1 },
-            // Row 3 - Grass, Wither bottom-left outer, Wither bottom, Wither bottom-right outer, Grass
-            { -1, 6, 7, 8, -1 },
-            // Row 4 (bottom) - All grass
-            { -1, -1, -1, -1, -1 }
+            { 0, 1, 2 },
+            { 3, 4, 5 },
+            { 6, 7, 8 }
         };
 
-        Color grassColor = new Color(0.3f, 0.5f, 0.3f, 0.5f);
-        Color witherColor = new Color(0.6f, 0.5f, 0.2f, 0.5f);
-        Color integratedColor = new Color(0.2f, 0.6f, 0.2f, 0.5f);
-
-        for (int y = 0; y < 5; y++)
+        for (int y = 0; y < 3; y++)
         {
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
-            for (int x = 0; x < 5; x++)
+            for (int x = 0; x < 3; x++)
             {
-                int spriteIndex = previewMap[y, x];
+                int spriteIndex = squareMap[y, x];
                 Rect rect = GUILayoutUtility.GetRect(tileSize, tileSize);
+                EditorGUI.DrawRect(rect, innerColor);
 
-                // Draw background color
-                Color bgColor = grassColor;
-                if (spriteIndex >= 0)
-                {
-                    bgColor = (spriteIndex == 4) ? integratedColor : witherColor;
-                }
-                EditorGUI.DrawRect(rect, bgColor);
-
-                // Draw sprite if assigned
-                if (spriteIndex >= 0 && tilesetSprites[spriteIndex] != null)
+                if (tilesetSprites[spriteIndex] != null)
                 {
                     Texture2D tex = AssetPreview.GetAssetPreview(tilesetSprites[spriteIndex]);
                     if (tex != null)
@@ -212,8 +185,7 @@ public class TilesetPreviewWindow : EditorWindow
                     }
                 }
 
-                // Draw index
-                if (showIndices && spriteIndex >= 0)
+                if (showIndices)
                 {
                     GUI.Label(rect, spriteIndex.ToString(), EditorStyles.whiteBoldLabel);
                 }
@@ -223,31 +195,77 @@ public class TilesetPreviewWindow : EditorWindow
             EditorGUILayout.EndHorizontal();
         }
 
-        EditorGUILayout.Space(10);
+        EditorGUILayout.Space(20);
 
-        // Inner corner preview
-        EditorGUILayout.LabelField("Inner Corners Preview (for concave edges):");
+        // === INNER CORNERS PREVIEW ===
+        EditorGUILayout.LabelField("Inner Corners Preview (9,10,11,12)", EditorStyles.boldLabel);
+        EditorGUILayout.HelpBox("Shows concave corners where outer terrain cuts into inner terrain diagonally.", MessageType.None);
+
+        // 3x3 grid showing inner corners at their positions
+        // Inner corners have outer terrain diagonally but NOT on cardinals
+        //   O = outer terrain, I = inner with inner corner sprite
+        //   Pattern for each corner shown separately:
+        //
+        //   IC-TL (9):  O  O      IC-TR (10): O  O
+        //               O  9                  10 O
+        //
+        //   IC-BL (11): O 11      IC-BR (12): 12 O
+        //               O  O                  O  O
+
         EditorGUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
 
-        for (int i = 9; i <= 12; i++)
+        // Draw 2x2 for each inner corner
+        string[] cornerLabels = { "IC-TL (9)", "IC-TR (10)", "IC-BL (11)", "IC-BR (12)" };
+        int[] cornerIndices = { 9, 10, 11, 12 };
+        // Position of the inner corner tile in each 2x2: TL=BR, TR=BL, BL=TR, BR=TL
+        int[,] cornerPositions = {
+            { 1, 1 },  // IC-TL: corner at bottom-right of 2x2
+            { 1, 0 },  // IC-TR: corner at bottom-left of 2x2
+            { 0, 1 },  // IC-BL: corner at top-right of 2x2
+            { 0, 0 }   // IC-BR: corner at top-left of 2x2
+        };
+
+        for (int c = 0; c < 4; c++)
         {
-            Rect rect = GUILayoutUtility.GetRect(tileSize, tileSize);
-            EditorGUI.DrawRect(rect, witherColor);
+            EditorGUILayout.BeginVertical();
+            EditorGUILayout.LabelField(cornerLabels[c], EditorStyles.miniLabel);
 
-            if (tilesetSprites[i] != null)
+            for (int y = 0; y < 2; y++)
             {
-                Texture2D tex = AssetPreview.GetAssetPreview(tilesetSprites[i]);
-                if (tex != null)
+                EditorGUILayout.BeginHorizontal();
+                for (int x = 0; x < 2; x++)
                 {
-                    GUI.DrawTexture(rect, tex, ScaleMode.ScaleToFit);
+                    Rect rect = GUILayoutUtility.GetRect(tileSize * 0.75f, tileSize * 0.75f);
+
+                    bool isCornerTile = (y == cornerPositions[c, 0] && x == cornerPositions[c, 1]);
+
+                    if (isCornerTile)
+                    {
+                        EditorGUI.DrawRect(rect, innerColor);
+                        if (tilesetSprites[cornerIndices[c]] != null)
+                        {
+                            Texture2D tex = AssetPreview.GetAssetPreview(tilesetSprites[cornerIndices[c]]);
+                            if (tex != null)
+                            {
+                                GUI.DrawTexture(rect, tex, ScaleMode.ScaleToFit);
+                            }
+                        }
+                        if (showIndices)
+                        {
+                            GUI.Label(rect, cornerIndices[c].ToString(), EditorStyles.whiteBoldLabel);
+                        }
+                    }
+                    else
+                    {
+                        EditorGUI.DrawRect(rect, outerColor);
+                    }
                 }
+                EditorGUILayout.EndHorizontal();
             }
 
-            if (showIndices)
-            {
-                GUI.Label(rect, i.ToString(), EditorStyles.whiteBoldLabel);
-            }
+            EditorGUILayout.EndVertical();
+            GUILayout.Space(15);
         }
 
         GUILayout.FlexibleSpace();

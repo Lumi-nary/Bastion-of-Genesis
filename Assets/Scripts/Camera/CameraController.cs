@@ -28,6 +28,17 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float maxOrthographicSize = 15f;
     [SerializeField] private float zoomSmoothing = 5f;
 
+    [Header("Camera Bounds")]
+    [Tooltip("Limit camera panning and zoom to map bounds")]
+    [SerializeField] private bool useCameraBounds = true;
+    [Tooltip("Padding around map edges")]
+    [SerializeField] private float boundsPadding = 1f;
+
+    // Calculated bounds from tilemap
+    private Vector2 boundsMin;
+    private Vector2 boundsMax;
+    private bool boundsInitialized = false;
+
     private PlacementSystem placementSystem;
 
     // State Variables
@@ -58,6 +69,49 @@ public class CameraController : MonoBehaviour
         dragAction = playerControls.Camera.Drag;
 
         placementSystem = PlacementSystem.Instance;
+    }
+
+    private void Start()
+    {
+        InitializeBounds();
+    }
+
+    /// <summary>
+    /// Initialize camera bounds from tilemap size
+    /// </summary>
+    private void InitializeBounds()
+    {
+        if (!useCameraBounds || GridManager.Instance == null)
+        {
+            boundsInitialized = false;
+            return;
+        }
+
+        BoundsInt tilemapBounds = GridManager.Instance.GetTilemapBounds();
+        float cellSize = GridManager.Instance.GetCellSize();
+
+        // Convert grid bounds to world bounds
+        boundsMin = new Vector2(
+            tilemapBounds.xMin * cellSize - boundsPadding,
+            tilemapBounds.yMin * cellSize - boundsPadding
+        );
+        boundsMax = new Vector2(
+            tilemapBounds.xMax * cellSize + boundsPadding,
+            tilemapBounds.yMax * cellSize + boundsPadding
+        );
+
+        // Calculate max zoom to fit entire map
+        float mapWidth = boundsMax.x - boundsMin.x;
+        float mapHeight = boundsMax.y - boundsMin.y;
+        float screenAspect = (float)Screen.width / Screen.height;
+
+        // Max zoom is the smaller of width or height constraint
+        float maxZoomByWidth = mapWidth / (2f * screenAspect);
+        float maxZoomByHeight = mapHeight / 2f;
+        maxOrthographicSize = Mathf.Min(maxZoomByWidth, maxZoomByHeight);
+
+        boundsInitialized = true;
+        Debug.Log($"[CameraController] Bounds initialized: Min={boundsMin}, Max={boundsMax}, MaxZoom={maxOrthographicSize:F1}");
     }
 
     private void OnEnable()
@@ -101,6 +155,7 @@ public class CameraController : MonoBehaviour
             transform.position += moveDirection * dragSpeed * m_CMCamera.Lens.OrthographicSize * deltaTime;
 
             lastMousePosition = currentMousePosition;
+            ClampToBounds();
             return; // Exit early since dragging takes priority
         }
 
@@ -116,6 +171,36 @@ public class CameraController : MonoBehaviour
 
         // Apply final movement
         transform.position += moveDirection.normalized * moveSpeed * m_CMCamera.Lens.OrthographicSize * Time.deltaTime;
+
+        // Clamp position to bounds
+        ClampToBounds();
+    }
+
+    /// <summary>
+    /// Clamp camera position to stay within map bounds
+    /// </summary>
+    private void ClampToBounds()
+    {
+        if (!useCameraBounds || !boundsInitialized) return;
+
+        float orthoSize = m_CMCamera.Lens.OrthographicSize;
+        float screenAspect = (float)Screen.width / Screen.height;
+        float cameraHalfWidth = orthoSize * screenAspect;
+        float cameraHalfHeight = orthoSize;
+
+        // Calculate clamped position (camera center must stay within bounds minus camera view size)
+        float clampedX = Mathf.Clamp(
+            transform.position.x,
+            boundsMin.x + cameraHalfWidth,
+            boundsMax.x - cameraHalfWidth
+        );
+        float clampedY = Mathf.Clamp(
+            transform.position.y,
+            boundsMin.y + cameraHalfHeight,
+            boundsMax.y - cameraHalfHeight
+        );
+
+        transform.position = new Vector3(clampedX, clampedY, transform.position.z);
     }
 
     private void HandleEdgePanning(Vector2 mousePosition)

@@ -67,6 +67,15 @@ public class GridManager : MonoBehaviour
         return cellSize;
     }
 
+    /// <summary>
+    /// Get the bounds of the terrain tilemap in grid coordinates
+    /// </summary>
+    public BoundsInt GetTilemapBounds()
+    {
+        if (terrainTilemap == null) return new BoundsInt();
+        return terrainTilemap.cellBounds;
+    }
+
     public Vector2Int WorldToGridPosition(Vector3 worldPosition)
     {
         int x = Mathf.FloorToInt((worldPosition.x - gridOrigin.x) / cellSize);
@@ -95,6 +104,17 @@ public class GridManager : MonoBehaviour
         PlanetfallTile tile = terrainTilemap.GetTile<PlanetfallTile>(tilePos);
 
         return tile?.tileData;
+    }
+
+    /// <summary>
+    /// Check if any tile exists at grid position (checks ground tilemap)
+    /// </summary>
+    public bool HasTileAt(Vector2Int gridPos)
+    {
+        if (groundTilemap == null) return false;
+
+        Vector3Int tilePos = new Vector3Int(gridPos.x, gridPos.y, 0);
+        return groundTilemap.HasTile(tilePos);
     }
 
     /// <summary>
