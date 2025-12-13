@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 446050f8d8cb05e439892b6cfa2102f3, type: 3}
+  m_Name: Feature_RoboticSwarm
+  m_EditorClassIdentifier: Assembly-CSharp::ResourceConversionFeature
+  featureName: Build Robotic Swarm
+  description: 
+  icon: {fileID: 0}
+  inputCost:
+  - resourceType: {fileID: 11400000, guid: f44ba9d81749962419739a7656fee1cc, type: 2}
+    amount: 10
+  outputResource: {fileID: 11400000, guid: 0505f28487f172248a00b967bda2d6d4, type: 2}
+  outputAmount: 3
+  conversionTime: 5
+  maxQueueSize: 4

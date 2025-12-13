@@ -48,6 +48,9 @@ public class BuildingData : ScriptableObject
     [Tooltip("Building prefab (must have Building component)")]
     public GameObject prefab;
 
+    [Tooltip("If false, building won't appear in build menu (e.g., Command Center)")]
+    public bool isPlayerBuildable = true;
+
     [Header("Tech Requirements")]
     [Tooltip("Technology required to unlock this building (null if available from start)")]
     public TechnologyData requiredTech;

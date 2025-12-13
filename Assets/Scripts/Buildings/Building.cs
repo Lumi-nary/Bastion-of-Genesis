@@ -26,7 +26,7 @@ public class Building : MonoBehaviour
 
     private void Awake()
     {
-        // Ensure BoxCollider2D exists for physics-based placement detection
+        // Ensure BoxCollider2D exists for physics-based click detection
         BoxCollider2D collider = GetComponent<BoxCollider2D>();
         if (collider == null)
         {
@@ -43,6 +43,18 @@ public class Building : MonoBehaviour
             if (width == 0) width = buildingData.width;
             if (height == 0) height = buildingData.height;
         }
+        else
+        {
+            // Fallback for scene-placed buildings without data yet
+            // Use existing or default size
+            if (collider.size == Vector2.zero)
+            {
+                collider.size = new Vector2(width > 0 ? width : 1, height > 0 ? height : 1);
+            }
+        }
+
+        // Ensure collider is NOT a trigger (needed for raycast detection)
+        collider.isTrigger = false;
     }
 
     // Property to check if the building has the minimum required workers to function

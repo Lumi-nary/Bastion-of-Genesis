@@ -17,6 +17,7 @@ MonoBehaviour:
   icon: {fileID: 0}
   category: 0
   prefab: {fileID: 7072713902138992301, guid: f1a0b4ac00e6eed409293cccd985dc56, type: 3}
+  isPlayerBuildable: 0
   requiredTech: {fileID: 0}
   maxHealth: 1000
   resourceCost: []
@@ -26,6 +27,6 @@ MonoBehaviour:
   totalWorkerCapacity: 0
   workerRequirements: []
   features:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: aa1511ee888cbec48af027cab21ff4ab, type: 2}
   width: 7
   height: 7

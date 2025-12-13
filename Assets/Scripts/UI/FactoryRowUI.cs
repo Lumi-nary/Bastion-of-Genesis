@@ -123,7 +123,7 @@ public class FactoryRowUI : MonoBehaviour
         // Update button states
         if (assembleButton != null)
         {
-            assembleButton.interactable = totalQueued < totalMax && CanAfford();
+            assembleButton.interactable = totalQueued < totalMax && CanAfford() && !IsWorkerAtCapacity();
         }
         if (cancelButton != null)
         {
@@ -131,6 +131,12 @@ public class FactoryRowUI : MonoBehaviour
         }
 
         // Update progress
+        UpdateProgressFromFactories();
+    }
+
+    private void Update()
+    {
+        // Continuously update progress display
         UpdateProgressFromFactories();
     }
 
@@ -152,16 +158,20 @@ public class FactoryRowUI : MonoBehaviour
             }
         }
 
-        if (producingFactory != null && progressBar != null)
+        if (producingFactory != null)
         {
             float progress = producingFactory.ProductionProgress;
             float maxTime = producingFactory.ProductionTime;
-            progressBar.value = progress / maxTime;
+            float percentage = (progress / maxTime) * 100f;
+
+            if (progressBar != null)
+            {
+                progressBar.value = progress / maxTime;
+            }
 
             if (progressText != null)
             {
-                float remaining = maxTime - progress;
-                progressText.text = $"{remaining:F1}s";
+                progressText.text = $"{percentage:F0}%";
             }
         }
         else
@@ -172,7 +182,7 @@ public class FactoryRowUI : MonoBehaviour
             }
             if (progressText != null)
             {
-                progressText.text = "";
+                progressText.text = "0%";
             }
         }
     }
@@ -208,6 +218,18 @@ public class FactoryRowUI : MonoBehaviour
             }
         }
         return true;
+    }
+
+    private bool IsWorkerAtCapacity()
+    {
+        if (workerType == null || WorkerManager.Instance == null || BuildingManager.Instance == null)
+            return false;
+
+        int currentWorkers = WorkerManager.Instance.GetAvailableWorkerCount(workerType);
+        int totalQueued = BuildingManager.Instance.GetTotalQueuedForType(workerType);
+        int capacity = WorkerManager.Instance.GetWorkerCapacity(workerType);
+
+        return currentWorkers + totalQueued >= capacity;
     }
 
     private string GetCostString(List<ResourceCost> costs)

@@ -16,7 +16,7 @@ MonoBehaviour:
   description: 
   icon: {fileID: 21300000, guid: c0774d189f08fc94fbc71f5453fdb7fd, type: 3}
   category: 3
-  prefab: {fileID: 0}
+  prefab: {fileID: 2606344867460193498, guid: 984ad2c495a5b9a459ce634285a8ee79, type: 3}
   requiredTech: {fileID: 0}
   maxHealth: 100
   resourceCost: []
@@ -25,6 +25,8 @@ MonoBehaviour:
   capacityType: 0
   totalWorkerCapacity: 0
   workerRequirements: []
-  features: []
+  features:
+  - {fileID: 11400000, guid: 132cfa6655002b54088378ae5c9301d8, type: 2}
+  - {fileID: 11400000, guid: 81d7db9d449c45d498f43e7e20ac4c01, type: 2}
   width: 3
   height: 3

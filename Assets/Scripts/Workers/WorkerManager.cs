@@ -6,6 +6,7 @@ public class WorkerStartConfig
 {
     public WorkerData workerData;
     public int initialCount;
+    public int maxCapacity;
 }
 
 public class WorkerManager : MonoBehaviour
@@ -16,6 +17,7 @@ public class WorkerManager : MonoBehaviour
     [SerializeField] private List<WorkerStartConfig> startingWorkers = new List<WorkerStartConfig>();
 
     private Dictionary<WorkerData, int> availableWorkers = new Dictionary<WorkerData, int>();
+    private Dictionary<WorkerData, int> workerCapacities = new Dictionary<WorkerData, int>();
 
     public event System.Action<WorkerData, int> OnWorkerCountChanged;
 
@@ -43,6 +45,7 @@ public class WorkerManager : MonoBehaviour
             if (config.workerData != null)
             {
                 availableWorkers[config.workerData] = config.initialCount;
+                workerCapacities[config.workerData] = config.maxCapacity;
                 // Notify UI or other systems about the initial count
                 OnWorkerCountChanged?.Invoke(config.workerData, config.initialCount);
             }
@@ -115,5 +118,45 @@ public class WorkerManager : MonoBehaviour
         {
             ResourceManager.Instance.RemoveResource(resourceCost.resourceType, resourceCost.amount);
         }
+    }
+
+    /// <summary>
+    /// Get max capacity for a worker type.
+    /// </summary>
+    public int GetWorkerCapacity(WorkerData workerData)
+    {
+        if (workerCapacities.ContainsKey(workerData))
+        {
+            return workerCapacities[workerData];
+        }
+        return 0;
+    }
+
+    /// <summary>
+    /// Check if there's capacity for more workers of this type.
+    /// </summary>
+    public bool HasCapacityFor(WorkerData workerData, int amount = 1)
+    {
+        int current = GetAvailableWorkerCount(workerData);
+        int capacity = GetWorkerCapacity(workerData);
+        return current + amount <= capacity;
+    }
+
+    /// <summary>
+    /// Get remaining capacity for a worker type.
+    /// </summary>
+    public int GetRemainingCapacity(WorkerData workerData)
+    {
+        int current = GetAvailableWorkerCount(workerData);
+        int capacity = GetWorkerCapacity(workerData);
+        return Mathf.Max(0, capacity - current);
+    }
+
+    /// <summary>
+    /// Check if worker type is at max capacity.
+    /// </summary>
+    public bool IsAtCapacity(WorkerData workerData)
+    {
+        return GetAvailableWorkerCount(workerData) >= GetWorkerCapacity(workerData);
     }
 }

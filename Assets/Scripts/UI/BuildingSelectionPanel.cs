@@ -62,10 +62,10 @@ public class BuildingSelectionPanel : MonoBehaviour
             buildingsByCategory[category] = new List<BuildingData>();
         }
 
-        // Sort buildings into categories
+        // Sort buildings into categories (only player-buildable ones)
         foreach (BuildingData building in buildingDatabase.availableBuildings)
         {
-            if (building != null)
+            if (building != null && building.isPlayerBuildable)
             {
                 buildingsByCategory[building.category].Add(building);
             }

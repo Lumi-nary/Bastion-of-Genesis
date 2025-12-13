@@ -12,7 +12,9 @@ public class ResearchManager : MonoBehaviour
     public static ResearchManager Instance { get; private set; }
 
     [Header("Technology Configuration")]
-    [Tooltip("All technologies in the game (loaded dynamically)")]
+    [Tooltip("Database containing all technologies")]
+    [SerializeField] private TechnologyDatabase technologyDatabase;
+
     private List<TechnologyData> allTechnologies = new List<TechnologyData>();
 
     [Tooltip("Technologies that have been researched")]
@@ -78,13 +80,19 @@ public class ResearchManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Load all technologies from Resources folder
-    /// Data-driven: Add new techs by creating ScriptableObject assets
+    /// Load all technologies from database
     /// </summary>
     private void LoadAllTechnologies()
     {
-        TechnologyData[] techs = Resources.LoadAll<TechnologyData>("Technologies");
-        allTechnologies = new List<TechnologyData>(techs);
+        if (technologyDatabase != null)
+        {
+            allTechnologies = new List<TechnologyData>(technologyDatabase.technologies);
+        }
+        else
+        {
+            Debug.LogWarning("[ResearchManager] No TechnologyDatabase assigned!");
+            allTechnologies = new List<TechnologyData>();
+        }
 
         Debug.Log($"[ResearchManager] Loaded {allTechnologies.Count} technologies");
 
@@ -217,62 +225,16 @@ public class ResearchManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Apply effects of researched technology (Modular System)
+    /// Apply effects of researched technology
     /// </summary>
     private void ApplyTechnologyEffects(TechnologyData tech)
     {
-        // Execute all technology effects
         foreach (var effect in tech.effects)
         {
             if (effect != null)
             {
                 effect.OnResearched(tech);
             }
-        }
-
-        // Legacy support - keep old switch statement for backward compatibility
-        if (tech.effects.Count == 0)
-        {
-            ApplyLegacyTechnologyEffects(tech);
-        }
-    }
-
-    /// <summary>
-    /// Legacy effect application (DEPRECATED - Use TechnologyEffect system instead)
-    /// </summary>
-    private void ApplyLegacyTechnologyEffects(TechnologyData tech)
-    {
-        switch (tech.effectType)
-        {
-            case TechEffectType.BuildingUnlock:
-                Debug.Log($"[ResearchManager] [LEGACY] Unlocked {tech.unlockedBuildings.Count} buildings");
-                break;
-
-            case TechEffectType.ResourceEfficiency:
-                if (ResourceManager.Instance != null && tech.affectedResource != null)
-                {
-                    Debug.Log($"[ResearchManager] [LEGACY] Increased {tech.affectedResource.ResourceName} production by {tech.statModifier}%");
-                }
-                break;
-
-            case TechEffectType.StorageExpansion:
-                if (ResourceManager.Instance != null && tech.expandedStorage != null)
-                {
-                    Debug.Log($"[ResearchManager] [LEGACY] Storage expansion: {tech.expandedStorage.ResourceName} +{tech.storageIncrease}");
-                }
-                break;
-
-            case TechEffectType.WorkerUpgrade:
-                Debug.Log($"[ResearchManager] [LEGACY] Applied worker upgrade: {tech.techName}");
-                break;
-
-            case TechEffectType.MilitaryUpgrade:
-                Debug.Log($"[ResearchManager] [LEGACY] Applied military upgrade: {tech.techName}");
-                break;
-
-            default:
-                Debug.Log($"[ResearchManager] [LEGACY] Applied custom effect: {tech.techName}");
-                break;
         }
     }
 
@@ -453,7 +415,7 @@ public class ResearchManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Get resource production multiplier from researched techs (Modular System)
+    /// Get resource production multiplier from researched techs
     /// </summary>
     public float GetResourceProductionMultiplier(ResourceType resourceType)
     {
@@ -461,7 +423,6 @@ public class ResearchManager : MonoBehaviour
 
         foreach (TechnologyData tech in researchedTechs)
         {
-            // Modular system - check effects
             foreach (var effect in tech.effects)
             {
                 if (effect != null)
@@ -472,14 +433,6 @@ public class ResearchManager : MonoBehaviour
                         multiplier += effect.GetModifier(modifierKey);
                     }
                 }
-            }
-
-            // Legacy support
-            if (tech.effects.Count == 0 &&
-                tech.effectType == TechEffectType.ResourceEfficiency &&
-                tech.affectedResource == resourceType)
-            {
-                multiplier += (tech.statModifier / 100f);
             }
         }
 

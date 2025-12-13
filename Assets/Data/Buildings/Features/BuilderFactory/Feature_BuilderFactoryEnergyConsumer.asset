@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7844f9d0e5969f94fbef43175241e1fd, type: 3}
   m_Name: Feature_BuilderFactoryEnergyConsumer
   m_EditorClassIdentifier: Assembly-CSharp::EnergyConsumerFeature
-  featureName: 
+  featureName: Builder Factory Energy Comsumption
   description: 
   icon: {fileID: 0}
-  energyConsumption: 10
+  energyConsumption: 2
   functionsWithoutEnergy: 0

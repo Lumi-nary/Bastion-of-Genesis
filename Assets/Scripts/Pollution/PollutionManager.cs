@@ -30,6 +30,7 @@ public class PollutionManager : MonoBehaviour
     // Runtime state
     private float currentPollution = 0f;
     private float lastIntegrationRadius = -1f;
+    private float peakIntegrationRadius = 0f; // Never shrinks - only grows
     private DifficultyTier currentTier = DifficultyTier.Tier1;
     private Difficulty menuDifficulty = Difficulty.Medium;
 
@@ -43,7 +44,7 @@ public class PollutionManager : MonoBehaviour
     public float PollutionPercentage => (currentPollution / maxPollution) * 100f;
     public DifficultyTier CurrentTier => currentTier;
     public Difficulty MenuDifficulty => menuDifficulty;
-    public float IntegrationRadius => CalculateIntegrationRadius();
+    public float IntegrationRadius => GetIntegrationRadius();
 
     private void Awake()
     {
@@ -280,13 +281,28 @@ public class PollutionManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Get integration radius - uses peak value so it never shrinks
+    /// </summary>
+    private float GetIntegrationRadius()
+    {
+        // Update peak if current calculation is higher
+        float currentRadius = CalculateIntegrationRadius();
+        if (currentRadius > peakIntegrationRadius)
+        {
+            peakIntegrationRadius = currentRadius;
+        }
+        return peakIntegrationRadius;
+    }
+
+    /// <summary>
     /// Update tile states (only when radius changes by 1+ unit)
     /// </summary>
     private void UpdateTileStates()
     {
-        float currentRadius = IntegrationRadius;
+        float currentRadius = GetIntegrationRadius();
 
-        if (Mathf.Abs(currentRadius - lastIntegrationRadius) >= 1f)
+        // Only update when radius INCREASES (never shrink)
+        if (currentRadius > lastIntegrationRadius && Mathf.Abs(currentRadius - lastIntegrationRadius) >= 1f)
         {
             lastIntegrationRadius = currentRadius;
 
@@ -305,6 +321,7 @@ public class PollutionManager : MonoBehaviour
         currentPollution = 0f;
         currentTier = DifficultyTier.Tier1;
         lastIntegrationRadius = -1f;
+        peakIntegrationRadius = 0f; // Reset peak for new chapter
         OnPollutionChanged?.Invoke(currentPollution, maxPollution);
         OnDifficultyTierChanged?.Invoke(currentTier);
     }

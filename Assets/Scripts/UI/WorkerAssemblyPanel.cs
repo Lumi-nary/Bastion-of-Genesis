@@ -4,8 +4,8 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Panel that displays all worker factories grouped by worker type.
-/// Shows queue status, progress, and allows assembling/cancelling workers.
+/// Panel that displays all worker factories and resource converters.
+/// Shows queue status, progress, and allows assembling/cancelling.
 /// </summary>
 public class WorkerAssemblyPanel : MonoBehaviour
 {
@@ -13,16 +13,19 @@ public class WorkerAssemblyPanel : MonoBehaviour
     [SerializeField] private GameObject panel;
     [SerializeField] private Transform rowContainer;
     [SerializeField] private GameObject factoryRowPrefab;
+    [SerializeField] private GameObject converterRowPrefab;
 
     // Track spawned rows
     private Dictionary<WorkerData, FactoryRowUI> factoryRows = new Dictionary<WorkerData, FactoryRowUI>();
+    private Dictionary<ResourceType, ConverterRowUI> converterRows = new Dictionary<ResourceType, ConverterRowUI>();
 
     private void Start()
     {
-        // Subscribe to factory changes
+        // Subscribe to changes
         if (BuildingManager.Instance != null)
         {
             BuildingManager.Instance.OnFactoriesChanged += RefreshPanel;
+            BuildingManager.Instance.OnConvertersChanged += RefreshPanel;
         }
 
         HidePanel();
@@ -33,15 +36,24 @@ public class WorkerAssemblyPanel : MonoBehaviour
         if (BuildingManager.Instance != null)
         {
             BuildingManager.Instance.OnFactoriesChanged -= RefreshPanel;
+            BuildingManager.Instance.OnConvertersChanged -= RefreshPanel;
         }
     }
 
     /// <summary>
-    /// Refresh the panel to show current factories.
+    /// Refresh the panel to show current factories and converters.
     /// </summary>
     public void RefreshPanel()
     {
         if (BuildingManager.Instance == null || rowContainer == null) return;
+
+        RefreshFactoryRows();
+        RefreshConverterRows();
+    }
+
+    private void RefreshFactoryRows()
+    {
+        if (factoryRowPrefab == null) return;
 
         // Get all worker types with factories
         List<WorkerData> workerTypes = BuildingManager.Instance.GetAvailableWorkerTypes();
@@ -79,6 +91,50 @@ public class WorkerAssemblyPanel : MonoBehaviour
             {
                 // Update existing row
                 factoryRows[workerType].UpdateDisplay();
+            }
+        }
+    }
+
+    private void RefreshConverterRows()
+    {
+        if (converterRowPrefab == null) return;
+
+        // Get all resource types with converters
+        List<ResourceType> resourceTypes = BuildingManager.Instance.GetAvailableConversionTypes();
+
+        // Remove rows for resource types that no longer have converters
+        List<ResourceType> toRemove = new List<ResourceType>();
+        foreach (var kvp in converterRows)
+        {
+            if (!resourceTypes.Contains(kvp.Key))
+            {
+                toRemove.Add(kvp.Key);
+                Destroy(kvp.Value.gameObject);
+            }
+        }
+        foreach (var key in toRemove)
+        {
+            converterRows.Remove(key);
+        }
+
+        // Add or update rows for each resource type
+        foreach (ResourceType resourceType in resourceTypes)
+        {
+            if (!converterRows.ContainsKey(resourceType))
+            {
+                // Create new row
+                GameObject rowGO = Instantiate(converterRowPrefab, rowContainer);
+                ConverterRowUI row = rowGO.GetComponent<ConverterRowUI>();
+                if (row != null)
+                {
+                    row.Initialize(resourceType);
+                    converterRows[resourceType] = row;
+                }
+            }
+            else
+            {
+                // Update existing row
+                converterRows[resourceType].UpdateDisplay();
             }
         }
     }

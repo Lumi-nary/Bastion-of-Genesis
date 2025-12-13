@@ -32,6 +32,17 @@ public class WorkerFactoryFeature : BuildingFeature
     /// Get max queue size.
     /// </summary>
     public int GetMaxQueueSize() => maxQueueSize;
+
+    /// <summary>
+    /// Called when building is constructed - creates the factory component.
+    /// </summary>
+    public override void OnBuilt(Building building)
+    {
+        // Add WorkerFactoryComponent to the building
+        WorkerFactoryComponent factoryComponent = building.gameObject.AddComponent<WorkerFactoryComponent>();
+        factoryComponent.Initialize(building, this);
+        Debug.Log($"[WorkerFactoryFeature] Initialized factory for {workerType?.workerName ?? "Unknown"} on {building.BuildingData.buildingName}");
+    }
 }
 
 /// <summary>
@@ -107,6 +118,20 @@ public class WorkerFactoryComponent : MonoBehaviour
         if (workerType == null) return false;
 
         if (!HasEnoughResources(workerType.cost)) return false;
+
+        // Check worker capacity (current + queued across all factories)
+        if (WorkerManager.Instance != null && BuildingManager.Instance != null)
+        {
+            int currentWorkers = WorkerManager.Instance.GetAvailableWorkerCount(workerType);
+            int totalQueued = BuildingManager.Instance.GetTotalQueuedForType(workerType);
+            int capacity = WorkerManager.Instance.GetWorkerCapacity(workerType);
+
+            if (currentWorkers + totalQueued >= capacity)
+            {
+                Debug.Log($"[WorkerFactory] Cannot queue {workerType.workerName} - at max capacity ({capacity})");
+                return false;
+            }
+        }
 
         // Spend resources
         SpendResources(workerType.cost);

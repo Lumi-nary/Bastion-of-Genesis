@@ -11,20 +11,6 @@ public enum TechUnlockMethod
 }
 
 /// <summary>
-/// Type of effect the technology provides
-/// </summary>
-public enum TechEffectType
-{
-    BuildingUnlock,       // Unlocks new building types
-    ResourceEfficiency,   // Increases resource production (%, applies to all)
-    WorkerUpgrade,        // Improves worker capabilities
-    MilitaryUpgrade,      // Improves combat effectiveness
-    StorageExpansion,     // Increases resource storage capacity
-    PollutionReduction,   // Reduces pollution generation
-    Other                 // Custom effects
-}
-
-/// <summary>
 /// Category for organizing technologies in UI
 /// </summary>
 public enum TechCategory
@@ -78,28 +64,6 @@ public class TechnologyData : ScriptableObject
 
     [Tooltip("Category for UI organization")]
     public TechCategory category;
-
-    [Header("Legacy Fields (Deprecated - Use TechnologyEffect System Instead)")]
-    [Tooltip("DEPRECATED: Use TechnologyEffect system instead")]
-    public TechEffectType effectType;
-
-    [Tooltip("DEPRECATED: Use UnlockBuildingEffect instead")]
-    public List<BuildingData> unlockedBuildings = new List<BuildingData>();
-
-    [Tooltip("DEPRECATED: Use ResourceEfficiencyEffect, WorkerUpgradeEffect, etc.")]
-    public float statModifier = 0f;
-
-    [Tooltip("DEPRECATED: Use ResourceEfficiencyEffect instead")]
-    public ResourceType affectedResource;
-
-    [Tooltip("DEPRECATED: Use WorkerUpgradeEffect instead")]
-    public WorkerData affectedWorker;
-
-    [Tooltip("DEPRECATED: Use StorageExpansionEffect instead")]
-    public ResourceType expandedStorage;
-
-    [Tooltip("DEPRECATED: Use StorageExpansionEffect instead")]
-    public int storageIncrease = 0;
 
     [Header("Debug Info")]
     [Tooltip("For tracking research status at runtime (read-only)")]

@@ -13,10 +13,15 @@ public class BuildingManager : MonoBehaviour
     private List<WorkerFactoryComponent> allFactories = new List<WorkerFactoryComponent>();
     private Dictionary<WorkerData, List<WorkerFactoryComponent>> factoriesByWorkerType = new Dictionary<WorkerData, List<WorkerFactoryComponent>>();
 
+    // Converter tracking
+    private List<ResourceConverterComponent> allConverters = new List<ResourceConverterComponent>();
+    private Dictionary<ResourceType, List<ResourceConverterComponent>> convertersByOutputType = new Dictionary<ResourceType, List<ResourceConverterComponent>>();
+
     // Events
     public event System.Action<Building> OnBuildingPlaced;
     public event System.Action<Building> OnBuildingDestroyedEvent;
     public event System.Action OnFactoriesChanged;
+    public event System.Action OnConvertersChanged;
 
     private void Awake()
     {
@@ -363,5 +368,152 @@ public class BuildingManager : MonoBehaviour
         }
 
         return false;
+    }
+
+    // ============================================================================
+    // RESOURCE CONVERTER MANAGEMENT
+    // ============================================================================
+
+    /// <summary>
+    /// Register a converter when it's built.
+    /// </summary>
+    public void RegisterConverter(ResourceConverterComponent converter)
+    {
+        if (converter == null || allConverters.Contains(converter)) return;
+
+        allConverters.Add(converter);
+
+        ResourceType outputType = converter.OutputResource;
+        if (outputType != null)
+        {
+            if (!convertersByOutputType.ContainsKey(outputType))
+            {
+                convertersByOutputType[outputType] = new List<ResourceConverterComponent>();
+            }
+            convertersByOutputType[outputType].Add(converter);
+        }
+
+        OnConvertersChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Unregister a converter when it's destroyed.
+    /// </summary>
+    public void UnregisterConverter(ResourceConverterComponent converter)
+    {
+        if (converter == null) return;
+
+        allConverters.Remove(converter);
+
+        ResourceType outputType = converter.OutputResource;
+        if (outputType != null && convertersByOutputType.ContainsKey(outputType))
+        {
+            convertersByOutputType[outputType].Remove(converter);
+            if (convertersByOutputType[outputType].Count == 0)
+            {
+                convertersByOutputType.Remove(outputType);
+            }
+        }
+
+        OnConvertersChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Get all converters.
+    /// </summary>
+    public List<ResourceConverterComponent> GetAllConverters()
+    {
+        return new List<ResourceConverterComponent>(allConverters);
+    }
+
+    /// <summary>
+    /// Get converters by output resource type.
+    /// </summary>
+    public List<ResourceConverterComponent> GetConvertersForResourceType(ResourceType resourceType)
+    {
+        if (resourceType != null && convertersByOutputType.ContainsKey(resourceType))
+        {
+            return new List<ResourceConverterComponent>(convertersByOutputType[resourceType]);
+        }
+        return new List<ResourceConverterComponent>();
+    }
+
+    /// <summary>
+    /// Get all resource types that have converters.
+    /// </summary>
+    public List<ResourceType> GetAvailableConversionTypes()
+    {
+        return new List<ResourceType>(convertersByOutputType.Keys);
+    }
+
+    /// <summary>
+    /// Queue a conversion at the first available converter for that resource type.
+    /// </summary>
+    public bool QueueConversion(ResourceType resourceType)
+    {
+        if (resourceType == null || !convertersByOutputType.ContainsKey(resourceType))
+            return false;
+
+        foreach (var converter in convertersByOutputType[resourceType])
+        {
+            if (converter.QueueCount < converter.MaxQueueSize)
+            {
+                return converter.QueueConversion();
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Cancel a conversion from the last converter with queued conversions of that type.
+    /// </summary>
+    public bool CancelConversion(ResourceType resourceType)
+    {
+        if (resourceType == null || !convertersByOutputType.ContainsKey(resourceType))
+            return false;
+
+        for (int i = convertersByOutputType[resourceType].Count - 1; i >= 0; i--)
+        {
+            var converter = convertersByOutputType[resourceType][i];
+            if (converter.QueueCount > 0)
+            {
+                return converter.CancelConversion();
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Get total queued conversions for a resource type.
+    /// </summary>
+    public int GetTotalQueuedConversions(ResourceType resourceType)
+    {
+        int total = 0;
+        if (resourceType != null && convertersByOutputType.ContainsKey(resourceType))
+        {
+            foreach (var converter in convertersByOutputType[resourceType])
+            {
+                total += converter.QueueCount;
+            }
+        }
+        return total;
+    }
+
+    /// <summary>
+    /// Get total max queue size for conversions of a resource type.
+    /// </summary>
+    public int GetTotalMaxConversionQueue(ResourceType resourceType)
+    {
+        int total = 0;
+        if (resourceType != null && convertersByOutputType.ContainsKey(resourceType))
+        {
+            foreach (var converter in convertersByOutputType[resourceType])
+            {
+                total += converter.MaxQueueSize;
+            }
+        }
+        return total;
     }
 }

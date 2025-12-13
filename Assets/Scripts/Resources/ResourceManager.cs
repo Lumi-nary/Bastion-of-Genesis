@@ -135,4 +135,32 @@ public class ResourceManager : MonoBehaviour
     {
         return new Dictionary<ResourceType, int>(resourceAmounts);
     }
+
+    /// <summary>
+    /// Check if there's capacity for more of a resource.
+    /// </summary>
+    public bool HasCapacityFor(ResourceType resourceType, int amount = 1)
+    {
+        int current = GetResourceAmount(resourceType);
+        int capacity = GetResourceCapacity(resourceType);
+        return current + amount <= capacity;
+    }
+
+    /// <summary>
+    /// Get remaining capacity for a resource.
+    /// </summary>
+    public int GetRemainingCapacity(ResourceType resourceType)
+    {
+        int current = GetResourceAmount(resourceType);
+        int capacity = GetResourceCapacity(resourceType);
+        return Mathf.Max(0, capacity - current);
+    }
+
+    /// <summary>
+    /// Check if resource is at max capacity.
+    /// </summary>
+    public bool IsAtCapacity(ResourceType resourceType)
+    {
+        return GetResourceAmount(resourceType) >= GetResourceCapacity(resourceType);
+    }
 }
