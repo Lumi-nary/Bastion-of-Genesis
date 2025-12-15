@@ -13,10 +13,18 @@ public class TileStateManager : MonoBehaviour
     [Header("Tilemap Reference")]
     [SerializeField] private Tilemap terrainTilemap;
 
-    [Header("Integration Settings")]
-    [SerializeField] private Transform integrationCenter; // Command Center
-    [SerializeField] private float integrationRadius = 10f;
-    [SerializeField] private float witherBorderWidth = 2f; // Buffer zone width
+    [Header("Pollution Settings")]
+    [SerializeField] private Transform pollutionCenter; // Command Center
+    [SerializeField] private float pollutionRadius = 10f; // How far Polluted (wither) zone extends
+    [SerializeField] private float witherBorderWidth = 2f; // Buffer zone around integrated
+
+    [Header("Building Integration Settings")]
+    [SerializeField] private int buildingIntegrationRadius = 3; // Tiles around each building that become integrated
+    [SerializeField] private float commandCenterBaseRadius = 5f; // Starter integrated zone around Command Center
+
+    // Legacy compatibility - redirect to new names
+    private Transform integrationCenter => pollutionCenter;
+    private float integrationRadius => pollutionRadius;
 
     [Header("Transition Tilesets - Ground State (Radius-based)")]
     [Tooltip("Grass to Wither transition tileset")]
@@ -77,7 +85,9 @@ public class TileStateManager : MonoBehaviour
 
     // Runtime state tracking
     private Dictionary<Vector2Int, GroundState> tileStates = new Dictionary<Vector2Int, GroundState>();
+    private HashSet<Vector2Int> buildingIntegratedTiles = new HashSet<Vector2Int>(); // Tiles integrated by buildings
     private BoundsInt tilemapBounds;
+    private bool isSubscribedToBuildingEvents = false;
 
     // Event for ground state changes (used by vegetation system)
     public delegate void GroundStateChangedHandler(Vector2Int gridPos, GroundState oldState, GroundState newState);
@@ -166,20 +176,57 @@ public class TileStateManager : MonoBehaviour
         }
 
         // If no center assigned, try to find Command Center FIRST
-        if (integrationCenter == null)
+        if (pollutionCenter == null)
         {
             GameObject commandCenter = GameObject.Find("CommandCenter");
             if (commandCenter != null)
             {
-                integrationCenter = commandCenter.transform;
+                pollutionCenter = commandCenter.transform;
             }
         }
+
+        // Subscribe to building events for integration updates
+        SubscribeToBuildingEvents();
 
         if (terrainTilemap != null)
         {
             tilemapBounds = terrainTilemap.cellBounds;
             CacheTerrainTypes();
             InitializeTileStates();
+        }
+    }
+
+    private void SubscribeToBuildingEvents()
+    {
+        if (isSubscribedToBuildingEvents) return;
+
+        if (BuildingManager.Instance != null)
+        {
+            BuildingManager.Instance.OnBuildingPlaced += OnBuildingPlaced;
+            BuildingManager.Instance.OnBuildingDestroyedEvent += OnBuildingDestroyed;
+            isSubscribedToBuildingEvents = true;
+        }
+    }
+
+    private void OnBuildingPlaced(Building building)
+    {
+        // Recalculate integration when a new building is placed
+        UpdateAllTileStates();
+    }
+
+    private void OnBuildingDestroyed(Building building)
+    {
+        // Recalculate integration when a building is destroyed
+        UpdateAllTileStates();
+    }
+
+    private void OnDestroy()
+    {
+        // Unsubscribe from building events
+        if (BuildingManager.Instance != null && isSubscribedToBuildingEvents)
+        {
+            BuildingManager.Instance.OnBuildingPlaced -= OnBuildingPlaced;
+            BuildingManager.Instance.OnBuildingDestroyedEvent -= OnBuildingDestroyed;
         }
     }
 
@@ -229,39 +276,93 @@ public class TileStateManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Update integration radius (called when pollution changes)
+    /// Update pollution radius (called when pollution changes)
     /// </summary>
-    public void SetIntegrationRadius(float newRadius)
+    public void SetPollutionRadius(float newRadius)
     {
-        if (Mathf.Approximately(integrationRadius, newRadius)) return;
+        if (Mathf.Approximately(pollutionRadius, newRadius)) return;
 
-        integrationRadius = newRadius;
+        pollutionRadius = newRadius;
         UpdateAllTileStates();
     }
 
     /// <summary>
-    /// Get current integration radius
+    /// Legacy method - redirects to SetPollutionRadius
     /// </summary>
-    public float GetIntegrationRadius()
+    public void SetIntegrationRadius(float newRadius)
     {
-        return integrationRadius;
+        SetPollutionRadius(newRadius);
     }
 
     /// <summary>
-    /// Update all tile states based on square distance from integration center
-    /// Optimized to only update tiles that changed state
+    /// Get current pollution radius
+    /// </summary>
+    public float GetPollutionRadius()
+    {
+        return pollutionRadius;
+    }
+
+    /// <summary>
+    /// Legacy method - redirects to GetPollutionRadius
+    /// </summary>
+    public float GetIntegrationRadius()
+    {
+        return pollutionRadius;
+    }
+
+    /// <summary>
+    /// Calculate which tiles should be integrated based on building proximity.
+    /// Buildings can only integrate tiles that are already Polluted, not Grass.
+    /// </summary>
+    private void CalculateBuildingIntegration(HashSet<Vector2Int> pollutedTiles)
+    {
+        buildingIntegratedTiles.Clear();
+
+        if (BuildingManager.Instance == null) return;
+
+        foreach (Building building in BuildingManager.Instance.AllBuildings)
+        {
+            if (building == null) continue;
+
+            // Calculate tiles within building's integration radius
+            for (int dx = -buildingIntegrationRadius; dx < building.width + buildingIntegrationRadius; dx++)
+            {
+                for (int dy = -buildingIntegrationRadius; dy < building.height + buildingIntegrationRadius; dy++)
+                {
+                    Vector2Int tilePos = building.gridPosition + new Vector2Int(dx, dy);
+
+                    // IMPORTANT: Building can only integrate tiles that are Polluted, NOT Grass
+                    // Check if this tile is within pollution radius (Polluted zone)
+                    if (pollutedTiles.Contains(tilePos))
+                    {
+                        buildingIntegratedTiles.Add(tilePos);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Update all tile states based on:
+    /// 1. Pollution radius determines Polluted (wither) zone
+    /// 2. Buildings extend Integrated zone into Polluted tiles only
+    /// 3. Grass tiles cannot be directly converted to Integrated
     /// </summary>
     public void UpdateAllTileStates()
     {
-        if (terrainTilemap == null || integrationCenter == null) return;
+        if (terrainTilemap == null || pollutionCenter == null) return;
 
-        Vector2 centerPos = integrationCenter.position;
-        float innerRadius = integrationRadius - witherBorderWidth;
+        // Ensure we're subscribed to building events (in case BuildingManager loaded after us)
+        SubscribeToBuildingEvents();
+
+        Vector2 centerPos = pollutionCenter.position;
 
         // Track tiles that changed state (need sprite update)
         HashSet<Vector2Int> changedTiles = new HashSet<Vector2Int>();
 
-        // First pass: calculate all states, track changes
+        // First pass: determine which tiles are in the Polluted zone (based on pollution radius)
+        HashSet<Vector2Int> pollutedZoneTiles = new HashSet<Vector2Int>();
+
         for (int x = tilemapBounds.xMin; x < tilemapBounds.xMax; x++)
         {
             for (int y = tilemapBounds.yMin; y < tilemapBounds.yMax; y++)
@@ -274,18 +375,51 @@ public class TileStateManager : MonoBehaviour
                 float dy = Mathf.Abs(worldPos.y - centerPos.y);
                 float distance = Mathf.Max(dx, dy);
 
+                // Mark tiles within pollution radius as polluted zone (candidates for integration)
+                if (distance < pollutionRadius)
+                {
+                    pollutedZoneTiles.Add(gridPos);
+                }
+            }
+        }
+
+        // Second pass: calculate building-based integration (only into polluted tiles)
+        CalculateBuildingIntegration(pollutedZoneTiles);
+
+        // Third pass: determine final state for each tile
+        for (int x = tilemapBounds.xMin; x < tilemapBounds.xMax; x++)
+        {
+            for (int y = tilemapBounds.yMin; y < tilemapBounds.yMax; y++)
+            {
+                Vector2Int gridPos = new Vector2Int(x, y);
+                Vector3 worldPos = terrainTilemap.CellToWorld(new Vector3Int(x, y, 0)) + new Vector3(0.5f, 0.5f, 0);
+
+                // Square distance from Command Center
+                float dx = Mathf.Abs(worldPos.x - centerPos.x);
+                float dy = Mathf.Abs(worldPos.y - centerPos.y);
+                float distance = Mathf.Max(dx, dy);
+
                 GroundState newState;
-                if (distance < innerRadius)
+
+                // Priority 1: Command Center base zone is always Integrated
+                if (distance < commandCenterBaseRadius)
                 {
                     newState = GroundState.Integrated;
                 }
-                else if (distance < integrationRadius)
+                // Priority 2: Tiles integrated by buildings (only works on Polluted tiles)
+                else if (buildingIntegratedTiles.Contains(gridPos))
                 {
-                    newState = GroundState.Polluted; // Wither zone
+                    newState = GroundState.Integrated;
                 }
+                // Priority 3: Tiles within pollution radius but not integrated = Polluted (wither)
+                else if (distance < pollutionRadius)
+                {
+                    newState = GroundState.Polluted;
+                }
+                // Priority 4: Everything else = Grass (Alive)
                 else
                 {
-                    newState = GroundState.Alive; // Grass zone
+                    newState = GroundState.Alive;
                 }
 
                 // Check if state changed
@@ -312,7 +446,7 @@ public class TileStateManager : MonoBehaviour
             }
         }
 
-        // Second pass: only update sprites for changed tiles and their neighbors
+        // Fourth pass: only update sprites for changed tiles and their neighbors
         foreach (Vector2Int gridPos in changedTiles)
         {
             UpdateTileSprite(gridPos);
@@ -346,44 +480,48 @@ public class TileStateManager : MonoBehaviour
 
     /// <summary>
     /// Check if a world position is within the integrated (buildable) zone
-    /// Uses direct distance check - doesn't rely on tile state dictionary
+    /// Now uses tile state dictionary which includes building-based integration
     /// </summary>
     public bool IsPositionBuildable(Vector3 worldPos)
     {
-        if (integrationCenter == null) return true; // No center = allow all
+        if (pollutionCenter == null) return true; // No center = allow all
 
-        Vector2 centerPos = integrationCenter.position;
-        float innerRadius = integrationRadius - witherBorderWidth;
+        // Convert world position to grid position
+        Vector2Int gridPos;
+        if (GridManager.Instance != null)
+        {
+            gridPos = GridManager.Instance.WorldToGridPosition(worldPos);
+        }
+        else
+        {
+            gridPos = new Vector2Int(Mathf.FloorToInt(worldPos.x), Mathf.FloorToInt(worldPos.y));
+        }
 
-        // Square distance (Chebyshev) = max of X and Y distance
-        float dx = Mathf.Abs(worldPos.x - centerPos.x);
-        float dy = Mathf.Abs(worldPos.y - centerPos.y);
-        float distance = Mathf.Max(dx, dy);
-
-        return distance < innerRadius;
+        // Use tile state dictionary which now includes building-based integration
+        return GetGroundState(gridPos) == GroundState.Integrated;
     }
 
     /// <summary>
-    /// Check if a grid position is in the Alive (grass) zone - outside integration radius
+    /// Check if a grid position is in the Alive (grass) zone - outside pollution radius
     /// Uses direct distance check - safe to call before tile states are initialized
     /// </summary>
     public bool IsInAliveZone(Vector2Int gridPos)
     {
-        if (integrationCenter == null) return true; // No center = all grass
+        if (pollutionCenter == null) return true; // No center = all grass
 
         Vector3 worldPos = GridManager.Instance != null
             ? GridManager.Instance.GridToWorldPosition(gridPos)
             : new Vector3(gridPos.x + 0.5f, gridPos.y + 0.5f, 0);
 
-        Vector2 centerPos = integrationCenter.position;
+        Vector2 centerPos = pollutionCenter.position;
 
         // Square distance (Chebyshev) = max of X and Y distance
         float dx = Mathf.Abs(worldPos.x - centerPos.x);
         float dy = Mathf.Abs(worldPos.y - centerPos.y);
         float distance = Mathf.Max(dx, dy);
 
-        // Alive zone is OUTSIDE the integration radius
-        return distance >= integrationRadius;
+        // Alive zone is OUTSIDE the pollution radius
+        return distance >= pollutionRadius;
     }
 
     /// <summary>
@@ -791,24 +929,69 @@ public class TileStateManager : MonoBehaviour
         UpdateAllTileStates();
     }
 
+/// <summary>
+    /// Get preview of tiles that would become integrated if a building was placed at the given position.
+    /// Used for building placement preview.
+    /// </summary>
+    public HashSet<Vector2Int> GetBuildingIntegrationPreview(Vector2Int buildingPos, int width, int height)
+    {
+        HashSet<Vector2Int> preview = new HashSet<Vector2Int>();
+
+        if (pollutionCenter == null) return preview;
+
+        Vector2 centerPos = pollutionCenter.position;
+
+        for (int dx = -buildingIntegrationRadius; dx < width + buildingIntegrationRadius; dx++)
+        {
+            for (int dy = -buildingIntegrationRadius; dy < height + buildingIntegrationRadius; dy++)
+            {
+                Vector2Int tilePos = buildingPos + new Vector2Int(dx, dy);
+
+                // Calculate distance from pollution center
+                Vector3 worldPos = GridManager.Instance != null
+                    ? GridManager.Instance.GridToWorldPosition(tilePos)
+                    : new Vector3(tilePos.x + 0.5f, tilePos.y + 0.5f, 0);
+
+                float distX = Mathf.Abs(worldPos.x - centerPos.x);
+                float distY = Mathf.Abs(worldPos.y - centerPos.y);
+                float distance = Mathf.Max(distX, distY);
+
+                // Only show preview for tiles in polluted zone that aren't already integrated
+                if (distance < pollutionRadius && distance >= commandCenterBaseRadius)
+                {
+                    GroundState currentState = GetGroundState(tilePos);
+                    if (currentState == GroundState.Polluted)
+                    {
+                        preview.Add(tilePos);
+                    }
+                }
+            }
+        }
+
+        return preview;
+    }
+
 #if UNITY_EDITOR
     [Header("Debug")]
     [SerializeField] private bool showDebugGizmos = true;
 
     private void OnDrawGizmosSelected()
     {
-        if (!showDebugGizmos || integrationCenter == null) return;
+        if (!showDebugGizmos || pollutionCenter == null) return;
 
-        Vector3 center = integrationCenter.position;
+        Vector3 center = pollutionCenter.position;
 
-        // Draw integration radius (outer square - wither border)
-        Gizmos.color = new Color(1, 0.5f, 0, 0.5f); // Orange for wither
-        Gizmos.DrawWireCube(center, new Vector3(integrationRadius * 2, integrationRadius * 2, 0));
+        // Draw pollution radius (outer square - wither/polluted zone boundary)
+        Gizmos.color = new Color(1, 0.5f, 0, 0.5f); // Orange for polluted zone
+        Gizmos.DrawWireCube(center, new Vector3(pollutionRadius * 2, pollutionRadius * 2, 0));
 
-        // Draw inner radius (buildable zone square)
-        float innerRadius = integrationRadius - witherBorderWidth;
-        Gizmos.color = new Color(0, 1, 0, 0.5f); // Green for integrated
-        Gizmos.DrawWireCube(center, new Vector3(innerRadius * 2, innerRadius * 2, 0));
+        // Draw Command Center base radius (always integrated)
+        Gizmos.color = new Color(0, 1, 0, 0.5f); // Green for base integrated zone
+        Gizmos.DrawWireCube(center, new Vector3(commandCenterBaseRadius * 2, commandCenterBaseRadius * 2, 0));
+
+        // Draw building integration radius indicator at center (for reference)
+        Gizmos.color = new Color(0, 0.5f, 1, 0.3f); // Blue for building integration radius
+        Gizmos.DrawWireCube(center, new Vector3(buildingIntegrationRadius * 2, buildingIntegrationRadius * 2, 0));
     }
 #endif
 }
