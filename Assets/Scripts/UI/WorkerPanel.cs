@@ -47,13 +47,15 @@ public class WorkerPanel : MonoBehaviour
 
     private void UpdateWorkerDisplay(WorkerData workerData, int amount)
     {
+        int capacity = WorkerManager.Instance.GetWorkerCapacity(workerData);
+
         if (workerSlots.ContainsKey(workerData))
         {
             // Slot exists
             if (amount > 0)
             {
                 // Update existing slot
-                workerSlots[workerData].UpdateAmount(amount);
+                workerSlots[workerData].UpdateAmount(amount, capacity);
             }
             else
             {
@@ -72,7 +74,7 @@ public class WorkerPanel : MonoBehaviour
                 WorkerDisplaySlotUI slotUI = slotGO.GetComponent<WorkerDisplaySlotUI>();
                 if (slotUI != null)
                 {
-                    slotUI.Setup(workerData, amount);
+                    slotUI.Setup(workerData, amount, capacity);
                     workerSlots.Add(workerData, slotUI);
                 }
             }

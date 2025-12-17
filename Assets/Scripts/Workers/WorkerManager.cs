@@ -1,23 +1,27 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable] // Make this class serializable to show in Inspector
+/// <summary>
+/// Configuration for starting workers in a chapter.
+/// Used by ChapterData to define initial worker counts.
+/// Base capacity comes from WorkerData.baseCapacity.
+/// </summary>
+[System.Serializable]
 public class WorkerStartConfig
 {
     public WorkerData workerData;
     public int initialCount;
-    public int maxCapacity;
 }
 
 public class WorkerManager : MonoBehaviour
 {
     public static WorkerManager Instance { get; private set; }
 
-    [Header("Worker Configuration")]
-    [SerializeField] private List<WorkerStartConfig> startingWorkers = new List<WorkerStartConfig>();
-
     private Dictionary<WorkerData, int> availableWorkers = new Dictionary<WorkerData, int>();
     private Dictionary<WorkerData, int> workerCapacities = new Dictionary<WorkerData, int>();
+
+    // Track registered worker types for reset
+    private HashSet<WorkerData> registeredTypes = new HashSet<WorkerData>();
 
     public event System.Action<WorkerData, int> OnWorkerCountChanged;
 
@@ -29,27 +33,32 @@ public class WorkerManager : MonoBehaviour
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
-        }
-        else
-        {
-            Instance = this;
+            return;
         }
 
-        InitializeWorkers();
+        Instance = this;
+
+        // WorkerManager persists across scenes but is RESET by MissionChapterManager
+        // when starting each chapter. ChapterData handles starting counts.
+        DontDestroyOnLoad(gameObject);
+
+        // No auto-initialization - ChapterData handles starting counts
+        // MissionChapterManager.InitializeChapterWorkers() will register types and set counts
     }
 
-    private void InitializeWorkers()
+    /// <summary>
+    /// Register a worker type with its base capacity. Called by MissionChapterManager.
+    /// </summary>
+    public void RegisterWorkerType(WorkerData workerData, int startingCount = 0)
     {
-        foreach (var config in startingWorkers)
-        {
-            if (config.workerData != null)
-            {
-                availableWorkers[config.workerData] = config.initialCount;
-                workerCapacities[config.workerData] = config.maxCapacity;
-                // Notify UI or other systems about the initial count
-                OnWorkerCountChanged?.Invoke(config.workerData, config.initialCount);
-            }
-        }
+        if (workerData == null) return;
+
+        registeredTypes.Add(workerData);
+        workerCapacities[workerData] = workerData.baseCapacity;
+        availableWorkers[workerData] = startingCount;
+        OnWorkerCountChanged?.Invoke(workerData, startingCount);
+
+        Debug.Log($"[WorkerManager] Registered {workerData.workerName}: {startingCount}/{workerData.baseCapacity}");
     }
 
     public void TrainWorker(WorkerData workerData)
@@ -158,5 +167,43 @@ public class WorkerManager : MonoBehaviour
     public bool IsAtCapacity(WorkerData workerData)
     {
         return GetAvailableWorkerCount(workerData) >= GetWorkerCapacity(workerData);
+    }
+
+    /// <summary>
+    /// Reset all workers to zero and capacities to base values.
+    /// Called by MissionChapterManager when starting a new chapter.
+    /// </summary>
+    public void ResetAllWorkers()
+    {
+        // Clear everything for fresh chapter start
+        availableWorkers.Clear();
+        workerCapacities.Clear();
+        registeredTypes.Clear();
+
+        Debug.Log("[WorkerManager] All workers reset (counts, capacities, registrations cleared)");
+    }
+
+    /// <summary>
+    /// Add to the capacity of a worker type. Used by buildings and research.
+    /// </summary>
+    public void AddCapacity(WorkerData workerData, int amount)
+    {
+        if (workerData == null || !workerCapacities.ContainsKey(workerData)) return;
+
+        workerCapacities[workerData] += amount;
+        Debug.Log($"[WorkerManager] {workerData.workerName} capacity increased by {amount} to {workerCapacities[workerData]}");
+    }
+
+    /// <summary>
+    /// Remove from the capacity of a worker type. Used when buildings are destroyed.
+    /// </summary>
+    public void RemoveCapacity(WorkerData workerData, int amount)
+    {
+        if (workerData == null || !workerCapacities.ContainsKey(workerData)) return;
+
+        workerCapacities[workerData] = Mathf.Max(0, workerCapacities[workerData] - amount);
+
+        // Note: We don't remove workers if over capacity, they just can't train more
+        Debug.Log($"[WorkerManager] {workerData.workerName} capacity decreased by {amount} to {workerCapacities[workerData]}");
     }
 }

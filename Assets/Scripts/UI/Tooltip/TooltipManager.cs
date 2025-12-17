@@ -1,106 +1,44 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
+/// <summary>
+/// DEPRECATED: TooltipManager has been merged into UIManager.
+/// This class exists for backward compatibility only.
+/// Use UIManager.Instance.ShowTooltip() and UIManager.Instance.HideTooltip() instead.
+/// </summary>
+[System.Obsolete("TooltipManager is deprecated. Use UIManager instead.")]
 public class TooltipManager : MonoBehaviour
 {
-    public static TooltipManager Instance { get; private set; }
-
-    [Header("References")]
-    [SerializeField] private TooltipUI tooltipUI;
-
-    [Header("Settings")]
-    [SerializeField] private float showDelay = 0.5f; // Delay before showing tooltip
-    [SerializeField] private float hideDelay = 0.1f; // Small delay before hiding to prevent flicker
-
-    private float hoverTimer;
-    private float hideTimer;
-    private bool isHovering;
-    private bool isPendingHide;
-    private string pendingHeader;
-    private string pendingDescription;
+    // Legacy static instance that redirects to UIManager
+    public static UIManager Instance => UIManager.Instance;
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
+        // This component is no longer needed - UIManager handles tooltips
+        Debug.LogWarning("[TooltipManager] This component is deprecated. Tooltip functionality has been merged into UIManager. Please remove this GameObject and configure tooltips on UIManager instead.");
     }
 
-    private void Update()
-    {
-        if (isHovering)
-        {
-            hoverTimer += Time.deltaTime;
-            isPendingHide = false;
-            hideTimer = 0f;
-
-            if (hoverTimer >= showDelay && !tooltipUI.gameObject.activeSelf)
-            {
-                ShowTooltipImmediate();
-            }
-
-            // Update tooltip position to follow mouse
-            if (tooltipUI.gameObject.activeSelf && Mouse.current != null)
-            {
-                tooltipUI.UpdatePosition(Mouse.current.position.ReadValue());
-            }
-        }
-        else if (isPendingHide)
-        {
-            hideTimer += Time.deltaTime;
-
-            if (hideTimer >= hideDelay)
-            {
-                HideTooltipImmediate();
-            }
-        }
-    }
-
+    // Legacy methods that redirect to UIManager
     public void ShowTooltip(string header, string description)
     {
-        pendingHeader = header;
-        pendingDescription = description;
-        isHovering = true;
-        hoverTimer = 0f;
-    }
-
-    private void ShowTooltipImmediate()
-    {
-        if (tooltipUI != null && Mouse.current != null)
+        if (UIManager.Instance != null)
         {
-            tooltipUI.Show(pendingHeader, pendingDescription);
-            tooltipUI.UpdatePosition(Mouse.current.position.ReadValue());
+            UIManager.Instance.ShowTooltip(header, description);
         }
     }
 
     public void HideTooltip()
     {
-        isHovering = false;
-        hoverTimer = 0f;
-        isPendingHide = true;
-        hideTimer = 0f;
-    }
-
-    private void HideTooltipImmediate()
-    {
-        isPendingHide = false;
-        hideTimer = 0f;
-
-        if (tooltipUI != null)
+        if (UIManager.Instance != null)
         {
-            tooltipUI.Hide();
+            UIManager.Instance.HideTooltip();
         }
     }
 
     public void ShowTooltipFromProvider(ITooltipProvider provider)
     {
-        if (provider != null)
+        if (UIManager.Instance != null)
         {
-            ShowTooltip(provider.GetTooltipHeader(), provider.GetTooltipDescription());
+            UIManager.Instance.ShowTooltipFromProvider(provider);
         }
     }
 }

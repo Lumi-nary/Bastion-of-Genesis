@@ -83,26 +83,35 @@ public class PlacementSystem : MonoBehaviour
 
     private void SelectBuilding()
     {
-        Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-        RaycastHit2D hit = Physics2D.GetRayIntersection(ray);
+        // Convert mouse position to world position for 2D
+        Vector3 mouseScreenPos = Mouse.current.position.ReadValue();
+        Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(mouseScreenPos);
+        Vector2 mouseWorldPos2D = new Vector2(mouseWorldPos.x, mouseWorldPos.y);
 
-        if (hit.collider != null)
+        // Use OverlapPoint for reliable 2D detection (checks all colliders at point)
+        Collider2D[] hits = Physics2D.OverlapPointAll(mouseWorldPos2D);
+
+        Building clickedBuilding = null;
+
+        // Find the first Building component among all hit colliders
+        foreach (Collider2D hit in hits)
         {
-            Building clickedBuilding = hit.collider.GetComponent<Building>();
-            if (clickedBuilding != null)
+            Building building = hit.GetComponent<Building>();
+            if (building != null)
             {
-                // Clicked on a building, show its info
-                UIManager.Instance.ShowBuildingInfoPanel(clickedBuilding);
+                clickedBuilding = building;
+                break;
             }
-            else
-            {
-                // Clicked on something that isn't a building (e.g., the ground, an enemy)
-                UIManager.Instance.HideBuildingInfoPanel();
-            }
+        }
+
+        if (clickedBuilding != null)
+        {
+            // Clicked on a building, show its info
+            UIManager.Instance.ShowBuildingInfoPanel(clickedBuilding);
         }
         else
         {
-            // Clicked on empty space
+            // Clicked on empty space or non-building
             UIManager.Instance.HideBuildingInfoPanel();
         }
     }
@@ -209,9 +218,9 @@ public class PlacementSystem : MonoBehaviour
             if (requiresOreMound)
             {
                 // Check if there's a manually-placed ore mound at this position
-                if (OreMoundManager.Instance == null)
+                if (GridManager.Instance == null)
                 {
-                    Debug.Log("[Placement] BLOCKED: OreMoundManager.Instance is null");
+                    Debug.Log("[Placement] BLOCKED: GridManager.Instance is null");
                     return false;
                 }
 
@@ -226,7 +235,7 @@ public class PlacementSystem : MonoBehaviour
                 // This ensures the player must manually align the building center with the ore mound
                 float centerTolerance = 0.5f;
 
-                mound = OreMoundManager.Instance.GetMoundAtPosition(centerWorldPos, centerTolerance);
+                mound = GridManager.Instance.GetMoundAtPosition(centerWorldPos, centerTolerance);
 
                 if (mound == null)
                 {
@@ -239,6 +248,17 @@ public class PlacementSystem : MonoBehaviour
                 {
                     Debug.Log("[Placement] BLOCKED: Ore mound not discovered");
                     return false;
+                }
+
+                // Check if ore mound is within integrated zone
+                if (TileStateManager.Instance != null)
+                {
+                    Vector2Int moundGridPos = gridManager.WorldToGridPosition(mound.Position);
+                    if (TileStateManager.Instance.GetGroundState(moundGridPos) != GroundState.Integrated)
+                    {
+                        Debug.Log("[Placement] BLOCKED: Ore mound is outside integrated zone");
+                        return false;
+                    }
                 }
 
                 // Check if ore mound already has extractor
@@ -261,13 +281,13 @@ public class PlacementSystem : MonoBehaviour
         {
             // This building does NOT require an ore mound
             // Check if there's an ore mound at this location - if so, prevent placement
-            if (OreMoundManager.Instance != null)
+            if (GridManager.Instance != null)
             {
                 // Check center position for ore mound (assuming most buildings would overlap center)
                 Vector2Int centerGridPos = new Vector2Int(startCell.x + (width / 2), startCell.y + (height / 2));
                 Vector3 centerWorldPos = gridManager.GridToWorldPosition(centerGridPos);
 
-                OreMound moundAtLocation = OreMoundManager.Instance.GetMoundAtPosition(centerWorldPos, 1.5f);
+                OreMound moundAtLocation = GridManager.Instance.GetMoundAtPosition(centerWorldPos, 1.5f);
 
                 if (moundAtLocation != null)
                 {

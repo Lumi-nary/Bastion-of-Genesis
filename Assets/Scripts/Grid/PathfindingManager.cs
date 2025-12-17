@@ -18,9 +18,9 @@ public class PathfindingManager : MonoBehaviour
     [SerializeField] private bool smoothPaths = true;
 
     [Header("Flow Field Settings")]
-    [Tooltip("Grid dimensions for flow field (should cover entire playable area)")]
-    [SerializeField] private int flowFieldWidth = 200;
-    [SerializeField] private int flowFieldHeight = 200;
+    [Tooltip("Grid dimensions for flow field (auto-calculated from tilemap if 0)")]
+    [SerializeField] private int flowFieldWidth = 0;
+    [SerializeField] private int flowFieldHeight = 0;
 
     // Diagonal cost (sqrt(2) ≈ 1.414)
     private const float DIAGONAL_COST = 1.414f;
@@ -68,7 +68,7 @@ public class PathfindingManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            InitializeFlowFields();
+            // Defer initialization to Start() so GridManager is ready
         }
         else
         {
@@ -78,10 +78,45 @@ public class PathfindingManager : MonoBehaviour
 
     // Track which BuildingManager we're subscribed to
     private BuildingManager subscribedBuildingManager = null;
+    private bool flowFieldsInitialized = false;
+
+    // Track which GridManager we initialized from
+    private GridManager initializedFromGrid = null;
 
     private void Start()
     {
+        InitializeFlowFields();
         TrySubscribeToBuildingManager();
+    }
+
+    private void OnEnable()
+    {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+    {
+        // Reinitialize when new scene loads (GridManager might be different)
+        Debug.Log($"[PathfindingManager] Scene loaded: {scene.name}, reinitializing flow fields...");
+        flowFieldWidth = 0;
+        flowFieldHeight = 0;
+        flowFieldsInitialized = false;
+        initializedFromGrid = null;
+        hasFlowTarget = false;
+
+        // Delay init to let GridManager awake
+        StartCoroutine(DelayedInit());
+    }
+
+    private System.Collections.IEnumerator DelayedInit()
+    {
+        yield return null; // Wait one frame
+        InitializeFlowFields();
     }
 
     private void OnDestroy()
@@ -96,6 +131,16 @@ public class PathfindingManager : MonoBehaviour
         {
             UnsubscribeFromBuildingManager();
             TrySubscribeToBuildingManager();
+        }
+
+        // Reinitialize if GridManager changed
+        if (GridManager.Instance != null && GridManager.Instance != initializedFromGrid)
+        {
+            Debug.Log("[PathfindingManager] GridManager changed, reinitializing flow fields...");
+            flowFieldWidth = 0;
+            flowFieldHeight = 0;
+            InitializeFlowFields();
+            initializedFromGrid = GridManager.Instance;
         }
 
         // Handle deferred recalculation
@@ -130,9 +175,46 @@ public class PathfindingManager : MonoBehaviour
 
     private void InitializeFlowFields()
     {
+        // Auto-calculate from GridManager tilemap if dimensions are 0
+        if ((flowFieldWidth == 0 || flowFieldHeight == 0) && GridManager.Instance != null)
+        {
+            BoundsInt tileBounds = GridManager.Instance.GetTilemapBounds();
+            flowFieldWidth = tileBounds.size.x;
+            flowFieldHeight = tileBounds.size.y;
+            gridOffset = new Vector2Int(tileBounds.xMin, tileBounds.yMin);
+
+            Debug.Log($"[PathfindingManager] Flow field auto-sized from tilemap: {flowFieldWidth}x{flowFieldHeight}, offset: {gridOffset}");
+        }
+        else
+        {
+            // Fallback to default centered bounds
+            if (flowFieldWidth == 0) flowFieldWidth = 200;
+            if (flowFieldHeight == 0) flowFieldHeight = 200;
+            gridOffset = new Vector2Int(-flowFieldWidth / 2, -flowFieldHeight / 2);
+
+            Debug.Log($"[PathfindingManager] Flow field using default size: {flowFieldWidth}x{flowFieldHeight}, offset: {gridOffset}");
+        }
+
         groundFlowField = new FlowFieldData(flowFieldWidth, flowFieldHeight);
         tunnelingFlowField = new FlowFieldData(flowFieldWidth, flowFieldHeight);
-        gridOffset = new Vector2Int(-flowFieldWidth / 2, -flowFieldHeight / 2);
+        flowFieldsInitialized = true;
+        initializedFromGrid = GridManager.Instance;
+    }
+
+    /// <summary>
+    /// Reinitialize flow fields (call if GridManager wasn't ready at Start)
+    /// </summary>
+    public void ReinitializeFlowFields()
+    {
+        flowFieldsInitialized = false;
+        flowFieldWidth = 0;
+        flowFieldHeight = 0;
+        InitializeFlowFields();
+
+        if (hasFlowTarget)
+        {
+            RecalculateFlowFields();
+        }
     }
 
     #region Flow Field API

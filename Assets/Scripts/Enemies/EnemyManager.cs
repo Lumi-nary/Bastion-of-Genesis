@@ -12,7 +12,10 @@ public class EnemyManager : MonoBehaviour
     public static EnemyManager Instance { get; private set; }
 
     [Header("Enemy Configuration")]
-    [Tooltip("All enemy types in the game (loaded dynamically)")]
+    [Tooltip("DEBUG ONLY: Test enemies when ChapterData not available")]
+    [SerializeField] private List<EnemyData> debugEnemyTypes = new List<EnemyData>();
+
+    [Tooltip("All enemy types available for current chapter")]
     private List<EnemyData> allEnemyTypes = new List<EnemyData>();
 
     [Tooltip("Currently active enemies in the scene")]
@@ -143,15 +146,37 @@ public class EnemyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Load all enemy types from Resources folder
-    /// Data-driven: Add new enemies by creating ScriptableObject assets
+    /// Load enemy types from ChapterData or debug list
     /// </summary>
     private void LoadAllEnemyTypes()
     {
-        EnemyData[] enemies = Resources.LoadAll<EnemyData>("Enemies");
-        allEnemyTypes = new List<EnemyData>(enemies);
+        // Try to load from ChapterData (production)
+        if (MissionChapterManager.Instance != null &&
+            MissionChapterManager.Instance.CurrentChapter != null &&
+            MissionChapterManager.Instance.CurrentChapter.chapterEnemies.Count > 0)
+        {
+            allEnemyTypes = new List<EnemyData>(MissionChapterManager.Instance.CurrentChapter.chapterEnemies);
+            Debug.Log($"[EnemyManager] Loaded {allEnemyTypes.Count} enemies from ChapterData: {MissionChapterManager.Instance.CurrentChapter.chapterName}");
+        }
+        // Fallback to debug list (for scene testing)
+        else if (debugEnemyTypes != null && debugEnemyTypes.Count > 0)
+        {
+            allEnemyTypes = new List<EnemyData>(debugEnemyTypes);
+            Debug.Log($"[EnemyManager] Loaded {allEnemyTypes.Count} enemies from DEBUG list");
+        }
+        else
+        {
+            Debug.LogWarning("[EnemyManager] No enemies found! Add to ChapterData.chapterEnemies or debug list.");
+        }
+    }
 
-        Debug.Log($"[EnemyManager] Loaded {allEnemyTypes.Count} enemy types");
+    /// <summary>
+    /// Reload enemy types from current ChapterData.
+    /// Called by MissionChapterManager when a new chapter starts.
+    /// </summary>
+    public void ReloadEnemyTypesFromChapter()
+    {
+        LoadAllEnemyTypes();
     }
 
     /// <summary>
@@ -200,6 +225,34 @@ public class EnemyManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Spawn a single enemy for a wave using pollution-based weighted selection
+    /// Called by WaveController for each individual enemy spawn
+    /// </summary>
+    public Enemy SpawnEnemyForWave(int waveNumber, Vector3 spawnPosition, float pollutionNormalized)
+    {
+        currentWave = waveNumber;
+        isWaveActive = true;
+
+        // Enemies are already filtered by ChapterData, just use allEnemyTypes
+        if (allEnemyTypes.Count == 0)
+        {
+            Debug.LogWarning("[EnemyManager] No enemies available! Check ChapterData or debug list.");
+            return null;
+        }
+
+        // Select enemy using weighted random based on pollution
+        EnemyData selectedEnemy = SelectWeightedEnemy(allEnemyTypes, pollutionNormalized);
+
+        if (selectedEnemy == null)
+        {
+            Debug.LogWarning("[EnemyManager] Failed to select enemy!");
+            return null;
+        }
+
+        return SpawnEnemy(selectedEnemy, spawnPosition);
+    }
+
+    /// <summary>
     /// Spawn a wave of enemies based on current wave number and pollution
     /// </summary>
     public void SpawnWave(int waveNumber, Vector3 spawnPosition)
@@ -228,15 +281,25 @@ public class EnemyManager : MonoBehaviour
 
     /// <summary>
     /// Calculate number of enemies for a wave
+    /// Uses pollution-based spawn multiplier: 1.0x at 0%, 3.0x at 100%
     /// </summary>
     private int CalculateEnemyCount(int waveNumber)
     {
         // Base: 5 enemies, +2 per wave
-        return 5 + (waveNumber * 2);
+        int baseCount = 5 + (waveNumber * 2);
+
+        // Apply pollution multiplier
+        float pollutionMultiplier = 1f;
+        if (PollutionManager.Instance != null)
+        {
+            pollutionMultiplier = PollutionManager.Instance.GetSpawnCountMultiplier();
+        }
+
+        return Mathf.RoundToInt(baseCount * pollutionMultiplier);
     }
 
     /// <summary>
-    /// Select which enemies to spawn in a wave
+    /// Select which enemies to spawn in a wave using pollution-based weighted random selection
     /// </summary>
     private List<EnemyData> SelectEnemiesForWave(int waveNumber, float pollution, int count)
     {
@@ -249,6 +312,11 @@ public class EnemyManager : MonoBehaviour
             currentChapter = MissionChapterManager.Instance.CurrentChapterIndex + 1;
         }
 
+        // Get normalized pollution (0-1)
+        float pollutionNormalized = PollutionManager.Instance != null
+            ? PollutionManager.Instance.PollutionNormalized
+            : 0f;
+
         // Filter enemies that can spawn in current chapter
         List<EnemyData> availableEnemies = allEnemyTypes
             .Where(e => e.CanSpawnInChapter(currentChapter))
@@ -260,14 +328,52 @@ public class EnemyManager : MonoBehaviour
             return selectedEnemies;
         }
 
-        // Select enemies randomly (equal weight for now)
+        // Select enemies using weighted random selection based on pollution
         for (int i = 0; i < count; i++)
         {
-            EnemyData selected = availableEnemies[Random.Range(0, availableEnemies.Count)];
-            selectedEnemies.Add(selected);
+            EnemyData selected = SelectWeightedEnemy(availableEnemies, pollutionNormalized);
+            if (selected != null)
+            {
+                selectedEnemies.Add(selected);
+            }
         }
 
         return selectedEnemies;
+    }
+
+    /// <summary>
+    /// Select a single enemy using pollution-based weighted random selection
+    /// </summary>
+    private EnemyData SelectWeightedEnemy(List<EnemyData> availableEnemies, float pollutionNormalized)
+    {
+        // Calculate total weight
+        float totalWeight = 0f;
+        foreach (var enemy in availableEnemies)
+        {
+            totalWeight += enemy.GetSpawnWeight(pollutionNormalized);
+        }
+
+        // If no enemies have weight at this pollution level, fall back to random
+        if (totalWeight <= 0f)
+        {
+            return availableEnemies[Random.Range(0, availableEnemies.Count)];
+        }
+
+        // Weighted random selection
+        float randomValue = Random.Range(0f, totalWeight);
+        float cumulative = 0f;
+
+        foreach (var enemy in availableEnemies)
+        {
+            cumulative += enemy.GetSpawnWeight(pollutionNormalized);
+            if (randomValue <= cumulative)
+            {
+                return enemy;
+            }
+        }
+
+        // Fallback (shouldn't reach here)
+        return availableEnemies[availableEnemies.Count - 1];
     }
 
     /// <summary>
@@ -467,20 +573,29 @@ public class EnemyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Get pollution multiplier based on current pollution level
-    /// 0-250: 1.0×, 250-500: 1.2×, 500-750: 1.2×, 750+: 1.3×
+    /// Get pollution multiplier for enemy stats (HP/damage scaling)
+    /// Uses linear formula: 1.0 + (pollution * 0.5) for 1.0x to 1.5x scaling
     /// </summary>
     private float GetPollutionMultiplier()
     {
         if (PollutionManager.Instance != null)
         {
-            float pollution = PollutionManager.Instance.CurrentPollution;
-
-            if (pollution < 250f) return 1.0f;
-            else if (pollution < 500f) return 1.2f;
-            else if (pollution < 750f) return 1.2f;
-            else return 1.3f;
+            float pollutionNormalized = PollutionManager.Instance.PollutionNormalized;
+            // 1.0x at 0% pollution, 1.5x at 100% pollution
+            return 1f + (pollutionNormalized * 0.5f);
         }
         return 1.0f; // Default if no pollution manager
+    }
+
+    /// <summary>
+    /// Get the wave interval multiplier (for wave controllers to use)
+    /// </summary>
+    public float GetWaveIntervalMultiplier()
+    {
+        if (PollutionManager.Instance != null)
+        {
+            return PollutionManager.Instance.GetWaveIntervalMultiplier();
+        }
+        return 1.0f;
     }
 }

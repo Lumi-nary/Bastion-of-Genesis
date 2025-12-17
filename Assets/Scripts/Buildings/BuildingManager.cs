@@ -77,11 +77,11 @@ public class BuildingManager : MonoBehaviour
             if (buildingData.HasFeature<ResourceExtractorFeature>())
             {
                 ResourceExtractorFeature extractor = buildingData.GetFeature<ResourceExtractorFeature>();
-                if (extractor.requiresOreMound && OreMoundManager.Instance != null)
+                if (extractor.requiresOreMound && GridManager.Instance != null)
                 {
                     // Position is already the center for all buildings
                     Vector3 centerWorldPos = position;
-                    OreMound mound = OreMoundManager.Instance.GetMoundAtPosition(centerWorldPos, 0.5f);
+                    OreMound mound = GridManager.Instance.GetMoundAtPosition(centerWorldPos, 0.5f);
 
                     if (mound != null && mound.CanPlaceExtractor())
                     {

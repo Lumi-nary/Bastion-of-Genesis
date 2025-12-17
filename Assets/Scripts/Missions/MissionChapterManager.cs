@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 public class MissionChapterManager : MonoBehaviour
@@ -19,6 +20,9 @@ public class MissionChapterManager : MonoBehaviour
 
     private float missionTimer = 0f;
     private bool missionActive = false;
+
+    // Scene transition tracking
+    private bool awaitingSceneValidation = false;
 
     #region Events
     // Mission Events
@@ -58,6 +62,92 @@ public class MissionChapterManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        // Subscribe to scene events for validation
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    /// <summary>
+    /// Called when a new scene is loaded - validates required managers exist
+    /// </summary>
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (!awaitingSceneValidation) return;
+
+        awaitingSceneValidation = false;
+        Debug.Log($"[MissionChapterManager] Scene loaded: {scene.name}, validating managers...");
+
+        // Delay validation to allow managers to initialize
+        StartCoroutine(ValidateSceneAfterDelay());
+    }
+
+    private IEnumerator ValidateSceneAfterDelay()
+    {
+        // Wait for managers to initialize
+        yield return null;
+        yield return null; // Extra frame for safety
+
+        if (ValidateChapterScene())
+        {
+            // Initialize chapter values AFTER scene managers are ready
+            InitializeChapterState();
+        }
+    }
+
+    /// <summary>
+    /// Initialize all chapter state after scene loads
+    /// Called after scene validation passes to ensure managers exist
+    /// </summary>
+    private void InitializeChapterState()
+    {
+        if (currentChapter == null)
+        {
+            Debug.LogError("[MissionChapterManager] No current chapter to initialize!");
+            return;
+        }
+
+        Debug.Log($"[MissionChapterManager] Initializing chapter state for: {currentChapter.chapterName}");
+
+        // Reset and initialize resources
+        if (ResourceManager.Instance != null)
+        {
+            ResourceManager.Instance.ResetAllResources();
+            InitializeChapterResources();
+        }
+
+        // Reset and initialize workers
+        if (WorkerManager.Instance != null)
+        {
+            WorkerManager.Instance.ResetAllWorkers();
+            InitializeChapterWorkers();
+        }
+
+        // Reset pollution and configure from chapter settings
+        if (PollutionManager.Instance != null)
+        {
+            PollutionManager.Instance.ResetPollution();
+            PollutionManager.Instance.ConfigureFromChapter(currentChapter.maxPollution, currentChapter.pollutionDecayRate);
+        }
+
+        // Set starting integration radius
+        if (TileStateManager.Instance != null)
+        {
+            TileStateManager.Instance.SetIntegrationRadius(currentChapter.startingIntegrationRadius);
+            Debug.Log($"[MissionChapterManager] Integration radius set to: {currentChapter.startingIntegrationRadius}");
+        }
+
+        // Reload enemy types from chapter data
+        if (EnemyManager.Instance != null)
+        {
+            EnemyManager.Instance.ReloadEnemyTypesFromChapter();
+        }
+
+        Debug.Log("[MissionChapterManager] Chapter state initialization complete");
     }
 
     private void Start()
@@ -124,21 +214,87 @@ public class MissionChapterManager : MonoBehaviour
         // Notify listeners that chapter changed
         OnChapterChanged?.Invoke(currentChapterIndex);
 
-        // Reset chapter state (resources, pollution)
-        ResetChapterState();
-
-        // Initialize starting resources and workers for the chapter
-        InitializeChapterResources();
-        InitializeChapterWorkers();
+        // Pre-load cleanup: Clear existing enemies and reset pathfinding
+        CleanupBeforeSceneLoad();
 
         // Load the chapter's scene
+        // NOTE: Chapter state (resources, workers, integration) is initialized
+        // AFTER scene loads in InitializeChapterState() via ValidateSceneAfterDelay()
         if (!string.IsNullOrEmpty(chapter.sceneName))
         {
+            awaitingSceneValidation = true;
             SceneManager.LoadScene(chapter.sceneName);
         }
 
         OnChapterStarted?.Invoke(currentChapter);
         Debug.Log($"Chapter {currentChapterIndex + 1} Started: {currentChapter.chapterName}");
+    }
+
+    /// <summary>
+    /// Cleanup persistent managers before loading a new chapter scene
+    /// Ensures no stale references or enemies carry over
+    /// </summary>
+    private void CleanupBeforeSceneLoad()
+    {
+        // Clear all active enemies
+        if (EnemyManager.Instance != null)
+        {
+            EnemyManager.Instance.ClearAllEnemies();
+            EnemyManager.Instance.ResetForNewMission();
+            Debug.Log("[MissionChapterManager] Cleared enemies before scene load");
+        }
+
+        // Note: PathfindingManager and GridManager handle their own cleanup via OnSceneLoaded
+        // They will reinitialize when the new scene loads
+    }
+
+    /// <summary>
+    /// Validates that all required managers exist in the chapter scene
+    /// Called after scene loads to ensure proper setup
+    /// </summary>
+    /// <returns>True if all required managers are present</returns>
+    private bool ValidateChapterScene()
+    {
+        bool isValid = true;
+        var missingManagers = new List<string>();
+
+        // Check for required scene-specific managers
+        if (GridManager.Instance == null)
+        {
+            missingManagers.Add("GridManager");
+            isValid = false;
+        }
+
+        if (BuildingManager.Instance == null)
+        {
+            missingManagers.Add("BuildingManager");
+            isValid = false;
+        }
+
+        if (WorkerManager.Instance == null)
+        {
+            missingManagers.Add("WorkerManager");
+            isValid = false;
+        }
+
+        if (PollutionManager.Instance == null)
+        {
+            missingManagers.Add("PollutionManager");
+            isValid = false;
+        }
+
+        // Log results
+        if (isValid)
+        {
+            Debug.Log($"[MissionChapterManager] Scene validation PASSED - all required managers present");
+        }
+        else
+        {
+            Debug.LogError($"[MissionChapterManager] Scene validation FAILED - Missing managers: {string.Join(", ", missingManagers)}");
+            Debug.LogError("[MissionChapterManager] Ensure the chapter scene has GameObjects with the required manager components!");
+        }
+
+        return isValid;
     }
 
     /// <summary>
@@ -193,50 +349,8 @@ public class MissionChapterManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Reset state that doesn't persist between chapters
-    /// Resources and Pollution reset, but Research/Technology persists
-    /// Enemy hostility does NOT reset (cumulative)
-    /// </summary>
-    private void ResetChapterState()
-    {
-        // Reset resources to 0
-        if (ResourceManager.Instance != null)
-        {
-            ResetAllResources();
-        }
-
-        // Reset pollution to 0
-        if (PollutionManager.Instance != null)
-        {
-            PollutionManager.Instance.ResetPollution();
-        }
-
-        // NOTE: Enemy hostility is NOT reset - it persists across chapters
-        // This is handled by PollutionManager maintaining cumulative hostility
-
-        // NOTE: Research/Technology state persists - nothing to reset
-        // TechnologyManager (to be implemented) will maintain research progress
-
-        Debug.Log("Chapter state reset: Resources and Pollution cleared, Research and Hostility persist");
-    }
-
-    /// <summary>
-    /// Reset all resources to 0
-    /// </summary>
-    private void ResetAllResources()
-    {
-        if (ResourceManager.Instance == null) return;
-
-        // Get all resource types and set them to 0
-        var resources = ResourceManager.Instance.GetAllResources();
-        foreach (var resourceType in resources.Keys)
-        {
-            ResourceManager.Instance.RemoveResource(resourceType, resources[resourceType]);
-        }
-    }
-
-    /// <summary>
-    /// Initialize starting resources for the chapter (called once per chapter)
+    /// Initialize starting resources for the chapter (called once per chapter).
+    /// Registers resource types with base capacity and sets starting amounts from ChapterData.
     /// </summary>
     private void InitializeChapterResources()
     {
@@ -246,15 +360,17 @@ public class MissionChapterManager : MonoBehaviour
         {
             if (resourceCost.resourceType != null)
             {
-                ResourceManager.Instance.AddResource(resourceCost.resourceType, resourceCost.amount);
+                // Register type with base capacity and starting amount
+                ResourceManager.Instance.RegisterResourceType(resourceCost.resourceType, resourceCost.amount);
             }
         }
 
-        Debug.Log($"Chapter resources initialized: {currentChapter.startingResources.Count} resource types");
+        Debug.Log($"[MissionChapterManager] Chapter resources initialized: {currentChapter.startingResources.Count} resource types");
     }
 
     /// <summary>
-    /// Initialize starting workers for the chapter (called once per chapter)
+    /// Initialize starting workers for the chapter (called once per chapter).
+    /// Registers worker types with base capacity and sets starting counts from ChapterData.
     /// </summary>
     private void InitializeChapterWorkers()
     {
@@ -264,14 +380,12 @@ public class MissionChapterManager : MonoBehaviour
         {
             if (workerConfig.workerData != null)
             {
-                for (int i = 0; i < workerConfig.initialCount; i++)
-                {
-                    WorkerManager.Instance.TrainWorker(workerConfig.workerData);
-                }
+                // Register type with base capacity and starting count
+                WorkerManager.Instance.RegisterWorkerType(workerConfig.workerData, workerConfig.initialCount);
             }
         }
 
-        Debug.Log($"Chapter workers initialized: {currentChapter.startingWorkers.Count} worker types");
+        Debug.Log($"[MissionChapterManager] Chapter workers initialized: {currentChapter.startingWorkers.Count} worker types");
     }
 
     /// <summary>

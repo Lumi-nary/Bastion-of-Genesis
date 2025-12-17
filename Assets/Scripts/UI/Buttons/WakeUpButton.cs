@@ -46,13 +46,21 @@ public class WakeUpButton : MonoBehaviour
 
         Debug.Log($"[WakeUpButton] Save created: {baseName}, {difficulty}, {mode}, Chapter {chapter}");
 
-        // Get the correct scene name for the selected chapter
-        string sceneToLoad = GetChapterSceneName(chapter);
-        Debug.Log($"[WakeUpButton] Save created, loading {sceneToLoad} scene");
-
-        // AC5: Load chapter scene via SceneManager.LoadSceneAsync (ADR-6: Scene Flow)
-        // NFR-1: Scene transition completes within <2 seconds
-        SceneManager.LoadSceneAsync(sceneToLoad);
+        // Start chapter via MissionChapterManager (handles scene loading AND chapter initialization)
+        // This ensures ChapterData values (resources, workers, enemies, integration) are applied
+        if (MissionChapterManager.Instance != null)
+        {
+            int chapterIndex = chapter - 1; // Convert 1-indexed to 0-indexed
+            Debug.Log($"[WakeUpButton] Starting Chapter {chapter} via MissionChapterManager");
+            MissionChapterManager.Instance.StartChapter(chapterIndex);
+        }
+        else
+        {
+            // Fallback: Direct scene load if MissionChapterManager not available
+            Debug.LogWarning("[WakeUpButton] MissionChapterManager not found! Loading scene directly (chapter data won't be applied)");
+            string sceneToLoad = GetChapterSceneName(chapter);
+            SceneManager.LoadSceneAsync(sceneToLoad);
+        }
     }
 
     /// <summary>

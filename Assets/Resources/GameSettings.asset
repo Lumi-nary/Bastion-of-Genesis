@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80d65a56d97757142b94302f5c392f9a, type: 3}
   m_Name: GameSettings
   m_EditorClassIdentifier: Assembly-CSharp::GameSettings
-  gameTitle: Bastion of Genesis
+  gameTitle: Bastion of Genesis Alpha Build
   gameVersion: 0.1.0-alpha
   companyName: Kanimagination
   credits:

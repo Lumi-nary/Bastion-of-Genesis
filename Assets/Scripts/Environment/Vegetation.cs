@@ -26,7 +26,7 @@ public class Vegetation : VisualObject
         Tree        // Large, Y-sorted, highest sort order
     }
 
-    // Sort order bases for each type (added to VisualLayer.Environment)
+    // Sort order bases for each type (added to base layer value)
     private const int GRASS_SORT_BASE = -50;    // Behind everything
     private const int BUSH_SORT_BASE = -25;     // Behind trees
     private const int SHRUB_SORT_BASE = -25;    // Same as bush
@@ -37,7 +37,8 @@ public class Vegetation : VisualObject
 
     protected override void Awake()
     {
-        visualLayer = VisualLayer.Environment;
+        // Set layer based on vegetation type BEFORE base.Awake() initializes sorting
+        SetLayerForType();
         base.Awake();
 
         // Set sort order based on type
@@ -70,6 +71,27 @@ public class Vegetation : VisualObject
             spriteRenderer.sprite = sprite;
         }
         SetSortOrderForType();
+    }
+
+    /// <summary>
+    /// Set visual layer based on vegetation type.
+    /// Grass/Bush/Shrub use EnvironmentBackground (behind enemies).
+    /// Trees use EnvironmentForeground (in front of enemies).
+    /// </summary>
+    private void SetLayerForType()
+    {
+        switch (vegetationType)
+        {
+            case VegetationType.Grass:
+            case VegetationType.Bush:
+            case VegetationType.Shrub:
+                visualLayer = VisualLayer.EnvironmentBackground;
+                break;
+
+            case VegetationType.Tree:
+                visualLayer = VisualLayer.EnvironmentForeground;
+                break;
+        }
     }
 
     /// <summary>

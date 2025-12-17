@@ -12,6 +12,10 @@ public class WorkerData : ScriptableObject, ITooltipProvider
     [Header("Creation Cost")]
     public List<ResourceCost> cost = new List<ResourceCost>();
 
+    [Header("Capacity")]
+    [Tooltip("Base maximum capacity before buildings/research bonuses")]
+    public int baseCapacity = 5;
+
     // ITooltipProvider implementation
     public string GetTooltipHeader()
     {

@@ -22,7 +22,7 @@ public class WorkerDisplaySlotUI : MonoBehaviour
         }
     }
 
-    public void Setup(WorkerData data, int amount)
+    public void Setup(WorkerData data, int amount, int capacity)
     {
         workerData = data;
 
@@ -31,7 +31,7 @@ public class WorkerDisplaySlotUI : MonoBehaviour
             workerIcon.sprite = workerData.icon;
         }
 
-        UpdateAmount(amount);
+        UpdateAmount(amount, capacity);
 
         // Setup tooltip
         if (tooltipTrigger != null && workerData != null)
@@ -40,8 +40,8 @@ public class WorkerDisplaySlotUI : MonoBehaviour
         }
     }
 
-    public void UpdateAmount(int amount)
+    public void UpdateAmount(int amount, int capacity)
     {
-        workerAmountText.text = amount.ToString();
+        workerAmountText.text = $"{amount}/{capacity}";
     }
 }

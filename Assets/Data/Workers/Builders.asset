@@ -17,4 +17,5 @@ MonoBehaviour:
   icon: {fileID: 4688266795139732916, guid: 7a06794e592fc32469f72201e2ebb6c7, type: 3}
   cost:
   - resourceType: {fileID: 11400000, guid: 0505f28487f172248a00b967bda2d6d4, type: 2}
-    amount: 2
+    amount: 3
+  baseCapacity: 5

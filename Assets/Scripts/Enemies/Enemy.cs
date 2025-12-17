@@ -35,6 +35,12 @@ public class Enemy : MonoBehaviour
     private bool hasTargetCell = false;  // Whether we have a valid target cell
     private const float CELL_ARRIVAL_THRESHOLD = 0.05f; // How close to cell center before snapping
 
+    [Header("Separation")]
+    [Tooltip("Radius for separation from other enemies")]
+    [SerializeField] private float separationRadius = 0.5f;
+    [Tooltip("Strength of separation force")]
+    [SerializeField] private float separationStrength = 2f;
+
     [Header("Debug")]
     [SerializeField] private bool debugMovement = false;
     private int stuckFrameCount = 0;
@@ -362,8 +368,48 @@ public class Enemy : MonoBehaviour
         }
         lastPosition = transform.position;
 
+        // Apply separation to avoid stacking on other enemies
+        Vector3 separationOffset = GetSeparationOffset();
+        newPosition += separationOffset * Time.deltaTime;
+
         // Apply movement
         transform.position = newPosition;
+    }
+
+    /// <summary>
+    /// Calculate separation offset to prevent enemies from stacking on each other.
+    /// Uses simple repulsion from nearby enemies.
+    /// </summary>
+    private Vector3 GetSeparationOffset()
+    {
+        if (EnemyManager.Instance == null) return Vector3.zero;
+
+        Vector3 separation = Vector3.zero;
+        int neighborCount = 0;
+
+        foreach (Enemy other in EnemyManager.Instance.ActiveEnemies)
+        {
+            if (other == null || other == this || other.isDead) continue;
+
+            Vector3 toThis = transform.position - other.transform.position;
+            float distance = toThis.magnitude;
+
+            if (distance < separationRadius && distance > 0.01f)
+            {
+                // Repel away from nearby enemy, stronger when closer
+                float strength = (separationRadius - distance) / separationRadius;
+                separation += toThis.normalized * strength;
+                neighborCount++;
+            }
+        }
+
+        if (neighborCount > 0)
+        {
+            separation /= neighborCount;
+            separation *= separationStrength;
+        }
+
+        return separation;
     }
 
     /// <summary>

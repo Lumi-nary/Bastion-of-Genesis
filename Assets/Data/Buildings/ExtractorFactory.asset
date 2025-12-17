@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0085d395165c104bbca07356b52ab46, type: 3}
   m_Name: ExtractorFactory
   m_EditorClassIdentifier: Assembly-CSharp::BuildingData
-  buildingName: 
+  buildingName: Extractor Factory
   description: 
   icon: {fileID: 0}
-  category: 0
+  category: 2
   prefab: {fileID: 0}
+  isPlayerBuildable: 1
   requiredTech: {fileID: 0}
   maxHealth: 100
   resourceCost: []

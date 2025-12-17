@@ -24,12 +24,26 @@ public class ChapterData : ScriptableObject
     [Tooltip("Workers given at the start of this chapter")]
     public List<WorkerStartConfig> startingWorkers = new List<WorkerStartConfig>();
 
+    [Header("Starting Integration Zone")]
+    [Tooltip("Initial integration radius (buildable zone) for this chapter")]
+    public float startingIntegrationRadius = 10f;
+
+    [Header("Pollution Settings")]
+    [Tooltip("Maximum pollution level for this chapter")]
+    public float maxPollution = 1000f;
+
+    [Tooltip("Rate at which pollution naturally decays per second")]
+    public float pollutionDecayRate = 0.5f;
+
     [Header("Chapter Missions")]
     public List<MissionData> missions = new List<MissionData>(); // 10 missions
 
-    [Header("Enemy Races in Chapter")]
+    [Header("Enemies")]
     [Tooltip("Which enemy races are active in this chapter")]
     public List<RaceType> activeRaces = new List<RaceType>();
+
+    [Tooltip("All enemies that can spawn in this chapter (with pollution weights)")]
+    public List<EnemyData> chapterEnemies = new List<EnemyData>();
 
     [Header("Map/Scene")]
     public string sceneName; // Name of the scene to load for this chapter

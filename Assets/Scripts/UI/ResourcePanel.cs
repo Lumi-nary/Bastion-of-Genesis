@@ -44,13 +44,15 @@ public class ResourcePanel : MonoBehaviour
 
     private void UpdateResourceDisplay(ResourceType type, int amount)
     {
+        int capacity = ResourceManager.Instance.GetResourceCapacity(type);
+
         if (resourceSlots.ContainsKey(type))
         {
             // Slot exists
             if (amount > 0)
             {
                 // Update existing slot
-                resourceSlots[type].UpdateAmount(amount);
+                resourceSlots[type].UpdateAmount(amount, capacity);
             }
             else
             {
@@ -69,7 +71,7 @@ public class ResourcePanel : MonoBehaviour
                 ResourceSlotUI slotUI = slotGO.GetComponent<ResourceSlotUI>();
                 if (slotUI != null)
                 {
-                    slotUI.Setup(type, amount);
+                    slotUI.Setup(type, amount, capacity);
                     resourceSlots.Add(type, slotUI);
                 }
             }

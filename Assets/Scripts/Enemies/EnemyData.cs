@@ -95,6 +95,21 @@ public class EnemyData : ScriptableObject
     [Tooltip("Chapters where this enemy can spawn (e.g., 1, 2, 5)")]
     public List<int> allowedChapters = new List<int>();
 
+    [Header("Pollution-Based Spawn Weight")]
+    [Tooltip("Pollution % (0-1) when this enemy starts spawning")]
+    [Range(0f, 1f)]
+    public float minPollutionToSpawn = 0f;
+
+    [Tooltip("Pollution % (0-1) when this enemy reaches max spawn weight")]
+    [Range(0f, 1f)]
+    public float maxPollutionForPeak = 1f;
+
+    [Tooltip("Spawn weight at minPollutionToSpawn (0 = doesn't spawn yet)")]
+    public float minSpawnWeight = 1f;
+
+    [Tooltip("Spawn weight at maxPollutionForPeak")]
+    public float maxSpawnWeight = 1f;
+
     /// <summary>
     /// Get effective HP (base HP scaled by difficulty and pollution)
     /// </summary>
@@ -117,6 +132,25 @@ public class EnemyData : ScriptableObject
     public bool CanSpawnInChapter(int chapterNumber)
     {
         return allowedChapters.Contains(chapterNumber);
+    }
+
+    /// <summary>
+    /// Get spawn weight based on current pollution level (0-1 normalized)
+    /// Uses linear interpolation between minSpawnWeight and maxSpawnWeight
+    /// </summary>
+    public float GetSpawnWeight(float pollutionNormalized)
+    {
+        // Not yet unlocked at this pollution level
+        if (pollutionNormalized < minPollutionToSpawn)
+            return 0f;
+
+        // At or past peak pollution
+        if (pollutionNormalized >= maxPollutionForPeak)
+            return maxSpawnWeight;
+
+        // Linear interpolation between min and max
+        float t = (pollutionNormalized - minPollutionToSpawn) / (maxPollutionForPeak - minPollutionToSpawn);
+        return Mathf.Lerp(minSpawnWeight, maxSpawnWeight, t);
     }
 
     /// <summary>

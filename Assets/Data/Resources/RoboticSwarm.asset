@@ -15,3 +15,4 @@ MonoBehaviour:
   resourceName: Robot
   description: Rooooboooot
   icon: {fileID: 21300000, guid: a29a9df757cd12a40b24e0b657e10217, type: 3}
+  baseCapacity: 10

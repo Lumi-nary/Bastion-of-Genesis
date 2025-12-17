@@ -29,23 +29,23 @@ public class TooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (TooltipManager.Instance == null) return;
+        if (UIManager.Instance == null) return;
 
         if (useProvider && tooltipProvider != null)
         {
-            TooltipManager.Instance.ShowTooltipFromProvider(tooltipProvider);
+            UIManager.Instance.ShowTooltipFromProvider(tooltipProvider);
         }
         else
         {
-            TooltipManager.Instance.ShowTooltip(tooltipHeader, tooltipDescription);
+            UIManager.Instance.ShowTooltip(tooltipHeader, tooltipDescription);
         }
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (TooltipManager.Instance != null)
+        if (UIManager.Instance != null)
         {
-            TooltipManager.Instance.HideTooltip();
+            UIManager.Instance.HideTooltip();
         }
     }
 

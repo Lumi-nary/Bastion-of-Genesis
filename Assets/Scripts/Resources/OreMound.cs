@@ -91,10 +91,10 @@ public class OreMound : VisualObject
             SetVisibility(false);
         }
 
-        // Register with OreMoundManager
-        if (OreMoundManager.Instance != null)
+        // Register with GridManager (ore mound system)
+        if (GridManager.Instance != null)
         {
-            OreMoundManager.Instance.RegisterOreMound(this);
+            GridManager.Instance.RegisterOreMound(this);
         }
     }
 
@@ -128,10 +128,10 @@ public class OreMound : VisualObject
 
     private void OnDestroy()
     {
-        // Unregister from OreMoundManager
-        if (OreMoundManager.Instance != null)
+        // Unregister from GridManager (ore mound system)
+        if (GridManager.Instance != null)
         {
-            OreMoundManager.Instance.UnregisterOreMound(this);
+            GridManager.Instance.UnregisterOreMound(this);
         }
     }
 

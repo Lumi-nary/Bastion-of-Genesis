@@ -27,3 +27,7 @@ MonoBehaviour:
   armor: 0
   specialAbilities: []
   allowedChapters: 01000000
+  minPollutionToSpawn: 0
+  maxPollutionForPeak: 0.4
+  minSpawnWeight: 1
+  maxSpawnWeight: 10

@@ -42,9 +42,34 @@ public class PollutionManager : MonoBehaviour
     public float CurrentPollution => currentPollution;
     public float MaxPollution => maxPollution;
     public float PollutionPercentage => (currentPollution / maxPollution) * 100f;
+    public float PollutionNormalized => currentPollution / maxPollution; // 0.0 to 1.0
     public DifficultyTier CurrentTier => currentTier;
     public Difficulty MenuDifficulty => menuDifficulty;
     public float IntegrationRadius => GetIntegrationRadius();
+
+    // ==========================================================================
+    // POLLUTION-BASED SPAWN FORMULAS (Linear Scaling)
+    // ==========================================================================
+
+    /// <summary>
+    /// Get spawn count multiplier based on pollution (1.0x at 0%, 3.0x at 100%)
+    /// Formula: 1.0 + (pollution * 2.0)
+    /// </summary>
+    public float GetSpawnCountMultiplier()
+    {
+        float pollution = PollutionNormalized;
+        return 1f + (pollution * 2f);
+    }
+
+    /// <summary>
+    /// Get wave interval multiplier based on pollution (1.0x at 0%, 0.4x at 100%)
+    /// Lower = faster waves. Formula: 1.0 - (pollution * 0.6)
+    /// </summary>
+    public float GetWaveIntervalMultiplier()
+    {
+        float pollution = PollutionNormalized;
+        return 1f - (pollution * 0.6f);
+    }
 
     private void Awake()
     {
@@ -324,6 +349,17 @@ public class PollutionManager : MonoBehaviour
         peakIntegrationRadius = 0f; // Reset peak for new chapter
         OnPollutionChanged?.Invoke(currentPollution, maxPollution);
         OnDifficultyTierChanged?.Invoke(currentTier);
+    }
+
+    /// <summary>
+    /// Configure pollution settings from ChapterData.
+    /// Called by MissionChapterManager when starting a new chapter.
+    /// </summary>
+    public void ConfigureFromChapter(float chapterMaxPollution, float chapterDecayRate)
+    {
+        maxPollution = chapterMaxPollution;
+        pollutionDecayRate = chapterDecayRate;
+        Debug.Log($"[PollutionManager] Configured: maxPollution={maxPollution}, decayRate={pollutionDecayRate}");
     }
 
     /// <summary>

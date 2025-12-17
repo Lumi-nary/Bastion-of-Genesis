@@ -2064,7 +2064,6 @@ GameObject:
   - component: {fileID: 270450550}
   - component: {fileID: 270450549}
   - component: {fileID: 270450548}
-  - component: {fileID: 270450552}
   m_Layer: 5
   m_Name: Background
   m_TagString: Untagged
@@ -2157,20 +2156,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &270450552
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 270450547}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c2b5124a7e8524942afe113202b4b79c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MainMenuUI
-  titleText: {fileID: 0}
-  menuMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
 --- !u!1 &272522439
 GameObject:
   m_ObjectHideFlags: 0
@@ -7634,6 +7619,53 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 952810839}
   m_CullTransparentMesh: 1
+--- !u!1 &957875977
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 957875979}
+  - component: {fileID: 957875978}
+  m_Layer: 0
+  m_Name: MissionChapterManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &957875978
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 957875977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f9be1c038bf6de4a88d58bb51b2e3ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MissionChapterManager
+  chapters:
+  - {fileID: 11400000, guid: 6e2e46deb9024834484e69a84fa2f63e, type: 2}
+  currentMission: {fileID: 0}
+--- !u!4 &957875979
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 957875977}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 840.60175, y: 593.631, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &963186734
 GameObject:
   m_ObjectHideFlags: 0
@@ -8187,7 +8219,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 436310.16}
+  m_AnchoredPosition: {x: 0, y: 585053.8}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1011191250
@@ -11039,8 +11071,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2b5124a7e8524942afe113202b4b79c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenuUI
-  titleText: {fileID: 0}
-  menuMusic: {fileID: 0}
+  titleText: {fileID: 1998387672}
+  menuMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
 --- !u!1 &1450211331
 GameObject:
   m_ObjectHideFlags: 0
@@ -15748,6 +15780,7 @@ SceneRoots:
   - {fileID: 912099858}
   - {fileID: 513029691}
   - {fileID: 49369070}
+  - {fileID: 957875979}
   - {fileID: 1688311662}
   - {fileID: 1930153854}
   - {fileID: 1403254121}

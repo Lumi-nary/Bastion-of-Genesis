@@ -47,17 +47,17 @@ TagManager:
   - name: Resources
     uniqueID: 2878306569
     locked: 0
-  - name: Environment
-    uniqueID: 784172931
-    locked: 0
-  - name: Structures
-    uniqueID: 263190789
-    locked: 0
   - name: Buildings
     uniqueID: 2112476851
     locked: 0
+  - name: EnvironmentBackground
+    uniqueID: 784172931
+    locked: 0
   - name: Enemy
     uniqueID: 1627275181
+    locked: 0
+  - name: EnvinronmentForeground
+    uniqueID: 1203899169
     locked: 0
   - name: UI
     uniqueID: 1624976891

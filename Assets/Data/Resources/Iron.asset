@@ -15,3 +15,4 @@ MonoBehaviour:
   resourceName: Iron
   description: Metallic metal
   icon: {fileID: 5103231540499187363, guid: accce59b501de3b4595ac5d3e64d99c2, type: 3}
+  baseCapacity: 30

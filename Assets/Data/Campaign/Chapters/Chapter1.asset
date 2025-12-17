@@ -12,17 +12,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 354eb510ac5346f44864591bbf3f64c7, type: 3}
   m_Name: Chapter1
   m_EditorClassIdentifier: Assembly-CSharp::ChapterData
-  chapterNumber: 0
+  chapterNumber: 1
   chapterName: Chapter 1
   chapterDescription: yummers
   chapterIntroText: Chapter1 - Intro
   chapterOutroText: Chapter1 - Outro
-  startingResources: []
-  startingWorkers: []
+  startingResources:
+  - resourceType: {fileID: 11400000, guid: bb2aea2cb49421c46aabf3bfd3252158, type: 2}
+    amount: 100
+  - resourceType: {fileID: 11400000, guid: f44ba9d81749962419739a7656fee1cc, type: 2}
+    amount: 20
+  startingWorkers:
+  - workerData: {fileID: 11400000, guid: 91c98282305e56e4ebff8c175e677795, type: 2}
+    initialCount: 3
+  - workerData: {fileID: 11400000, guid: 4032d19a78fcf444596b3b15ff750222, type: 2}
+    initialCount: 3
+  startingIntegrationRadius: 10
+  maxPollution: 5000
+  pollutionDecayRate: 0.5
   missions:
   - {fileID: 11400000, guid: 6bbcd645cef2e5a499a4995c7ebdf274, type: 2}
   activeRaces: 00000000
-  sceneName: Chapter1Scene
+  chapterEnemies:
+  - {fileID: 11400000, guid: ea7b570b3d85d5c4a9cdeac7babd8071, type: 2}
+  sceneName: Chapter1Map
   chapterThumbnail: {fileID: 0}
   isUnlocked: 1
   previousChapter: {fileID: 0}

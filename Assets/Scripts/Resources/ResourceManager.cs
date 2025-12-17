@@ -6,13 +6,13 @@ public class ResourceManager : MonoBehaviour
     // Singleton instance
     public static ResourceManager Instance { get; private set; }
 
-    [Header("Resource Configuration")]
-    [SerializeField] private List<ResourceData> startingResources = new List<ResourceData>();
-
     // Dictionaries to store resource amounts and capacities
     private Dictionary<ResourceType, int> resourceAmounts = new Dictionary<ResourceType, int>();
     public IReadOnlyDictionary<ResourceType, int> ResourceAmounts => resourceAmounts;
     private Dictionary<ResourceType, int> resourceCapacities = new Dictionary<ResourceType, int>();
+
+    // Track registered resource types for reset
+    private HashSet<ResourceType> registeredTypes = new HashSet<ResourceType>();
 
     // Event to notify when a resource amount changes
     public event System.Action<ResourceType, int> OnResourceChanged;
@@ -23,24 +23,35 @@ public class ResourceManager : MonoBehaviour
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
-        }
-        else
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // Optional: if the resource manager should persist across scenes
+            return;
         }
 
-        InitializeResources();
+        Instance = this;
+
+        // ResourceManager persists across scenes but is RESET by MissionChapterManager
+        // when starting each chapter. This allows:
+        // 1. Resources to persist during gameplay within a chapter
+        // 2. Clean slate for each new chapter via ResetAllResources()
+        // 3. Chapter-specific starting resources via ChapterData
+        DontDestroyOnLoad(gameObject);
+
+        // No auto-initialization - ChapterData handles starting amounts
+        // MissionChapterManager.InitializeChapterResources() will register types and set amounts
     }
 
-    private void InitializeResources()
+    /// <summary>
+    /// Register a resource type with its base capacity. Called by MissionChapterManager.
+    /// </summary>
+    public void RegisterResourceType(ResourceType resourceType, int startingAmount = 0)
     {
-        foreach (var resourceData in startingResources)
-        {
-            resourceAmounts[resourceData.resourceType] = resourceData.startingAmount;
-            resourceCapacities[resourceData.resourceType] = resourceData.capacity;
-            OnResourceChanged?.Invoke(resourceData.resourceType, resourceData.startingAmount);
-        }
+        if (resourceType == null) return;
+
+        registeredTypes.Add(resourceType);
+        resourceCapacities[resourceType] = resourceType.BaseCapacity;
+        resourceAmounts[resourceType] = startingAmount;
+        OnResourceChanged?.Invoke(resourceType, startingAmount);
+
+        Debug.Log($"[ResourceManager] Registered {resourceType.ResourceName}: {startingAmount}/{resourceType.BaseCapacity}");
     }
 
     /// <summary>
@@ -162,5 +173,49 @@ public class ResourceManager : MonoBehaviour
     public bool IsAtCapacity(ResourceType resourceType)
     {
         return GetResourceAmount(resourceType) >= GetResourceCapacity(resourceType);
+    }
+
+    /// <summary>
+    /// Reset all resources to zero and capacities to base values.
+    /// Called by MissionChapterManager when starting a new chapter.
+    /// </summary>
+    public void ResetAllResources()
+    {
+        // Clear everything for fresh chapter start
+        resourceAmounts.Clear();
+        resourceCapacities.Clear();
+        registeredTypes.Clear();
+
+        Debug.Log("[ResourceManager] All resources reset (amounts, capacities, registrations cleared)");
+    }
+
+    /// <summary>
+    /// Add to the capacity of a resource type. Used by buildings (StorageFeature) and research.
+    /// </summary>
+    public void AddCapacity(ResourceType resourceType, int amount)
+    {
+        if (resourceType == null || !resourceCapacities.ContainsKey(resourceType)) return;
+
+        resourceCapacities[resourceType] += amount;
+        Debug.Log($"[ResourceManager] {resourceType.ResourceName} capacity increased by {amount} to {resourceCapacities[resourceType]}");
+    }
+
+    /// <summary>
+    /// Remove from the capacity of a resource type. Used when buildings are destroyed.
+    /// </summary>
+    public void RemoveCapacity(ResourceType resourceType, int amount)
+    {
+        if (resourceType == null || !resourceCapacities.ContainsKey(resourceType)) return;
+
+        resourceCapacities[resourceType] = Mathf.Max(0, resourceCapacities[resourceType] - amount);
+
+        // Clamp current amount to new capacity
+        if (resourceAmounts[resourceType] > resourceCapacities[resourceType])
+        {
+            resourceAmounts[resourceType] = resourceCapacities[resourceType];
+            OnResourceChanged?.Invoke(resourceType, resourceAmounts[resourceType]);
+        }
+
+        Debug.Log($"[ResourceManager] {resourceType.ResourceName} capacity decreased by {amount} to {resourceCapacities[resourceType]}");
     }
 }

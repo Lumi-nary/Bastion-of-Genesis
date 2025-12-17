@@ -22,11 +22,11 @@ public class ResourceSlotUI : MonoBehaviour
         }
     }
 
-    public void Setup(ResourceType type, int amount)
+    public void Setup(ResourceType type, int amount, int capacity)
     {
         resourceType = type;
         resourceIcon.sprite = resourceType.Icon;
-        UpdateAmount(amount);
+        UpdateAmount(amount, capacity);
 
         // Setup tooltip
         if (tooltipTrigger != null && resourceType != null)
@@ -35,8 +35,8 @@ public class ResourceSlotUI : MonoBehaviour
         }
     }
 
-    public void UpdateAmount(int amount)
+    public void UpdateAmount(int amount, int capacity)
     {
-        resourceAmountText.text = amount.ToString();
+        resourceAmountText.text = $"{amount}/{capacity}";
     }
 }

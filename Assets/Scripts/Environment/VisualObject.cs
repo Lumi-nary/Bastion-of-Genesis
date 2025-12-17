@@ -10,7 +10,7 @@ public class VisualObject : MonoBehaviour
 {
     [Header("Sorting Configuration")]
     [Tooltip("Sorting layer - defines what type of object this is")]
-    [SerializeField] protected VisualLayer visualLayer = VisualLayer.Environment;
+    [SerializeField] protected VisualLayer visualLayer = VisualLayer.EnvironmentBackground;
 
     [Tooltip("Base sorting order within layer")]
     [SerializeField] protected int baseSortingOrder = 0;
@@ -29,12 +29,13 @@ public class VisualObject : MonoBehaviour
     /// </summary>
     public enum VisualLayer
     {
-        Ground = 0,        // Terrain effects, shadows (renders first/behind)
-        Resources = 100,   // Ore mounds, geysers, resource nodes
-        Environment = 200, // Trees, rocks, vegetation
-        Structures = 300,  // Walls, facilities, defenses
-        Buildings = 400,   // Player buildings, enemy structures
-        UI = 500          // World-space UI elements
+        Ground = 0,                  // Terrain effects, shadows (renders first/behind)
+        Resources = 100,             // Ore mounds, geysers, resource nodes
+        Buildings = 200,             // Player buildings, enemy structures
+        EnvironmentBackground = 300, // Grass, bushes, shrubs (behind enemies)
+        Enemy = 400,                 // Enemies
+        EnvironmentForeground = 500, // Trees (in front of enemies)
+        UI = 600                     // World-space UI elements
     }
 
     public Vector2Int GridPosition => gridPosition;
@@ -95,12 +96,14 @@ public class VisualObject : MonoBehaviour
                 return "Ground";
             case VisualLayer.Resources:
                 return "Resources";
-            case VisualLayer.Environment:
-                return "Environment";
-            case VisualLayer.Structures:
-                return "Structures";
             case VisualLayer.Buildings:
                 return "Buildings";
+            case VisualLayer.EnvironmentBackground:
+                return "EnvironmentBackground";
+            case VisualLayer.Enemy:
+                return "Enemy";
+            case VisualLayer.EnvironmentForeground:
+                return "EnvironmentForeground";
             case VisualLayer.UI:
                 return "UI";
             default:

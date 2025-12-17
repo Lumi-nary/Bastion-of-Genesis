@@ -16,7 +16,7 @@ public class NewBaseUI : MonoBehaviour
 
     [Header("Form Elements")]
     [SerializeField] private TMP_InputField baseNameInputField;
-    [SerializeField] private TMP_Dropdown difficultyDropdown;
+    [SerializeField] private TMP_Dropdown difficultyDropdown; // Currently unused - defaults to Medium
     [SerializeField] private Toggle modeToggle;
 
     [Header("COOP Panel")]
@@ -45,12 +45,10 @@ public class NewBaseUI : MonoBehaviour
     };
 
     private string currentBaseName;
-    private Difficulty currentDifficulty = Difficulty.Medium;
     private GameMode currentMode = GameMode.Singleplayer;
 
     // Form state tracking
     private string initialBaseName;
-    private Difficulty initialDifficulty = Difficulty.Medium;
     private GameMode initialMode = GameMode.Singleplayer;
     private bool isFormDirty = false;
     private bool hasInitialized = false;
@@ -88,10 +86,6 @@ public class NewBaseUI : MonoBehaviour
         {
             baseNameInputField.onValueChanged.RemoveListener(OnBaseNameChanged);
         }
-        if (difficultyDropdown != null)
-        {
-            difficultyDropdown.onValueChanged.RemoveListener(OnDifficultyChanged);
-        }
         if (modeToggle != null)
         {
             modeToggle.onValueChanged.RemoveListener(OnModeToggle);
@@ -116,17 +110,14 @@ public class NewBaseUI : MonoBehaviour
         }
         Debug.Log($"[NewBaseUI] Generated base name: {currentBaseName}");
 
-        // Set difficulty dropdown to Medium (index 1)
-        currentDifficulty = Difficulty.Medium;
-        initialDifficulty = Difficulty.Medium;
-
+        // Difficulty defaults to Medium (no selection needed for MVP)
+        // Hide or disable the dropdown if it exists in the UI
         if (difficultyDropdown != null)
         {
             difficultyDropdown.value = 1; // Medium
-            difficultyDropdown.onValueChanged.RemoveListener(OnDifficultyChanged); // Prevent duplicates
-            difficultyDropdown.onValueChanged.AddListener(OnDifficultyChanged);
+            difficultyDropdown.interactable = false; // Disable selection
         }
-        Debug.Log($"[NewBaseUI] Difficulty initialized: {currentDifficulty}");
+        Debug.Log("[NewBaseUI] Difficulty defaulted to Medium");
 
         // Set mode toggle to Singleplayer (false = SP, true = COOP)
         currentMode = GameMode.Singleplayer;
@@ -145,8 +136,6 @@ public class NewBaseUI : MonoBehaviour
         {
             coopServerPanel.SetActive(false);
         }
-
-        // Story 3.3: Old confirmationDialog GameObject no longer used (now using ModalDialog)
 
         // Reset dirty flag
         isFormDirty = false;
@@ -175,10 +164,11 @@ public class NewBaseUI : MonoBehaviour
 
     /// <summary>
     /// Get current difficulty (called by CreateBaseButton).
+    /// Always returns Medium for MVP - difficulty selection not implemented yet.
     /// </summary>
     public Difficulty GetDifficulty()
     {
-        return currentDifficulty;
+        return Difficulty.Medium;
     }
 
     /// <summary>
@@ -202,19 +192,6 @@ public class NewBaseUI : MonoBehaviour
     {
         currentBaseName = newName;
         CheckFormDirty();
-        //Debug.Log($"[NewBaseUI] Base name changed: {currentBaseName}");
-    }
-
-    /// <summary>
-    /// Called when difficulty dropdown value changes.
-    /// Maps dropdown index (0/1/2) to Difficulty enum (Easy/Medium/Hard).
-    /// </summary>
-    /// <param name="dropdownIndex">Dropdown selected index</param>
-    private void OnDifficultyChanged(int dropdownIndex)
-    {
-        currentDifficulty = (Difficulty)dropdownIndex;
-        CheckFormDirty();
-        Debug.Log($"[NewBaseUI] Difficulty selected: {currentDifficulty}");
     }
 
     /// <summary>
@@ -248,7 +225,6 @@ public class NewBaseUI : MonoBehaviour
     private void CheckFormDirty()
     {
         isFormDirty = currentBaseName != initialBaseName ||
-                      currentDifficulty != initialDifficulty ||
                       currentMode != initialMode;
 
         if (isFormDirty)
