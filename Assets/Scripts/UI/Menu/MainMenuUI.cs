@@ -51,6 +51,17 @@ public class MainMenuUI : MonoBehaviour
     }
 
     /// <summary>
+    /// Stop menu music when leaving the main menu scene.
+    /// </summary>
+    private void OnDestroy()
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.StopMusic();
+        }
+    }
+
+    /// <summary>
     /// Display game title from GameSettings configuration.
     /// Handles null checks for graceful degradation.
     /// </summary>

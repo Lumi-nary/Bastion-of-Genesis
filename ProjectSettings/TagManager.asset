@@ -56,7 +56,7 @@ TagManager:
   - name: Enemy
     uniqueID: 1627275181
     locked: 0
-  - name: EnvinronmentForeground
+  - name: EnvironmentForeground
     uniqueID: 1203899169
     locked: 0
   - name: UI

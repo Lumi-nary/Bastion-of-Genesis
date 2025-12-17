@@ -9,10 +9,18 @@ public class UIManager : MonoBehaviour
     [SerializeField] private BuildingInfoPanel buildingInfoPanel;
     [SerializeField] private BuildingSelectionPanel buildingSelectionPanel;
 
+    [Header("Pause Menu")]
+    [SerializeField] private PauseMenuUI pauseMenuUI;
+    [SerializeField] private float pausedMusicVolume = 0.3f;
+
     [Header("Tooltip Settings")]
     [SerializeField] private TooltipUI tooltipUI;
     [SerializeField] private float tooltipShowDelay = 0.5f;
     [SerializeField] private float tooltipHideDelay = 0.1f;
+
+    // Pause state
+    private bool isPaused;
+    private float previousMusicVolume = 1f;
 
     // Tooltip state
     private float tooltipHoverTimer;
@@ -21,6 +29,9 @@ public class UIManager : MonoBehaviour
     private bool isTooltipPendingHide;
     private string pendingTooltipHeader;
     private string pendingTooltipDescription;
+
+    // Properties
+    public bool IsPaused => isPaused;
 
     private void Awake()
     {
@@ -34,8 +45,114 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
-        UpdateTooltip();
+        // Handle ESC key for pause menu
+        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            HandleEscapeKey();
+        }
+
+        // Only update tooltip when not paused
+        if (!isPaused)
+        {
+            UpdateTooltip();
+        }
     }
+
+    #region Pause System
+
+    private void HandleEscapeKey()
+    {
+        // Block ESC during dialogue
+        if (DialogueManager.Instance != null && DialogueManager.Instance.IsDialogueActive)
+        {
+            Debug.Log("[UIManager] ESC blocked - dialogue is active");
+            return;
+        }
+
+        // Block ESC during modal dialog (modal handles its own ESC)
+        if (ModalDialog.Instance != null && ModalDialog.Instance.IsModalActive())
+        {
+            // Modal handles ESC itself, don't toggle pause
+            return;
+        }
+
+        TogglePause();
+    }
+
+    /// <summary>
+    /// Toggle pause state
+    /// </summary>
+    public void TogglePause()
+    {
+        if (isPaused)
+        {
+            Unpause();
+        }
+        else
+        {
+            Pause();
+        }
+    }
+
+    /// <summary>
+    /// Pause the game
+    /// </summary>
+    public void Pause()
+    {
+        if (isPaused) return;
+
+        isPaused = true;
+        Time.timeScale = 0f;
+
+        // Lower music volume (don't stop it)
+        if (AudioManager.Instance != null)
+        {
+            // Store current volume and lower it
+            AudioManager.Instance.SetMusicVolume(pausedMusicVolume);
+        }
+
+        // Stop voice and ambience
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.StopVoice();
+            AudioManager.Instance.StopAmbience();
+        }
+
+        // Show pause menu
+        if (pauseMenuUI != null)
+        {
+            pauseMenuUI.Show();
+        }
+
+        Debug.Log("[UIManager] Game paused");
+    }
+
+    /// <summary>
+    /// Unpause the game
+    /// </summary>
+    public void Unpause()
+    {
+        if (!isPaused) return;
+
+        isPaused = false;
+        Time.timeScale = 1f;
+
+        // Restore music volume
+        if (AudioManager.Instance != null && SettingsManager.Instance != null)
+        {
+            AudioManager.Instance.SetMusicVolume(SettingsManager.Instance.CurrentSettings.musicVolume);
+        }
+
+        // Hide pause menu
+        if (pauseMenuUI != null)
+        {
+            pauseMenuUI.Hide();
+        }
+
+        Debug.Log("[UIManager] Game unpaused");
+    }
+
+    #endregion
 
     #region Building Panels
 

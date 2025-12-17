@@ -135,6 +135,10 @@ public class CameraController : MonoBehaviour
 
     void Update()
     {
+        // Block camera input when game is paused
+        if (UIManager.Instance != null && UIManager.Instance.IsPaused)
+            return;
+
         HandleMovement();
         SmoothZoom();
     }
@@ -229,6 +233,10 @@ public class CameraController : MonoBehaviour
 
     private void HandleZoomInput(InputAction.CallbackContext context)
     {
+        // Block zoom input when game is paused
+        if (UIManager.Instance != null && UIManager.Instance.IsPaused)
+            return;
+
         float scrollValue = context.ReadValue<Vector2>().y;
 
         if (scrollValue > 0) // Scrolled Up -> Zoom In
@@ -246,6 +254,10 @@ public class CameraController : MonoBehaviour
 
     private void StartDrag(InputAction.CallbackContext context)
     {
+        // Block drag when game is paused
+        if (UIManager.Instance != null && UIManager.Instance.IsPaused)
+            return;
+
         isDragging = true;
         // Read mouse position at the exact moment dragging starts
         lastMousePosition = Mouse.current.position.ReadValue();

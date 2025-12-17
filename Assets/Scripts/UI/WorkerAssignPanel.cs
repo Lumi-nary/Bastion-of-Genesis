@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// Panel that shows all buildings that require workers.
@@ -10,6 +11,7 @@ public class WorkerAssignPanel : MonoBehaviour
 {
     [Header("UI References")]
     [SerializeField] private GameObject panel;
+    [SerializeField] private RectTransform panelRect;
     [SerializeField] private Transform rowContainer;
     [SerializeField] private GameObject assignRowPrefab;
     [SerializeField] private Toggle combineToggle;
@@ -19,6 +21,7 @@ public class WorkerAssignPanel : MonoBehaviour
 
     // Track spawned rows
     private List<WorkerAssignRowUI> rows = new List<WorkerAssignRowUI>();
+    private bool isVisible;
 
     private void Start()
     {
@@ -45,6 +48,25 @@ public class WorkerAssignPanel : MonoBehaviour
             BuildingManager.Instance.OnBuildingPlaced -= OnBuildingChanged;
             BuildingManager.Instance.OnBuildingDestroyedEvent -= OnBuildingChanged;
         }
+    }
+
+    private void Update()
+    {
+        // Click outside to close
+        if (isVisible && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            if (!IsPointerOverPanel())
+            {
+                HidePanel();
+            }
+        }
+    }
+
+    private bool IsPointerOverPanel()
+    {
+        if (panelRect == null) return false;
+        Vector2 mousePos = Mouse.current.position.ReadValue();
+        return RectTransformUtility.RectangleContainsScreenPoint(panelRect, mousePos);
     }
 
     private void OnBuildingChanged(Building building)
@@ -146,6 +168,7 @@ public class WorkerAssignPanel : MonoBehaviour
         if (panel != null)
         {
             panel.SetActive(true);
+            isVisible = true;
             RefreshPanel();
         }
     }
@@ -155,6 +178,7 @@ public class WorkerAssignPanel : MonoBehaviour
         if (panel != null)
         {
             panel.SetActive(false);
+            isVisible = false;
         }
     }
 

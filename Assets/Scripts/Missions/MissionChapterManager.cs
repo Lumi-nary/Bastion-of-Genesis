@@ -11,6 +11,14 @@ public class MissionChapterManager : MonoBehaviour
     [Header("Chapter Configuration")]
     [SerializeField] private List<ChapterData> chapters = new List<ChapterData>();
 
+    [Header("Mission Voice Clips")]
+    [Tooltip("Plays when any mission starts")]
+    [SerializeField] private AudioClip missionStartedVoice;
+    [Tooltip("Plays when any objective is completed")]
+    [SerializeField] private AudioClip objectiveUpdatedVoice;
+    [Tooltip("Plays when any mission is completed")]
+    [SerializeField] private AudioClip missionAccomplishedVoice;
+
     [Header("Current State")]
     [SerializeField] private MissionData currentMission;
 
@@ -147,7 +155,46 @@ public class MissionChapterManager : MonoBehaviour
             EnemyManager.Instance.ReloadEnemyTypesFromChapter();
         }
 
+        // Play chapter background music
+        if (AudioManager.Instance != null)
+        {
+            if (currentChapter.backgroundMusic != null)
+            {
+                AudioManager.Instance.SetNormalMusic(currentChapter.backgroundMusic);
+                Debug.Log($"[MissionChapterManager] Playing chapter music: {currentChapter.backgroundMusic.name}");
+            }
+            if (currentChapter.battleMusic != null)
+            {
+                AudioManager.Instance.SetBattleMusic(currentChapter.battleMusic);
+            }
+        }
+
         Debug.Log("[MissionChapterManager] Chapter state initialization complete");
+
+        // Play chapter intro dialogue (if set), then start first mission
+        StartCoroutine(PlayChapterIntroAndStartMission());
+    }
+
+    /// <summary>
+    /// Play chapter intro dialogue (if any), then start the first mission
+    /// </summary>
+    private IEnumerator PlayChapterIntroAndStartMission()
+    {
+        // Play chapter intro dialogue if set
+        if (currentChapter.introDialogue != null && DialogueManager.Instance != null)
+        {
+            Debug.Log($"[MissionChapterManager] Playing chapter intro dialogue: {currentChapter.introDialogue.dialogueName}");
+            DialogueManager.Instance.StartDialogue(currentChapter.introDialogue);
+
+            // Wait for dialogue to finish
+            while (DialogueManager.Instance.IsDialogueActive)
+            {
+                yield return null;
+            }
+        }
+
+        // Start first mission
+        StartNextMission();
     }
 
     private void Start()
@@ -445,7 +492,6 @@ public class MissionChapterManager : MonoBehaviour
 
         currentMission = mission;
         missionTimer = 0f;
-        missionActive = true;
 
         // Reset all objectives
         foreach (var objective in currentMission.objectives)
@@ -455,8 +501,39 @@ public class MissionChapterManager : MonoBehaviour
             objective.currentTime = 0f;
         }
 
+        // Start coroutine to handle dialogue then activate mission
+        StartCoroutine(PlayMissionIntroAndActivate());
+    }
+
+    /// <summary>
+    /// Play mission intro dialogue (if any), then activate the mission
+    /// </summary>
+    private IEnumerator PlayMissionIntroAndActivate()
+    {
+        // Play mission intro dialogue if set
+        if (currentMission.introDialogue != null && DialogueManager.Instance != null)
+        {
+            Debug.Log($"[MissionChapterManager] Playing mission intro dialogue: {currentMission.introDialogue.dialogueName}");
+            DialogueManager.Instance.StartDialogue(currentMission.introDialogue);
+
+            // Wait for dialogue to finish
+            while (DialogueManager.Instance.IsDialogueActive)
+            {
+                yield return null;
+            }
+        }
+
+        // Now activate the mission
+        missionActive = true;
+
         OnMissionStarted?.Invoke(currentMission);
         Debug.Log($"Mission Started: {currentMission.missionName}");
+
+        // Play mission started voice clip
+        if (missionStartedVoice != null && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayVoice(missionStartedVoice);
+        }
     }
 
     private void UpdateTimeBasedObjectives()
@@ -531,6 +608,12 @@ public class MissionChapterManager : MonoBehaviour
         objective.isCompleted = true;
         OnObjectiveCompleted?.Invoke(objective);
         Debug.Log($"Objective Completed: {objective.objectiveDescription}");
+
+        // Play objective updated voice clip
+        if (objectiveUpdatedVoice != null && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayVoice(objectiveUpdatedVoice);
+        }
     }
 
     private void CompleteMission()
@@ -546,6 +629,12 @@ public class MissionChapterManager : MonoBehaviour
         OnMissionCompleted?.Invoke(currentMission);
         Debug.Log($"Mission Completed: {currentMission.missionName}");
 
+        // Play mission accomplished voice clip
+        if (missionAccomplishedVoice != null && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayVoice(missionAccomplishedVoice);
+        }
+
         // Advance to next mission in chapter
         currentMissionIndex++;
 
@@ -553,6 +642,11 @@ public class MissionChapterManager : MonoBehaviour
         if (currentMissionIndex >= currentChapter.missions.Count)
         {
             CompleteCurrentChapter();
+        }
+        else
+        {
+            // Auto-start next mission
+            StartNextMission();
         }
     }
 

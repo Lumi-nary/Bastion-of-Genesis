@@ -16,6 +16,10 @@ public class ChapterData : ScriptableObject
     [TextArea(5, 10)]
     public string chapterOutroText;
 
+    [Header("Dialogue")]
+    [Tooltip("Dialogue to play when chapter starts (before first mission)")]
+    public DialogueData introDialogue;
+
     [Header("Starting Resources")]
     [Tooltip("Resources given at the start of this chapter")]
     public List<ResourceCost> startingResources = new List<ResourceCost>();
@@ -48,6 +52,12 @@ public class ChapterData : ScriptableObject
     [Header("Map/Scene")]
     public string sceneName; // Name of the scene to load for this chapter
     public Sprite chapterThumbnail; // Preview image for chapter selection
+
+    [Header("Audio")]
+    [Tooltip("Background music for this chapter (normal gameplay)")]
+    public AudioClip backgroundMusic;
+    [Tooltip("Battle music when enemies are attacking")]
+    public AudioClip battleMusic;
 
     [Header("Unlock Requirements")]
     public bool isUnlocked = false; // Will be set by progression system

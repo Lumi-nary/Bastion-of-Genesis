@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 using TMPro;
 
 /// <summary>
@@ -11,6 +12,7 @@ public class ResearchPanel : MonoBehaviour
 {
     [Header("Panel References")]
     [SerializeField] private GameObject panel;
+    [SerializeField] private RectTransform panelRect;
     [SerializeField] private Button closeButton;
 
     [Header("Category Tabs")]
@@ -43,6 +45,7 @@ public class ResearchPanel : MonoBehaviour
     private TechCategory currentCategory = TechCategory.Economy;
     private List<TechNodeUI> spawnedNodes = new List<TechNodeUI>();
     private TechnologyData selectedTech = null;
+    private bool isVisible;
 
     // Tab button references for easy iteration
     private Dictionary<TechCategory, Button> categoryButtons;
@@ -102,6 +105,15 @@ public class ResearchPanel : MonoBehaviour
         {
             UpdateCurrentResearchDisplay();
         }
+
+        // Click outside to close
+        if (isVisible && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            if (!IsPointerOverPanel())
+            {
+                HidePanel();
+            }
+        }
     }
 
     private void OnDestroy()
@@ -124,11 +136,19 @@ public class ResearchPanel : MonoBehaviour
         if (cancelResearchButton != null) cancelResearchButton.onClick.RemoveAllListeners();
     }
 
+    private bool IsPointerOverPanel()
+    {
+        if (panelRect == null) return false;
+        Vector2 mousePos = Mouse.current.position.ReadValue();
+        return RectTransformUtility.RectangleContainsScreenPoint(panelRect, mousePos);
+    }
+
     public void ShowPanel()
     {
         if (panel != null)
         {
             panel.SetActive(true);
+            isVisible = true;
             RefreshDisplay();
         }
     }
@@ -138,6 +158,7 @@ public class ResearchPanel : MonoBehaviour
         if (panel != null)
         {
             panel.SetActive(false);
+            isVisible = false;
         }
 
         if (techDetailPanel != null)

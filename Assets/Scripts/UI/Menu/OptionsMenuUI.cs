@@ -222,38 +222,54 @@ public class OptionsMenuUI : MonoBehaviour
 
     /// <summary>
     /// Master volume slider changed (AC4).
+    /// Applies live to AudioManager for immediate feedback.
     /// </summary>
     private void OnMasterVolumeChanged(float value)
     {
         workingSettings.masterVolume = value;
-        Debug.Log($"[OptionsMenuUI] Master Volume changed: {value:F2}");
+
+        // Apply live
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.SetMasterVolume(value);
     }
 
     /// <summary>
     /// Music volume slider changed (AC4).
+    /// Applies live to AudioManager for immediate feedback.
     /// </summary>
     private void OnMusicVolumeChanged(float value)
     {
         workingSettings.musicVolume = value;
-        Debug.Log($"[OptionsMenuUI] Music Volume changed: {value:F2}");
+
+        // Apply live
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.SetMusicVolume(value);
     }
 
     /// <summary>
     /// SFX volume slider changed (AC4).
+    /// Applies live to AudioManager for immediate feedback.
     /// </summary>
     private void OnSFXVolumeChanged(float value)
     {
         workingSettings.sfxVolume = value;
-        Debug.Log($"[OptionsMenuUI] SFX Volume changed: {value:F2}");
+
+        // Apply live
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.SetSFXVolume(value);
     }
 
     /// <summary>
     /// Voice volume slider changed.
+    /// Applies live to AudioManager for immediate feedback.
     /// </summary>
     private void OnVoiceVolumeChanged(float value)
     {
         workingSettings.voiceVolume = value;
-        Debug.Log($"[OptionsMenuUI] Voice Volume changed: {value:F2}");
+
+        // Apply live
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.SetVoiceVolume(value);
     }
 
     /// <summary>

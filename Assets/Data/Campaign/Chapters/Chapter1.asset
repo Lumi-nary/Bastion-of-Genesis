@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChapterData
   chapterNumber: 1
   chapterName: Chapter 1
-  chapterDescription: yummers
+  chapterDescription: Welcome to new world
   chapterIntroText: Chapter1 - Intro
   chapterOutroText: Chapter1 - Outro
+  introDialogue: {fileID: 11400000, guid: 5414e7b715861ff479244f4f31951b27, type: 2}
   startingResources:
   - resourceType: {fileID: 11400000, guid: bb2aea2cb49421c46aabf3bfd3252158, type: 2}
     amount: 100
@@ -37,5 +38,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ea7b570b3d85d5c4a9cdeac7babd8071, type: 2}
   sceneName: Chapter1Map
   chapterThumbnail: {fileID: 0}
+  backgroundMusic: {fileID: 8300000, guid: 85ed3e89b45a61c40991a223fc9551be, type: 3}
+  battleMusic: {fileID: 0}
   isUnlocked: 1
   previousChapter: {fileID: 0}

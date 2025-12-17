@@ -6,6 +6,7 @@ using UnityEngine;
 /// </summary>
 public enum MissionType
 {
+    CompleteObjectives,   // Complete the listed objectives
     SurviveWaves,         // Survive X waves of enemies
     ReachPollution,       // Reach pollution threshold
     KillCount,            // Kill X enemies
@@ -59,6 +60,10 @@ public class MissionData : ScriptableObject
     public int missionNumber; // 1-10 within the chapter
     public MissionType missionType;
 
+    [Header("Dialogue")]
+    [Tooltip("Dialogue to play when mission starts")]
+    public DialogueData introDialogue;
+
     [Header("Mission Objectives")]
     [Tooltip("Main objectives (required) and optional objectives")]
     public List<MissionObjective> objectives = new List<MissionObjective>();
@@ -71,13 +76,9 @@ public class MissionData : ScriptableObject
     public List<MissionReward> optionalRewards = new List<MissionReward>();
 
     [Header("Mission Settings")]
-    public float timeLimit = 0f; // 0 = no time limit
+    [Tooltip("Time limit in seconds. 0 = no time limit")]
+    public float timeLimit = 0f;
     public bool failOnTimeExpired = false;
-
-    [Header("Enemy Configuration")]
-    public List<RaceType> activeRaces = new List<RaceType>();
-    public float enemySpawnDelay = 30f; // Delay before first enemy spawn
-    public float enemySpawnInterval = 60f; // Time between enemy waves
 
     /// <summary>
     /// Check if all main objectives are complete

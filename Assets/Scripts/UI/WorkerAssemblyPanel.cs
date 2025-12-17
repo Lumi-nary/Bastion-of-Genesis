@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 using TMPro;
 
 /// <summary>
@@ -11,6 +12,7 @@ public class WorkerAssemblyPanel : MonoBehaviour
 {
     [Header("UI References")]
     [SerializeField] private GameObject panel;
+    [SerializeField] private RectTransform panelRect;
     [SerializeField] private Transform rowContainer;
     [SerializeField] private GameObject factoryRowPrefab;
     [SerializeField] private GameObject converterRowPrefab;
@@ -18,6 +20,7 @@ public class WorkerAssemblyPanel : MonoBehaviour
     // Track spawned rows
     private Dictionary<WorkerData, FactoryRowUI> factoryRows = new Dictionary<WorkerData, FactoryRowUI>();
     private Dictionary<ResourceType, ConverterRowUI> converterRows = new Dictionary<ResourceType, ConverterRowUI>();
+    private bool isVisible;
 
     private void Start()
     {
@@ -38,6 +41,25 @@ public class WorkerAssemblyPanel : MonoBehaviour
             BuildingManager.Instance.OnFactoriesChanged -= RefreshPanel;
             BuildingManager.Instance.OnConvertersChanged -= RefreshPanel;
         }
+    }
+
+    private void Update()
+    {
+        // Click outside to close
+        if (isVisible && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            if (!IsPointerOverPanel())
+            {
+                HidePanel();
+            }
+        }
+    }
+
+    private bool IsPointerOverPanel()
+    {
+        if (panelRect == null) return false;
+        Vector2 mousePos = Mouse.current.position.ReadValue();
+        return RectTransformUtility.RectangleContainsScreenPoint(panelRect, mousePos);
     }
 
     /// <summary>
@@ -147,6 +169,7 @@ public class WorkerAssemblyPanel : MonoBehaviour
         if (panel != null)
         {
             panel.SetActive(true);
+            isVisible = true;
             RefreshPanel();
         }
     }
@@ -159,6 +182,7 @@ public class WorkerAssemblyPanel : MonoBehaviour
         if (panel != null)
         {
             panel.SetActive(false);
+            isVisible = false;
         }
     }
 

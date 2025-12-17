@@ -1,10 +1,22 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using TMPro;
 using System.Collections.Generic;
 
+/// <summary>
+/// UI Panel that displays the current mission and its objectives.
+/// Click outside the panel to close it.
+/// </summary>
 public class MissionPanel : MonoBehaviour
 {
+    public static MissionPanel Instance { get; private set; }
+
+    [Header("Panel")]
+    [SerializeField] private GameObject panelRoot;
+    [SerializeField] private RectTransform panelRect;
+
     [Header("Mission Info")]
     [SerializeField] private TextMeshProUGUI missionNameText;
     [SerializeField] private TextMeshProUGUI missionDescriptionText;
@@ -18,6 +30,19 @@ public class MissionPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI chapterInfoText;
 
     private Dictionary<MissionObjective, MissionObjectiveSlotUI> objectiveSlots = new Dictionary<MissionObjective, MissionObjectiveSlotUI>();
+    private bool isVisible;
+
+    public bool IsVisible => isVisible;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
 
     private void Start()
     {
@@ -33,7 +58,19 @@ public class MissionPanel : MonoBehaviour
         }
 
         // Hide panel initially
-        gameObject.SetActive(false);
+        HidePanel();
+    }
+
+    private void Update()
+    {
+        // Click outside to close
+        if (isVisible && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            if (!IsPointerOverPanel())
+            {
+                HidePanel();
+            }
+        }
     }
 
     private void OnDestroy()
@@ -55,10 +92,65 @@ public class MissionPanel : MonoBehaviour
         UpdateChapterInfo(chapter);
     }
 
+    /// <summary>
+    /// Show the mission panel
+    /// </summary>
+    public void ShowPanel()
+    {
+        if (panelRoot != null)
+            panelRoot.SetActive(true);
+        else
+            gameObject.SetActive(true);
+
+        isVisible = true;
+
+        // Refresh display
+        if (MissionChapterManager.Instance?.CurrentMission != null)
+        {
+            DisplayMission(MissionChapterManager.Instance.CurrentMission);
+        }
+    }
+
+    /// <summary>
+    /// Hide the mission panel
+    /// </summary>
+    public void HidePanel()
+    {
+        if (panelRoot != null)
+            panelRoot.SetActive(false);
+        else
+            gameObject.SetActive(false);
+
+        isVisible = false;
+    }
+
+    /// <summary>
+    /// Toggle panel visibility. Wire this to Button OnClick in Inspector.
+    /// </summary>
+    public void TogglePanel()
+    {
+        if (isVisible)
+            HidePanel();
+        else
+            ShowPanel();
+    }
+
+    /// <summary>
+    /// Check if pointer is over the panel rect
+    /// </summary>
+    private bool IsPointerOverPanel()
+    {
+        if (panelRect == null) return false;
+
+        Vector2 mousePos = Mouse.current.position.ReadValue();
+        return RectTransformUtility.RectangleContainsScreenPoint(panelRect, mousePos);
+    }
+
     private void OnMissionStarted(MissionData mission)
     {
-        gameObject.SetActive(true);
-        DisplayMission(mission);
+        // Don't auto-show, just refresh if visible
+        if (isVisible)
+            DisplayMission(mission);
     }
 
     private void OnMissionCompleted(MissionData mission)
