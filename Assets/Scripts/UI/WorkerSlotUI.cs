@@ -14,22 +14,53 @@ public class WorkerSlotUI : MonoBehaviour
 
     public void Setup(Building building, WorkerData worker)
     {
+        // Unsubscribe from previous building if any
+        if (currentBuilding != null)
+        {
+            currentBuilding.OnWorkersChanged -= UpdateUI;
+        }
+
         currentBuilding = building;
         workerData = worker;
 
+        // Subscribe to new building
+        if (currentBuilding != null)
+        {
+            currentBuilding.OnWorkersChanged += UpdateUI;
+        }
+
         workerNameText.text = workerData.workerName;
+        
+        // Remove old listeners to avoid duplicates
+        addButton.onClick.RemoveAllListeners();
+        removeButton.onClick.RemoveAllListeners();
+        
         addButton.onClick.AddListener(OnAddWorker);
         removeButton.onClick.AddListener(OnRemoveWorker);
 
         UpdateUI();
     }
 
+    private void OnDestroy()
+    {
+        if (currentBuilding != null)
+        {
+            currentBuilding.OnWorkersChanged -= UpdateUI;
+        }
+    }
+
     private void OnAddWorker()
     {
         if (currentBuilding != null && workerData != null)
         {
-            currentBuilding.AssignWorker(workerData);
-            UpdateUI();
+            if (NetworkedBuildingManager.Instance != null && NetworkedBuildingManager.Instance.IsClientStarted)
+            {
+                NetworkedBuildingManager.Instance.RequestAssignWorker(currentBuilding, workerData);
+            }
+            else
+            {
+                currentBuilding.AssignWorker(workerData);
+            }
         }
     }
 
@@ -37,8 +68,14 @@ public class WorkerSlotUI : MonoBehaviour
     {
         if (currentBuilding != null && workerData != null)
         {
-            currentBuilding.RemoveWorker(workerData);
-            UpdateUI();
+            if (NetworkedBuildingManager.Instance != null && NetworkedBuildingManager.Instance.IsClientStarted)
+            {
+                NetworkedBuildingManager.Instance.RequestRemoveWorker(currentBuilding, workerData);
+            }
+            else
+            {
+                currentBuilding.RemoveWorker(workerData);
+            }
         }
     }
 

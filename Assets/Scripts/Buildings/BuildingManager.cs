@@ -35,17 +35,20 @@ public class BuildingManager : MonoBehaviour
         }
     }
 
-    public void PlaceBuilding(BuildingData buildingData, Vector3 position)
+    public void PlaceBuilding(BuildingData buildingData, Vector3 position, bool ignoreCost = false)
     {
         if (buildingData == null)
         {
             return; // No building selected
         }
 
-        if (HasEnoughResources(buildingData.resourceCost) && HasEnoughBuilders(buildingData))
+        if (ignoreCost || (HasEnoughResources(buildingData.resourceCost) && HasEnoughBuilders(buildingData)))
         {
-            SpendResources(buildingData.resourceCost);
-            ConsumeBuilders(buildingData);
+            if (!ignoreCost)
+            {
+                SpendResources(buildingData.resourceCost);
+                ConsumeBuilders(buildingData);
+            }
 
             GameObject newBuildingGO = Instantiate(buildingData.prefab, position, Quaternion.identity);
             Building newBuilding = newBuildingGO.GetComponent<Building>();

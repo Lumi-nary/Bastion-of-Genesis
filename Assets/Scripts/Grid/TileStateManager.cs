@@ -324,6 +324,12 @@ public class TileStateManager : MonoBehaviour
         {
             if (building == null) continue;
 
+            // Only buildings that are allowed to spread integration will extend the zone
+            if (building.BuildingData != null && !building.BuildingData.spreadsIntegration)
+            {
+                continue;
+            }
+
             // Calculate tiles within building's integration radius
             for (int dx = -buildingIntegrationRadius; dx < building.width + buildingIntegrationRadius; dx++)
             {

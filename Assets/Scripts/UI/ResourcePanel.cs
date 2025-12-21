@@ -44,7 +44,10 @@ public class ResourcePanel : MonoBehaviour
 
     private void UpdateResourceDisplay(ResourceType type, int amount)
     {
+        if (type == null) return;
+        
         int capacity = ResourceManager.Instance.GetResourceCapacity(type);
+        // Debug.Log($"[ResourcePanel] Update: {type.ResourceName} = {amount}/{capacity}");
 
         if (resourceSlots.ContainsKey(type))
         {
@@ -67,6 +70,7 @@ public class ResourcePanel : MonoBehaviour
             if (amount > 0)
             {
                 // Create a new slot
+                // Debug.Log($"[ResourcePanel] Creating slot for {type.ResourceName}");
                 GameObject slotGO = Instantiate(resourceSlotPrefab, container);
                 ResourceSlotUI slotUI = slotGO.GetComponent<ResourceSlotUI>();
                 if (slotUI != null)

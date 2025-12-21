@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+using FishNet.Object;
+using FishNet.Object.Synchronizing;
+using FishNet;
 
 /// <summary>
 /// Component attached to enemy GameObjects
@@ -7,14 +10,23 @@ using UnityEngine;
 /// REFACTORED: Now uses modular SpecialAbility system - abilities are data-driven
 /// Uses A* pathfinding via PathfindingManager for navigation
 /// </summary>
-public class Enemy : MonoBehaviour
+public class Enemy : NetworkBehaviour
 {
     [Header("Enemy Configuration")]
     [Tooltip("Enemy data defining this enemy's stats and behavior")]
     public EnemyData enemyData;
 
     [Header("Runtime Stats")]
-    private float currentHealth;
+    // Synced Health
+    private readonly SyncVar<float> _syncedHealth = new SyncVar<float>();
+    
+    // Properties to maintain API compatibility
+    public float currentHealth 
+    { 
+        get => _syncedHealth.Value; 
+        private set => _syncedHealth.Value = value; 
+    }
+
     private float maxHealth;
     private float effectiveDamage;
     private float lastAttackTime;
@@ -61,12 +73,42 @@ public class Enemy : MonoBehaviour
     public delegate void EnemyDamagedEvent(Enemy enemy, float damage, float remainingHealth);
     public event EnemyDamagedEvent OnEnemyDamaged;
 
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+        if (EnemyManager.Instance != null)
+        {
+            EnemyManager.Instance.RegisterNetworkedEnemy(this);
+        }
+        
+        // Listen to health changes for local UI/Events?
+        _syncedHealth.OnChange += OnHealthSyncChanged;
+    }
+
+    public override void OnStopClient()
+    {
+        base.OnStopClient();
+        if (EnemyManager.Instance != null)
+        {
+            EnemyManager.Instance.UnregisterNetworkedEnemy(this);
+        }
+        _syncedHealth.OnChange -= OnHealthSyncChanged;
+    }
+
+    private void OnHealthSyncChanged(float prev, float next, bool asServer)
+    {
+        // Fire damaged event on clients for UI
+        if (!asServer && prev > next)
+        {
+            OnEnemyDamaged?.Invoke(this, prev - next, next);
+        }
+    }
+
     private void Awake()
     {
-        if (enemyData != null)
-        {
-            Initialize(enemyData, 1f, 1f);
-        }
+        // Don't init here if networked, wait for ServerInitialize
+        // But if local testing (no network), allow Awake?
+        // We'll rely on Initialize call.
     }
 
     /// <summary>
@@ -80,7 +122,12 @@ public class Enemy : MonoBehaviour
 
         // Calculate effective stats based on difficulty and pollution
         maxHealth = data.GetEffectiveHP(difficultyMultiplier, pollutionMultiplier);
-        currentHealth = maxHealth;
+        
+        if (IsServerStarted || IsServer) // Set SyncVar only on server
+        {
+            currentHealth = maxHealth;
+        }
+
         effectiveDamage = data.GetEffectiveDamage(difficultyMultiplier, pollutionMultiplier);
 
         isDead = false;
@@ -93,8 +140,12 @@ public class Enemy : MonoBehaviour
             lastGridPosition = currentCell;
 
             // Snap to cell center (X.5, Y.5)
-            Vector3 cellCenter = GridManager.Instance.GridToWorldPosition(currentCell);
-            transform.position = cellCenter;
+            // Only force position if Server, otherwise let NetworkTransform handle it
+            if (IsServerStarted || IsServer)
+            {
+                Vector3 cellCenter = GridManager.Instance.GridToWorldPosition(currentCell);
+                transform.position = cellCenter;
+            }
 
             hasTargetCell = false; // Will be set on first movement update
         }
@@ -112,6 +163,22 @@ public class Enemy : MonoBehaviour
     private void Update()
     {
         if (isDead) return;
+        
+        // If Networked, Client does NOT run AI/Movement
+        if (IsClientStarted && !IsServerStarted) return;
+        
+        // If not networked (local testing), allow it.
+        // How to detect? InstanceFinder.NetworkManager == null?
+        // IsServerStarted is false if not connected.
+        // But we want to support offline mode?
+        // If inherited NetworkBehaviour, and not initialized, IsServerStarted is false.
+        // We assume offline mode is just "Server Started" (Host).
+        // If totally offline (no FishNet), Update runs? 
+        // FishNet: NetworkBehaviour Update might run if not spawned? No.
+        
+        // For now: Only Server runs AI.
+        // If this is a Client, RETURN.
+        if (IsClient && !IsServer) return;
 
         // Detect if enemy was manually moved (e.g., in editor) and re-sync position
         SyncCellPosition();
@@ -124,8 +191,9 @@ public class Enemy : MonoBehaviour
                 ability.OnUpdate(this);
             }
         }
-
-        // Track grid position changes for tile notifications
+        
+        // ... rest of update
+        
         TrackGridPosition();
 
         // Update behavior based on current state
@@ -840,6 +908,11 @@ public class Enemy : MonoBehaviour
     public void TakeDamage(float damage)
     {
         if (isDead) return;
+        
+        // Client should not calculate damage logic, just visuals.
+        // But if this is called on Client (e.g. by a projectile), we need to ensure it only runs on Server.
+        // However, most projectiles should have Server-side logic.
+        if (!IsServerStarted && !IsServer) return;
 
         // Give abilities a chance to block/modify damage
         foreach (var ability in enemyData.specialAbilities)
@@ -859,6 +932,7 @@ public class Enemy : MonoBehaviour
 
         currentHealth -= finalDamage;
 
+        // Event fired via SyncVar callback on clients
         OnEnemyDamaged?.Invoke(this, finalDamage, currentHealth);
 
         if (currentHealth <= 0)
@@ -873,6 +947,7 @@ public class Enemy : MonoBehaviour
     public void Heal(float amount)
     {
         if (isDead) return;
+        if (!IsServerStarted && !IsServer) return;
 
         currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
     }
@@ -903,9 +978,19 @@ public class Enemy : MonoBehaviour
         {
             EnemyManager.Instance.OnEnemyKilled(this);
         }
-
-        // Destroy GameObject
-        Destroy(gameObject);
+        
+        // Network Despawn
+        if (IsServerStarted)
+        {
+             // Delay destroy slightly for death animation? 
+             // Logic handles instantly for now.
+             InstanceFinder.ServerManager.Despawn(gameObject);
+        }
+        else
+        {
+             // Fallback for local
+             Destroy(gameObject);
+        }
     }
 
     /// <summary>

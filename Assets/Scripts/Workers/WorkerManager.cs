@@ -170,6 +170,18 @@ public class WorkerManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Set worker count directly. Used for network sync.
+    /// </summary>
+    public void SetWorkerCount(WorkerData workerData, int count)
+    {
+        if (workerData == null || !availableWorkers.ContainsKey(workerData)) return;
+
+        int capacity = GetWorkerCapacity(workerData);
+        availableWorkers[workerData] = Mathf.Clamp(count, 0, capacity);
+        OnWorkerCountChanged?.Invoke(workerData, availableWorkers[workerData]);
+    }
+
+    /// <summary>
     /// Reset all workers to zero and capacities to base values.
     /// Called by MissionChapterManager when starting a new chapter.
     /// </summary>

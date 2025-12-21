@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 public class PlacementSystem : MonoBehaviour
 {
@@ -17,6 +18,11 @@ public class PlacementSystem : MonoBehaviour
     private BuildingData buildingToPlace;
     private GameObject buildingPreview;
     private SpriteRenderer previewRenderer;
+
+    // Drag building support (Walls)
+    private bool isDragging = false;
+    private Vector2Int dragStartPos;
+    private List<GameObject> previewObjects = new List<GameObject>();
 
     public BuildingData BuildingToPlace => buildingToPlace;
 
@@ -53,30 +59,39 @@ public class PlacementSystem : MonoBehaviour
 
     private void Update()
     {
-        // If we are in build mode, update the preview
-        if (buildingToPlace != null)
+        // If not in build mode, handle selection (only on click)
+        if (buildingToPlace == null)
         {
-            UpdateBuildingPreview();
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                // Ignore the click if the pointer is over any UI element
+                if (EventSystem.current.IsPointerOverGameObject())
+                {
+                    return;
+                }
+                SelectBuilding();
+            }
+            return;
         }
 
-        // Check for left-click
-        if (Mouse.current.leftButton.wasPressedThisFrame)
+        // We are in build mode
+        if (IsWall())
         {
-            // Ignore the click if the pointer is over any UI element
-            if (EventSystem.current.IsPointerOverGameObject())
-            {
-                return;
-            }
+            HandleWallPlacement();
+        }
+        else
+        {
+            UpdateBuildingPreview();
 
-            if (buildingToPlace != null)
+            // Check for left-click
+            if (Mouse.current.leftButton.wasPressedThisFrame)
             {
-                // If in build mode, place the building
+                // Ignore the click if the pointer is over any UI element
+                if (EventSystem.current.IsPointerOverGameObject())
+                {
+                    return;
+                }
                 PlaceBuilding();
-            }
-            else
-            {
-                // If not in build mode, handle selection
-                SelectBuilding();
             }
         }
     }
@@ -142,6 +157,14 @@ public class PlacementSystem : MonoBehaviour
     {
         buildingToPlace = null;
         if (buildingPreview != null) Destroy(buildingPreview);
+
+        // Clear drag previews
+        foreach (var obj in previewObjects)
+        {
+            if (obj != null) Destroy(obj);
+        }
+        previewObjects.Clear();
+        isDragging = false;
     }
 
     private void OnRightClick(InputAction.CallbackContext context)
@@ -169,7 +192,24 @@ public class PlacementSystem : MonoBehaviour
             // Calculate placement position at center (for center-pivoted sprites)
             Vector3 worldPos = gridManager.GridToWorldPosition(gridPos);
 
-            BuildingManager.Instance.PlaceBuilding(buildingToPlace, worldPos);
+            // Use Networked Manager if online, otherwise legacy
+            if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsOnline)
+            {
+                if (NetworkedBuildingManager.Instance != null)
+                {
+                    Debug.Log($"[PlacementSystem] Requesting networked placement for {buildingToPlace.buildingName}");
+                    NetworkedBuildingManager.Instance.RequestPlaceBuilding(buildingToPlace, worldPos);
+                }
+                else
+                {
+                    Debug.LogError("[PlacementSystem] NetworkedBuildingManager.Instance is null in online mode!");
+                }
+            }
+            else
+            {
+                BuildingManager.Instance.PlaceBuilding(buildingToPlace, worldPos);
+            }
+
             // After placing, we exit build mode. The click has been consumed by this action,
             // so the SelectBuilding() logic in Update() won't run in the same frame.
             ExitBuildMode();
@@ -376,10 +416,158 @@ public class PlacementSystem : MonoBehaviour
         return OreMoundType.Iron;
     }
 
+    private void HandleWallPlacement()
+    {
+        Vector3 mousePos = GetMouseWorldPosition();
+        Vector2Int gridPos = gridManager.WorldToGridPosition(mousePos);
+
+        // Start Drag
+        if (Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            if (!EventSystem.current.IsPointerOverGameObject())
+            {
+                isDragging = true;
+                dragStartPos = gridPos;
+            }
+        }
+
+        // Update Preview
+        if (isDragging)
+        {
+            UpdateWallDragPreview(dragStartPos, gridPos);
+        }
+        else
+        {
+            UpdateWallDragPreview(gridPos, gridPos);
+        }
+
+        // End Drag (Place)
+        if (Mouse.current.leftButton.wasReleasedThisFrame)
+        {
+            if (isDragging)
+            {
+                PlaceWallLine(dragStartPos, gridPos);
+                isDragging = false;
+                ExitBuildMode();
+            }
+        }
+    }
+
+    private void UpdateWallDragPreview(Vector2Int start, Vector2Int end)
+    {
+        if (buildingPreview != null) buildingPreview.SetActive(false);
+
+        List<Vector2Int> line = GetWallLinePositions(start, end);
+
+        // Ensure pool
+        while (previewObjects.Count < line.Count)
+        {
+            GameObject obj = Instantiate(buildingToPlace.prefab);
+            foreach (var col in obj.GetComponentsInChildren<Collider2D>()) col.enabled = false;
+            if (obj.GetComponent<Building>() != null) obj.GetComponent<Building>().enabled = false;
+            previewObjects.Add(obj);
+        }
+
+        bool hitInvalid = false;
+
+        // Update previews
+        for (int i = 0; i < previewObjects.Count; i++)
+        {
+            if (i < line.Count && !hitInvalid)
+            {
+                previewObjects[i].SetActive(true);
+                Vector2Int pos = line[i];
+                Vector3 worldPos = gridManager.GridToWorldPosition(pos);
+                previewObjects[i].transform.position = worldPos;
+
+                SpriteRenderer ren = previewObjects[i].GetComponentInChildren<SpriteRenderer>();
+                if (ren != null)
+                {
+                    bool valid = CanPlaceBuilding(pos, buildingToPlace.width, buildingToPlace.height);
+                    ren.material = valid ? validPlacementMaterial : invalidPlacementMaterial;
+
+                    // If invalid, stop showing subsequent previews (this one is the last one shown, in red)
+                    if (!valid)
+                    {
+                        hitInvalid = true;
+                    }
+                }
+            }
+            else
+            {
+                previewObjects[i].SetActive(false);
+            }
+        }
+    }
+
+    private void PlaceWallLine(Vector2Int start, Vector2Int end)
+    {
+        List<Vector2Int> line = GetWallLinePositions(start, end);
+        foreach (Vector2Int pos in line)
+        {
+            if (CanPlaceBuilding(pos, buildingToPlace.width, buildingToPlace.height))
+            {
+                Vector3 worldPos = gridManager.GridToWorldPosition(pos);
+
+                // Use Networked Manager if online, otherwise legacy
+                if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsOnline)
+                {
+                    if (NetworkedBuildingManager.Instance != null)
+                    {
+                        NetworkedBuildingManager.Instance.RequestPlaceBuilding(buildingToPlace, worldPos);
+                    }
+                }
+                else
+                {
+                    BuildingManager.Instance.PlaceBuilding(buildingToPlace, worldPos);
+                }
+            }
+            else
+            {
+                // Stop building if we hit an invalid position
+                break;
+            }
+        }
+    }
+
     private Vector3 GetMouseWorldPosition()
     {
         Vector3 mousePos = Mouse.current.position.ReadValue();
         mousePos.z = mainCamera.nearClipPlane; // Ensure z-depth is correct for ScreenToWorldPoint
         return mainCamera.ScreenToWorldPoint(mousePos);
+    }
+
+    private bool IsWall()
+    {
+        return buildingToPlace != null && buildingToPlace.HasFeature<WallFeature>();
+    }
+
+    private List<Vector2Int> GetWallLinePositions(Vector2Int start, Vector2Int end)
+    {
+        List<Vector2Int> positions = new List<Vector2Int>();
+
+        // Determine dominant axis
+        int dx = end.x - start.x;
+        int dy = end.y - start.y;
+
+        if (Mathf.Abs(dx) >= Mathf.Abs(dy))
+        {
+            // Horizontal line
+            int dir = dx >= 0 ? 1 : -1;
+            for (int x = 0; x <= Mathf.Abs(dx); x++)
+            {
+                positions.Add(new Vector2Int(start.x + x * dir, start.y));
+            }
+        }
+        else
+        {
+            // Vertical line
+            int dir = dy >= 0 ? 1 : -1;
+            for (int y = 0; y <= Mathf.Abs(dy); y++)
+            {
+                positions.Add(new Vector2Int(start.x, start.y + y * dir));
+            }
+        }
+        return positions;
     }
 }

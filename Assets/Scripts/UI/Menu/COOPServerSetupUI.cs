@@ -1,50 +1,177 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
 /// COOPServerSetupUI controls the COOP server configuration panel.
 /// Displays local IP/port and provides server start button.
-/// Epic 2: Placeholder implementation (no actual FishNet integration).
-/// Epic 9: Full FishNet ServerManager integration.
+/// Uses NetworkGameManager for FishNet integration.
 /// </summary>
 public class COOPServerSetupUI : MonoBehaviour
 {
-    // ============================================================================
-    // SERIALIZED FIELDS (Assigned in Unity Inspector)
-    // ============================================================================
-
     [Header("COOP Server UI")]
     [SerializeField] private TextMeshProUGUI ipPortText;
     [SerializeField] private TextMeshProUGUI statusText;
+    [SerializeField] private TextMeshProUGUI playerCountText;
 
-    // ============================================================================
-    // PRIVATE FIELDS
-    // ============================================================================
+    [Header("Buttons")]
+    [SerializeField] private Button startServerButton;
+    [SerializeField] private Button startGameButton;
+
+    [Header("Settings")]
+    [SerializeField] private int minPlayersToStart = 1;
 
     private bool serverStarted = false;
-
-    // ============================================================================
-    // LIFECYCLE METHODS
-    // ============================================================================
 
     private void OnEnable()
     {
         // Reset state when panel becomes visible
         serverStarted = false;
 
-        // Display placeholder IP/port (Epic 9: Get from NetworkManager)
-        if (ipPortText != null)
-        {
-            ipPortText.text = "192.168.1.100:7777";
-        }
+        // Display local IP/port from NetworkGameManager
+        UpdateIPDisplay();
+        UpdateStatusText("Ready to Host");
+        UpdateButtonStates();
 
-        // Reset status text
-        if (statusText != null)
+        // Subscribe to network events
+        if (NetworkGameManager.Instance != null)
         {
-            statusText.text = "Configure Server";
+            NetworkGameManager.Instance.OnServerStarted += OnServerStarted;
+            NetworkGameManager.Instance.OnServerStopped += OnServerStopped;
+            NetworkGameManager.Instance.OnPlayerJoined += OnPlayerJoined;
+            NetworkGameManager.Instance.OnPlayerLeft += OnPlayerLeft;
         }
 
         Debug.Log("[COOPServerSetupUI] COOP server panel enabled");
+    }
+
+    private void OnDisable()
+    {
+        // Unsubscribe from network events
+        if (NetworkGameManager.Instance != null)
+        {
+            NetworkGameManager.Instance.OnServerStarted -= OnServerStarted;
+            NetworkGameManager.Instance.OnServerStopped -= OnServerStopped;
+            NetworkGameManager.Instance.OnPlayerJoined -= OnPlayerJoined;
+            NetworkGameManager.Instance.OnPlayerLeft -= OnPlayerLeft;
+        }
+    }
+
+    private void UpdateIPDisplay()
+    {
+        if (ipPortText != null)
+        {
+            if (NetworkGameManager.Instance != null)
+            {
+                ipPortText.text = $"{NetworkGameManager.Instance.LocalIP}:{NetworkGameManager.Instance.Port}";
+            }
+            else
+            {
+                ipPortText.text = "Network not initialized";
+            }
+        }
+    }
+
+    private void UpdateStatusText(string status)
+    {
+        if (statusText != null)
+        {
+            statusText.text = status;
+        }
+    }
+
+    private void UpdatePlayerCount()
+    {
+        if (playerCountText != null && NetworkGameManager.Instance != null)
+        {
+            playerCountText.text = $"Players: {NetworkGameManager.Instance.PlayerCount}/{NetworkGameManager.Instance.MaxPlayers}";
+        }
+        UpdateButtonStates();
+    }
+
+    private void UpdateButtonStates()
+    {
+        // Start Server button: enabled when not hosting
+        if (startServerButton != null)
+        {
+            startServerButton.interactable = !serverStarted;
+        }
+
+        // Start Game button: enabled when hosting and enough players
+        if (startGameButton != null)
+        {
+            bool canStartGame = serverStarted &&
+                NetworkGameManager.Instance != null &&
+                NetworkGameManager.Instance.PlayerCount >= minPlayersToStart;
+            startGameButton.interactable = canStartGame;
+        }
+    }
+
+    // ============================================================================
+    // NETWORK EVENT HANDLERS
+    // ============================================================================
+
+    private void OnServerStarted()
+    {
+        serverStarted = true;
+        UpdateStatusText("Server Running - Waiting for players...");
+        UpdatePlayerCount();
+        UpdateButtonStates();
+
+        // Start LAN broadcasting so clients can discover this server
+        if (LANDiscovery.Instance != null && NetworkGameManager.Instance != null)
+        {
+            string serverName = SaveManager.Instance?.pendingBaseName ?? "Planetfall Server";
+            LANDiscovery.Instance.StartBroadcasting(
+                serverName,
+                NetworkGameManager.Instance.Port,
+                NetworkGameManager.Instance.PlayerCount,
+                NetworkGameManager.Instance.MaxPlayers
+            );
+        }
+    }
+
+    private void OnServerStopped()
+    {
+        serverStarted = false;
+        UpdateStatusText("Server Stopped");
+        UpdateButtonStates();
+
+        // Stop LAN broadcasting
+        if (LANDiscovery.Instance != null)
+        {
+            LANDiscovery.Instance.StopBroadcasting();
+        }
+    }
+
+    private void OnPlayerJoined(FishNet.Connection.NetworkConnection conn)
+    {
+        UpdatePlayerCount();
+        UpdateStatusText($"Player {conn.ClientId} joined!");
+
+        // Update broadcast with new player count
+        if (LANDiscovery.Instance != null && NetworkGameManager.Instance != null)
+        {
+            LANDiscovery.Instance.UpdatePlayerCount(
+                NetworkGameManager.Instance.PlayerCount,
+                NetworkGameManager.Instance.MaxPlayers
+            );
+        }
+    }
+
+    private void OnPlayerLeft(FishNet.Connection.NetworkConnection conn)
+    {
+        UpdatePlayerCount();
+        UpdateStatusText($"Player {conn.ClientId} left");
+
+        // Update broadcast with new player count
+        if (LANDiscovery.Instance != null && NetworkGameManager.Instance != null)
+        {
+            LANDiscovery.Instance.UpdatePlayerCount(
+                NetworkGameManager.Instance.PlayerCount,
+                NetworkGameManager.Instance.MaxPlayers
+            );
+        }
     }
 
     // ============================================================================
@@ -52,9 +179,8 @@ public class COOPServerSetupUI : MonoBehaviour
     // ============================================================================
 
     /// <summary>
-    /// Start COOP server (placeholder for Epic 9 FishNet integration).
+    /// Start COOP server using NetworkGameManager.
     /// Called by "Start Server" button onClick event.
-    /// Epic 9: Will call FishNet ServerManager.StartConnection().
     /// </summary>
     public void OnStartServerClicked()
     {
@@ -64,87 +190,53 @@ public class COOPServerSetupUI : MonoBehaviour
             return;
         }
 
-        // Placeholder: Update status text (Epic 9: Start actual FishNet server)
-        serverStarted = true;
-
-        if (statusText != null)
+        if (NetworkGameManager.Instance == null)
         {
-            statusText.text = "Server Ready (Placeholder - Epic 9)";
-        }
-
-        Debug.Log("[COOPServerSetupUI] Server start placeholder - full FishNet integration in Epic 9");
-
-        // Epic 9 Implementation:
-        // if (FishNet.InstanceFinder.ServerManager != null)
-        // {
-        //     FishNet.InstanceFinder.ServerManager.StartConnection();
-        //     statusText.text = "Server Ready";
-        //     Debug.Log($"[COOPServerSetupUI] FishNet server started on {GetLocalIP()}:7777");
-        // }
-    }
-
-    /// <summary>
-    /// Stop COOP server (called by Back button or mode toggle).
-    /// Epic 9: Will call FishNet ServerManager.StopConnection().
-    /// </summary>
-    public void StopServer()
-    {
-        if (!serverStarted)
-        {
+            Debug.LogError("[COOPServerSetupUI] NetworkGameManager not found!");
+            UpdateStatusText("Error: Network not initialized");
             return;
         }
 
-        serverStarted = false;
+        UpdateStatusText("Starting server...");
+        NetworkGameManager.Instance.StartHost();
 
-        if (statusText != null)
-        {
-            statusText.text = "Configure Server";
-        }
-
-        Debug.Log("[COOPServerSetupUI] Server stop placeholder - full FishNet integration in Epic 9");
-
-        // Epic 9 Implementation:
-        // if (FishNet.InstanceFinder.ServerManager != null)
-        // {
-        //     FishNet.InstanceFinder.ServerManager.StopConnection(true);
-        //     Debug.Log("[COOPServerSetupUI] FishNet server stopped");
-        // }
+        Debug.Log("[COOPServerSetupUI] Starting FishNet host");
     }
-
-    // ============================================================================
-    // HELPER METHODS (Epic 9)
-    // ============================================================================
 
     /// <summary>
-    /// Get local IP address for display (Epic 9 implementation).
-    /// Currently returns placeholder value.
+    /// Stop COOP server.
+    /// Called by Back button or mode toggle.
     /// </summary>
-    /// <returns>Local IP address string</returns>
-    private string GetLocalIP()
+    public void StopServer()
     {
-        // Epic 9 Implementation:
-        // try
-        // {
-        //     var host = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName());
-        //     foreach (var ip in host.AddressList)
-        //     {
-        //         if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-        //         {
-        //             return ip.ToString();
-        //         }
-        //     }
-        // }
-        // catch (System.Exception ex)
-        // {
-        //     Debug.LogError($"[COOPServerSetupUI] Failed to get local IP: {ex.Message}");
-        // }
+        if (!serverStarted) return;
 
-        return "192.168.1.100"; // Placeholder
+        if (NetworkGameManager.Instance != null)
+        {
+            NetworkGameManager.Instance.StopHost();
+        }
+
+        serverStarted = false;
+        UpdateStatusText("Ready to Host");
+        UpdateButtonStates();
+
+        Debug.Log("[COOPServerSetupUI] Server stopped");
     }
 
-    private void OnDisable()
+    /// <summary>
+    /// Start the game (load game scene for all players)
+    /// </summary>
+    public void OnStartGameClicked()
     {
-        // Stop server when panel is hidden (mode toggled back to SP)
-        StopServer();
+        if (!serverStarted)
+        {
+            Debug.LogWarning("[COOPServerSetupUI] Server not running");
+            return;
+        }
+
+        if (NetworkGameManager.Instance != null)
+        {
+            NetworkGameManager.Instance.LoadGameScene();
+        }
     }
 }

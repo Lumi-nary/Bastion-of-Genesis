@@ -40,18 +40,44 @@ public class ResourceManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Helper to find the registered ResourceType instance that matches the given type by name.
+    /// This prevents "split brain" issues where different instances of the same ScriptableObject
+    /// (e.g. from Network vs Inspector) are treated as different keys.
+    /// </summary>
+    private ResourceType GetCanonicalType(ResourceType type)
+    {
+        if (type == null) return null;
+        
+        // Fast path: if the exact instance is already a key, return it
+        if (resourceAmounts.ContainsKey(type)) return type;
+        
+        // Slow path: find by name
+        foreach (var key in resourceAmounts.Keys)
+        {
+            if (key.ResourceName == type.ResourceName)
+                return key;
+        }
+        
+        // Not found, return the input type (it will likely be registered shortly)
+        return type;
+    }
+
+    /// <summary>
     /// Register a resource type with its base capacity. Called by MissionChapterManager.
     /// </summary>
     public void RegisterResourceType(ResourceType resourceType, int startingAmount = 0)
     {
         if (resourceType == null) return;
 
-        registeredTypes.Add(resourceType);
-        resourceCapacities[resourceType] = resourceType.BaseCapacity;
-        resourceAmounts[resourceType] = startingAmount;
-        OnResourceChanged?.Invoke(resourceType, startingAmount);
+        // Use canonical type if it exists (though Register implies it might not)
+        ResourceType canonical = GetCanonicalType(resourceType);
 
-        Debug.Log($"[ResourceManager] Registered {resourceType.ResourceName}: {startingAmount}/{resourceType.BaseCapacity}");
+        registeredTypes.Add(canonical);
+        resourceCapacities[canonical] = canonical.BaseCapacity;
+        resourceAmounts[canonical] = startingAmount;
+        OnResourceChanged?.Invoke(canonical, startingAmount);
+
+        Debug.Log($"[ResourceManager] Registered {canonical.ResourceName}: {startingAmount}/{canonical.BaseCapacity}");
     }
 
     /// <summary>
@@ -61,26 +87,27 @@ public class ResourceManager : MonoBehaviour
     /// <param name="amount">The amount to add.</param>
     public void AddResource(ResourceType resourceType, int amount)
     {
+        ResourceType canonical = GetCanonicalType(resourceType);
         if (amount < 0)
         {
             Debug.LogWarning("Cannot add a negative amount of resources. Use RemoveResource instead.");
             return;
         }
 
-        if (!resourceAmounts.ContainsKey(resourceType))
+        if (!resourceAmounts.ContainsKey(canonical))
         {
-            Debug.LogWarning($"Resource type {resourceType.ResourceName} not initialized.");
+            Debug.LogWarning($"Resource type {canonical.ResourceName} not initialized.");
             return;
         }
 
-        int currentAmount = resourceAmounts[resourceType];
-        int capacity = GetResourceCapacity(resourceType);
+        int currentAmount = resourceAmounts[canonical];
+        int capacity = GetResourceCapacity(canonical);
         int newAmount = Mathf.Min(currentAmount + amount, capacity);
 
         if (newAmount > currentAmount)
         {
-            resourceAmounts[resourceType] = newAmount;
-            OnResourceChanged?.Invoke(resourceType, newAmount);
+            resourceAmounts[canonical] = newAmount;
+            OnResourceChanged?.Invoke(canonical, newAmount);
         }
     }
 
@@ -92,19 +119,20 @@ public class ResourceManager : MonoBehaviour
     /// <returns>True if the resources were successfully removed, false otherwise.</returns>
     public bool RemoveResource(ResourceType resourceType, int amount)
     {
+        ResourceType canonical = GetCanonicalType(resourceType);
         if (amount < 0)
         {
             Debug.LogWarning("Cannot remove a negative amount of resources. Use AddResource instead.");
             return false;
         }
 
-        if (!resourceAmounts.ContainsKey(resourceType) || resourceAmounts[resourceType] < amount)
+        if (!resourceAmounts.ContainsKey(canonical) || resourceAmounts[canonical] < amount)
         {
             return false; // Not enough resources
         }
 
-        resourceAmounts[resourceType] -= amount;
-        OnResourceChanged?.Invoke(resourceType, resourceAmounts[resourceType]);
+        resourceAmounts[canonical] -= amount;
+        OnResourceChanged?.Invoke(canonical, resourceAmounts[canonical]);
         return true;
     }
 
@@ -115,9 +143,10 @@ public class ResourceManager : MonoBehaviour
     /// <returns>The current amount of the resource.</returns>
     public int GetResourceAmount(ResourceType resourceType)
     {
-        if (resourceAmounts.ContainsKey(resourceType))
+        ResourceType canonical = GetCanonicalType(resourceType);
+        if (canonical != null && resourceAmounts.ContainsKey(canonical))
         {
-            return resourceAmounts[resourceType];
+            return resourceAmounts[canonical];
         }
 
         return 0;
@@ -130,9 +159,10 @@ public class ResourceManager : MonoBehaviour
     /// <returns>The capacity of the resource.</returns>
     public int GetResourceCapacity(ResourceType resourceType)
     {
-        if (resourceCapacities.ContainsKey(resourceType))
+        ResourceType canonical = GetCanonicalType(resourceType);
+        if (canonical != null && resourceCapacities.ContainsKey(canonical))
         {
-            return resourceCapacities[resourceType];
+            return resourceCapacities[canonical];
         }
 
         return 0;
@@ -176,6 +206,48 @@ public class ResourceManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Set resource amount directly. Used for network sync.
+    /// </summary>
+    public void SetResourceAmount(ResourceType resourceType, int amount)
+    {
+        if (resourceType == null) return;
+        ResourceType canonical = GetCanonicalType(resourceType);
+        
+        if (!resourceAmounts.ContainsKey(canonical)) 
+        {
+            RegisterResourceType(canonical, amount);
+            return;
+        }
+
+        int capacity = GetResourceCapacity(canonical);
+        resourceAmounts[canonical] = Mathf.Clamp(amount, 0, capacity);
+        OnResourceChanged?.Invoke(canonical, resourceAmounts[canonical]);
+    }
+
+    /// <summary>
+    /// Set capacity directly. Used for network sync.
+    /// </summary>
+    public void SetCapacity(ResourceType resourceType, int capacity)
+    {
+        if (resourceType == null) return;
+        ResourceType canonical = GetCanonicalType(resourceType);
+        
+        if (!resourceCapacities.ContainsKey(canonical))
+        {
+            RegisterResourceType(canonical, 0);
+        }
+
+        resourceCapacities[canonical] = capacity;
+        
+        // Clamp current amount if it exceeds new capacity
+        if (resourceAmounts.ContainsKey(canonical) && resourceAmounts[canonical] > capacity)
+        {
+            resourceAmounts[canonical] = capacity;
+            OnResourceChanged?.Invoke(canonical, capacity);
+        }
+    }
+
+    /// <summary>
     /// Reset all resources to zero and capacities to base values.
     /// Called by MissionChapterManager when starting a new chapter.
     /// </summary>
@@ -194,10 +266,11 @@ public class ResourceManager : MonoBehaviour
     /// </summary>
     public void AddCapacity(ResourceType resourceType, int amount)
     {
-        if (resourceType == null || !resourceCapacities.ContainsKey(resourceType)) return;
+        ResourceType canonical = GetCanonicalType(resourceType);
+        if (canonical == null || !resourceCapacities.ContainsKey(canonical)) return;
 
-        resourceCapacities[resourceType] += amount;
-        Debug.Log($"[ResourceManager] {resourceType.ResourceName} capacity increased by {amount} to {resourceCapacities[resourceType]}");
+        resourceCapacities[canonical] += amount;
+        Debug.Log($"[ResourceManager] {canonical.ResourceName} capacity increased by {amount} to {resourceCapacities[canonical]}");
     }
 
     /// <summary>
@@ -205,17 +278,18 @@ public class ResourceManager : MonoBehaviour
     /// </summary>
     public void RemoveCapacity(ResourceType resourceType, int amount)
     {
-        if (resourceType == null || !resourceCapacities.ContainsKey(resourceType)) return;
+        ResourceType canonical = GetCanonicalType(resourceType);
+        if (canonical == null || !resourceCapacities.ContainsKey(canonical)) return;
 
-        resourceCapacities[resourceType] = Mathf.Max(0, resourceCapacities[resourceType] - amount);
+        resourceCapacities[canonical] = Mathf.Max(0, resourceCapacities[canonical] - amount);
 
         // Clamp current amount to new capacity
-        if (resourceAmounts[resourceType] > resourceCapacities[resourceType])
+        if (resourceAmounts[canonical] > resourceCapacities[canonical])
         {
-            resourceAmounts[resourceType] = resourceCapacities[resourceType];
-            OnResourceChanged?.Invoke(resourceType, resourceAmounts[resourceType]);
+            resourceAmounts[canonical] = resourceCapacities[canonical];
+            OnResourceChanged?.Invoke(canonical, resourceAmounts[canonical]);
         }
 
-        Debug.Log($"[ResourceManager] {resourceType.ResourceName} capacity decreased by {amount} to {resourceCapacities[resourceType]}");
+        Debug.Log($"[ResourceManager] {canonical.ResourceName} capacity decreased by {amount} to {resourceCapacities[canonical]}");
     }
 }

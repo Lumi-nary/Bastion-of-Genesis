@@ -140,6 +140,12 @@ public class MissionPanel : MonoBehaviour
     /// </summary>
     private bool IsPointerOverPanel()
     {
+        // Check if mouse is over any UI element (like the toggle button)
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            return true;
+        }
+
         if (panelRect == null) return false;
 
         Vector2 mousePos = Mouse.current.position.ReadValue();

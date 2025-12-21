@@ -215,6 +215,30 @@ public class NewBaseUI : MonoBehaviour
             {
                 Debug.Log("[NewBaseUI] COOP server panel displayed");
             }
+            else
+            {
+                // Switching back to Singleplayer - stop any active server/broadcast
+                StopCOOPServer();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Stop COOP server and broadcasting when switching back to Singleplayer.
+    /// </summary>
+    private void StopCOOPServer()
+    {
+        // Stop LAN broadcasting
+        if (LANDiscovery.Instance != null)
+        {
+            LANDiscovery.Instance.StopBroadcasting();
+        }
+
+        // Stop network hosting
+        if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsHost)
+        {
+            NetworkGameManager.Instance.StopHost();
+            Debug.Log("[NewBaseUI] Stopped COOP server (switched to Singleplayer)");
         }
     }
 

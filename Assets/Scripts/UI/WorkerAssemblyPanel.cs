@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 using TMPro;
 
 /// <summary>
@@ -57,6 +58,12 @@ public class WorkerAssemblyPanel : MonoBehaviour
 
     private bool IsPointerOverPanel()
     {
+        // Check if mouse is over any UI element (like the toggle button)
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            return true;
+        }
+
         if (panelRect == null) return false;
         Vector2 mousePos = Mouse.current.position.ReadValue();
         return RectTransformUtility.RectangleContainsScreenPoint(panelRect, mousePos);

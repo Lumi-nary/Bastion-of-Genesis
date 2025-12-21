@@ -23,6 +23,7 @@ public class Building : MonoBehaviour
     // Events
     public event Action<Building, float> OnBuildingDamaged;
     public event Action<Building> OnBuildingDestroyed;
+    public event Action OnWorkersChanged;
 
     private void Awake()
     {
@@ -187,6 +188,7 @@ public class Building : MonoBehaviour
         if (WorkerManager.Instance.AssignWorker(workerData))
         {
             assignedWorkers.Add(workerData);
+            OnWorkersChanged?.Invoke();
             return true;
         }
 
@@ -201,6 +203,7 @@ public class Building : MonoBehaviour
         {
             assignedWorkers.Remove(workerToRemove);
             WorkerManager.Instance.ReturnWorker(workerData);
+            OnWorkersChanged?.Invoke();
         }
     }
 
@@ -278,6 +281,21 @@ public class Building : MonoBehaviour
 
         // Destroy GameObject
         Destroy(gameObject);
+    }
+
+    /// <summary>
+    /// Force set the assigned workers list (used by Network sync)
+    /// </summary>
+    public void SetAssignedWorkers(List<WorkerData> workers)
+    {
+        // Return existing workers to pool logic is skipped here because 
+        // this is a state sync, not a logic action.
+        // The WorkerManager sync handles the "Available" counts.
+        // We just need to reflect who is IN this building.
+        
+        assignedWorkers.Clear();
+        assignedWorkers.AddRange(workers);
+        OnWorkersChanged?.Invoke();
     }
 
     /// <summary>

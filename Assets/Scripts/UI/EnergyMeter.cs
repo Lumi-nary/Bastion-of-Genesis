@@ -99,7 +99,7 @@ public class EnergyMeter : MonoBehaviour
 
     private void OnResourceChanged(ResourceType type, int amount)
     {
-        if (energyResource != null && type == energyResource)
+        if (energyResource != null && type != null && type.ResourceName == energyResource.ResourceName)
         {
             currentEnergy = amount;
 

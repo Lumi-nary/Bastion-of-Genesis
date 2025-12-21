@@ -495,7 +495,17 @@ public class GridManager : MonoBehaviour
         // Check all undiscovered mounds
         foreach (OreMound mound in undiscoveredMounds.ToList())
         {
-            if (mound.CanDiscoverAtPollution(currentPollution))
+            // Check if mound is spatially within pollution zone
+            bool isInPollutionZone = true;
+            if (TileStateManager.Instance != null)
+            {
+                Vector2Int moundGridPos = WorldToGridPosition(mound.Position);
+                // IsInAliveZone returns true if OUTSIDE pollution radius.
+                // We want to discover only if INSIDE pollution radius (so NOT in AliveZone).
+                isInPollutionZone = !TileStateManager.Instance.IsInAliveZone(moundGridPos);
+            }
+
+            if (isInPollutionZone && mound.CanDiscoverAtPollution(currentPollution))
             {
                 mound.Discover();
             }

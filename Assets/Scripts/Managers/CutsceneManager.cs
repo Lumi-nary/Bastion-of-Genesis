@@ -250,10 +250,30 @@ public class CutsceneManager : MonoBehaviour
     /// Load WorldMapScene asynchronously.
     /// ADR-6: Scene Flow - CutsceneScene → WorldMapScene.
     /// NFR-1: Scene transition completes within <1 second.
+    /// For COOP mode, uses NetworkGameManager to sync scene loading.
     /// </summary>
     private void LoadWorldMapScene()
     {
-        // AC6, AC5: Seamless scene transition (<1 second)
-        SceneManager.LoadSceneAsync("WorldMapScene");
+        // Check if we're in COOP mode and host should control scene loading
+        bool isCoop = SaveManager.Instance != null && SaveManager.Instance.pendingMode == GameMode.COOP;
+        bool isHost = NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsHost;
+
+        if (isCoop && isHost)
+        {
+            // COOP: Host loads scene for all players
+            Debug.Log("[CutsceneManager] COOP mode - Host loading WorldMapScene for all players");
+            NetworkGameManager.Instance.LoadNetworkedScene("WorldMapScene");
+        }
+        else if (isCoop && !isHost)
+        {
+            // COOP: Client waits for host to load scene (do nothing)
+            Debug.Log("[CutsceneManager] COOP mode - Client waiting for host to load scene");
+        }
+        else
+        {
+            // Singleplayer: Load scene directly
+            Debug.Log("[CutsceneManager] Singleplayer mode - Loading WorldMapScene");
+            SceneManager.LoadSceneAsync("WorldMapScene");
+        }
     }
 }

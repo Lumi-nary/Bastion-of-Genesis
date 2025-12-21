@@ -16,6 +16,7 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private Canvas newBaseCanvas;
     [SerializeField] private Canvas loadGameCanvas;
     [SerializeField] private Canvas joinGameCanvas;
+    [SerializeField] private Canvas multiplayerCanvas;
     [SerializeField] private Canvas optionsCanvas;
     [SerializeField] private Canvas creditsCanvas;
 
@@ -101,6 +102,8 @@ public class MenuManager : MonoBehaviour
             Debug.LogError("[MenuManager] Canvas reference missing: loadGameCanvas");
         if (joinGameCanvas == null)
             Debug.LogError("[MenuManager] Canvas reference missing: joinGameCanvas");
+        if (multiplayerCanvas == null)
+            Debug.LogError("[MenuManager] Canvas reference missing: multiplayerCanvas");
         if (optionsCanvas == null)
             Debug.LogError("[MenuManager] Canvas reference missing: optionsCanvas");
         if (creditsCanvas == null)
@@ -208,6 +211,24 @@ public class MenuManager : MonoBehaviour
     public void ShowJoinGameCanvas()
     {
         SwitchCanvas(joinGameCanvas);
+    }
+
+    /// <summary>
+    /// Show Multiplayer Lobby canvas (for both host and client).
+    /// </summary>
+    public void ShowMultiplayerCanvas()
+    {
+        SwitchCanvas(multiplayerCanvas);
+
+        // Initialize the lobby UI when shown
+        if (multiplayerCanvas != null)
+        {
+            MultiplayerLobbyUI lobbyUI = multiplayerCanvas.GetComponentInChildren<MultiplayerLobbyUI>();
+            if (lobbyUI != null)
+            {
+                lobbyUI.InitializeLobby();
+            }
+        }
     }
 
     /// <summary>

@@ -102,7 +102,16 @@ public class UIManager : MonoBehaviour
         if (isPaused) return;
 
         isPaused = true;
-        Time.timeScale = 0f;
+
+        // Only stop time in singleplayer
+        if (NetworkGameManager.Instance == null || !NetworkGameManager.Instance.IsOnline)
+        {
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            Debug.Log("[UIManager] Multiplayer active - Time.timeScale NOT set to 0");
+        }
 
         // Lower music volume (don't stop it)
         if (AudioManager.Instance != null)

@@ -80,6 +80,12 @@ public class MissionData : ScriptableObject
     public float timeLimit = 0f;
     public bool failOnTimeExpired = false;
 
+    [Tooltip("If true, standard pollution-based waves will be paused.")]
+    public bool disableNaturalWaves = false;
+
+    [Tooltip("Scripted waves that trigger at specific times.")]
+    public List<ScriptedWave> scriptedWaves = new List<ScriptedWave>();
+
     /// <summary>
     /// Check if all main objectives are complete
     /// </summary>
@@ -249,7 +255,7 @@ public class MissionData : ScriptableObject
     /// <summary>
     /// Apply building unlocks (instantly available)
     /// </summary>
-    private void ApplyBuildingUnlocks(List<BuildingData> buildings)
+    public void ApplyBuildingUnlocks(List<BuildingData> buildings)
     {
         // Building unlocks are handled by checking mission completion in BuildingDatabase
         foreach (BuildingData building in buildings)
@@ -260,4 +266,24 @@ public class MissionData : ScriptableObject
             }
         }
     }
+}
+
+/// <summary>
+/// Definition for a scripted wave event in a mission
+/// </summary>
+[System.Serializable]
+public class ScriptedWave
+{
+    [Tooltip("Time in seconds from mission start to trigger this wave")]
+    public float triggerTime;
+
+    [Tooltip("Number of enemies to spawn (0 = use standard wave calculation)")]
+    public int enemyCount = 0;
+
+    [Tooltip("Optional message to display when wave triggers")]
+    public string waveMessage;
+
+    // Runtime state
+    [System.NonSerialized]
+    public bool isTriggered = false;
 }

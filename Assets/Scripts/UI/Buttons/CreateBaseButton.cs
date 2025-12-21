@@ -3,30 +3,21 @@ using UnityEngine.SceneManagement;
 
 /// <summary>
 /// CreateBaseButton triggers the New Base creation flow.
-/// Validates form, sets SaveManager pending data (ADR-7), and loads CutsceneScene.
+/// For Singleplayer: Sets SaveManager pending data and loads CutsceneScene.
+/// For COOP: Sets pending data and opens MultiplayerCanvas lobby.
 /// </summary>
 public class CreateBaseButton : MonoBehaviour
 {
-    // ============================================================================
-    // SERIALIZED FIELDS (Assigned in Unity Inspector)
-    // ============================================================================
-
     [Header("Required References")]
-    [Tooltip("Reference to NewBaseUI canvas controller")]
     [SerializeField] private NewBaseUI newBaseUI;
-
-    // ============================================================================
-    // PUBLIC API (Called by Button onClick Event)
-    // ============================================================================
 
     /// <summary>
     /// Handle Create Base button click.
-    /// Validates form, sets SaveManager pending data, loads CutsceneScene.
-    /// ADR-7: Uses SaveManager pending properties for scene-to-scene data handoff.
+    /// For SP: Load CutsceneScene immediately.
+    /// For COOP: Open multiplayer lobby to wait for players.
     /// </summary>
     public void OnClick()
     {
-        // Validate form (always valid with defaults in MVP)
         if (newBaseUI == null)
         {
             Debug.LogError("[CreateBaseButton] NewBaseUI reference not assigned!");
@@ -39,14 +30,14 @@ public class CreateBaseButton : MonoBehaviour
             return;
         }
 
-        // Get form values from NewBaseUI
+        // Get form values
         string baseName = newBaseUI.GetBaseName();
         Difficulty difficulty = newBaseUI.GetDifficulty();
         GameMode mode = newBaseUI.GetMode();
 
         Debug.Log($"[CreateBaseButton] Creating new base: {baseName}, {difficulty}, {mode}");
 
-        // Set SaveManager pending data (ADR-7 scene handoff pattern)
+        // Set SaveManager pending data
         if (SaveManager.Instance == null)
         {
             Debug.LogError("[CreateBaseButton] SaveManager.Instance not found!");
@@ -56,12 +47,29 @@ public class CreateBaseButton : MonoBehaviour
         SaveManager.Instance.pendingBaseName = baseName;
         SaveManager.Instance.pendingDifficulty = difficulty;
         SaveManager.Instance.pendingMode = mode;
-        SaveManager.Instance.pendingChapter = 1; // Always Chapter 1 for new bases
+        SaveManager.Instance.pendingChapter = 1;
 
-        Debug.Log($"[CreateBaseButton] SaveManager pending data set: baseName={baseName}, difficulty={difficulty}, mode={mode}, chapter=1");
+        Debug.Log($"[CreateBaseButton] SaveManager pending data set");
 
-        // Load CutsceneScene (Story 2.3)
-        Debug.Log("[CreateBaseButton] Loading CutsceneScene for Chapter 1");
-        SceneManager.LoadSceneAsync("CutsceneScene");
+        if (mode == GameMode.Singleplayer)
+        {
+            // Singleplayer: Load cutscene immediately
+            Debug.Log("[CreateBaseButton] Singleplayer - Loading CutsceneScene");
+            SceneManager.LoadSceneAsync("CutsceneScene");
+        }
+        else
+        {
+            // COOP: Open multiplayer lobby
+            Debug.Log("[CreateBaseButton] COOP - Opening multiplayer lobby as host");
+
+            if (MenuManager.Instance != null)
+            {
+                MenuManager.Instance.ShowMultiplayerCanvas();
+            }
+            else
+            {
+                Debug.LogError("[CreateBaseButton] MenuManager not found!");
+            }
+        }
     }
 }

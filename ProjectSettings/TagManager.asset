@@ -44,14 +44,14 @@ TagManager:
   - name: Ground
     uniqueID: 253364297
     locked: 0
+  - name: EnvironmentBackground
+    uniqueID: 784172931
+    locked: 0
   - name: Resources
     uniqueID: 2878306569
     locked: 0
   - name: Buildings
     uniqueID: 2112476851
-    locked: 0
-  - name: EnvironmentBackground
-    uniqueID: 784172931
     locked: 0
   - name: Enemy
     uniqueID: 1627275181

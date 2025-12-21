@@ -100,8 +100,94 @@ public class MissionChapterManager : MonoBehaviour
         yield return null;
         yield return null; // Extra frame for safety
 
+        // If networked, wait for managers to be spawned and ready
+        if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsOnline)
+        {
+            Debug.Log("[MissionChapterManager] Online mode detected, waiting for Network Managers...");
+            float timeout = 10.0f; 
+            while (timeout > 0)
+            {
+                bool resourcesReady = NetworkedResourceManager.Instance != null && NetworkedResourceManager.Instance.IsSpawned;
+                bool missionsReady = NetworkedMissionManager.Instance != null && NetworkedMissionManager.Instance.IsSpawned;
+                
+                // On Client, also wait for the chapter index to be synced (must be > 0)
+                bool stateSynced = true;
+                if (!NetworkGameManager.Instance.IsServer && missionsReady)
+                {
+                    stateSynced = NetworkedMissionManager.Instance.CurrentChapterIndex > 0;
+                }
+
+                if (resourcesReady && missionsReady && stateSynced)
+                    break;
+                
+                timeout -= Time.deltaTime;
+                yield return null;
+            }
+            
+            if (timeout <= 0)
+            {
+                Debug.LogWarning($"[MissionChapterManager] Network sync timeout. Resources: {NetworkedResourceManager.Instance?.IsSpawned}, Missions: {NetworkedMissionManager.Instance?.IsSpawned}, ChapterIndex: {NetworkedMissionManager.Instance?.CurrentChapterIndex}");
+            }
+            else
+            {
+                Debug.Log("[MissionChapterManager] Network Managers and state are ready.");
+                
+                // If we are a client, we need to know which chapter and mission we are in!
+                if (!NetworkGameManager.Instance.IsServer && NetworkedMissionManager.Instance != null)
+                {
+                    int netChapterNum = NetworkedMissionManager.Instance.CurrentChapterIndex;
+                    int netIndex = netChapterNum - 1; 
+
+                    if (netIndex >= 0 && netIndex < chapters.Count)
+                    {
+                        ChapterData targetChapter = chapters[netIndex];
+                        string currentSceneName = SceneManager.GetActiveScene().name;
+
+                        // CRITICAL: Only sync if we are in the correct scene!
+                        // This prevents premature initialization in WorldMap/Menu while waiting for load
+                        if (!string.IsNullOrEmpty(targetChapter.sceneName) && currentSceneName != targetChapter.sceneName)
+                        {
+                            Debug.Log($"[MissionChapterManager] Client detected Chapter {netIndex+1} active, but current scene '{currentSceneName}' != target '{targetChapter.sceneName}'. Waiting for scene load...");
+                        }
+                        else
+                        {
+                            currentChapterIndex = netIndex;
+                            currentChapter = targetChapter;
+                            
+                            // Also sync mission index
+                            int netMissionNum = NetworkedMissionManager.Instance.CurrentMissionIndex;
+                            currentMissionIndex = Mathf.Max(0, netMissionNum - 1);
+                            
+                            Debug.Log($"[MissionChapterManager] Client synced from network - Chapter: {currentChapter.chapterName} ({currentChapterIndex}), Mission Index: {currentMissionIndex}");
+                            
+                            // Also request resources and workers immediately
+                            if (NetworkedResourceManager.Instance != null)
+                            {
+                                NetworkedResourceManager.Instance.RequestFullSyncServerRpc();
+                            }
+                            if (NetworkedWorkerManager.Instance != null)
+                            {
+                                NetworkedWorkerManager.Instance.RequestFullSyncServerRpc();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError($"[MissionChapterManager] Client received invalid chapter number: {netChapterNum}");
+                    }
+                }
+            }
+        }
+
         if (ValidateChapterScene())
         {
+            // Safeguard: Do not initialize if we still don't have a chapter (prevents UI/Resource corruption)
+            if (currentChapter == null && (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsOnline))
+            {
+                Debug.LogError("[MissionChapterManager] Cannot initialize chapter state: currentChapter is still NULL after timeout!");
+                yield break;
+            }
+
             // Initialize chapter values AFTER scene managers are ready
             InitializeChapterState();
         }
@@ -115,24 +201,53 @@ public class MissionChapterManager : MonoBehaviour
     {
         if (currentChapter == null)
         {
-            Debug.LogError("[MissionChapterManager] No current chapter to initialize!");
+            Debug.LogError("[MissionChapterManager] No current chapter to initialize! This is critical for setup.");
             return;
         }
 
         Debug.Log($"[MissionChapterManager] Initializing chapter state for: {currentChapter.chapterName}");
 
-        // Reset and initialize resources
+        bool isClientOnly = NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsClient && !NetworkGameManager.Instance.IsServer;
+
+        // Reset and initialize resources (Server only, or singleplayer)
+        // Clients should NOT reset, as they receive synced values from the server
         if (ResourceManager.Instance != null)
         {
-            ResourceManager.Instance.ResetAllResources();
-            InitializeChapterResources();
+            if (!isClientOnly)
+            {
+                ResourceManager.Instance.ResetAllResources();
+                InitializeChapterResources();
+            }
+            else
+            {
+                Debug.Log("[MissionChapterManager] Client: Skipping resource reset to preserve networked state.");
+                
+                // Force a sync from the network to local manager now that the scene is ready
+                if (NetworkedResourceManager.Instance != null)
+                {
+                    // Request fresh state from server to guarantee UI has the latest values
+                    NetworkedResourceManager.Instance.RequestFullSyncServerRpc();
+                }
+            }
         }
 
         // Reset and initialize workers
         if (WorkerManager.Instance != null)
         {
-            WorkerManager.Instance.ResetAllWorkers();
-            InitializeChapterWorkers();
+            if (!isClientOnly)
+            {
+                WorkerManager.Instance.ResetAllWorkers();
+                InitializeChapterWorkers();
+            }
+            else
+            {
+                Debug.Log("[MissionChapterManager] Client: Skipping worker reset to preserve networked state.");
+                
+                if (NetworkedWorkerManager.Instance != null)
+                {
+                    NetworkedWorkerManager.Instance.RequestFullSyncServerRpc();
+                }
+            }
         }
 
         // Reset pollution and configure from chapter settings
@@ -147,6 +262,12 @@ public class MissionChapterManager : MonoBehaviour
         {
             TileStateManager.Instance.SetIntegrationRadius(currentChapter.startingIntegrationRadius);
             Debug.Log($"[MissionChapterManager] Integration radius set to: {currentChapter.startingIntegrationRadius}");
+        }
+
+        // Subscribe to building events for objectives
+        if (BuildingManager.Instance != null)
+        {
+            BuildingManager.Instance.OnBuildingPlaced += OnBuildingPlaced;
         }
 
         // Reload enemy types from chapter data
@@ -215,6 +336,25 @@ public class MissionChapterManager : MonoBehaviour
         missionTimer += Time.deltaTime;
         OnMissionTimerUpdate?.Invoke(missionTimer);
 
+        // Check scripted waves
+        foreach (var wave in currentMission.scriptedWaves)
+        {
+            if (!wave.isTriggered && missionTimer >= wave.triggerTime)
+            {
+                wave.isTriggered = true;
+                if (!string.IsNullOrEmpty(wave.waveMessage))
+                {
+                    Debug.Log($"[Mission] Scripted Wave Message: {wave.waveMessage}");
+                    // TODO: Show on UI
+                }
+
+                if (WaveController.Instance != null)
+                {
+                    WaveController.Instance.TriggerScriptedWave(wave.enemyCount);
+                }
+            }
+        }
+
         // Check time limit
         if (currentMission.timeLimit > 0 && missionTimer >= currentMission.timeLimit)
         {
@@ -270,11 +410,41 @@ public class MissionChapterManager : MonoBehaviour
         if (!string.IsNullOrEmpty(chapter.sceneName))
         {
             awaitingSceneValidation = true;
-            SceneManager.LoadScene(chapter.sceneName);
+
+            // Check if we're in COOP mode - use networked scene loading
+            bool isCoop = SaveManager.Instance != null && SaveManager.Instance.pendingMode == GameMode.COOP;
+            bool isHost = NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsHost;
+
+            if (isCoop && isHost)
+            {
+                // COOP: Host loads scene for all players via FishNet
+                Debug.Log($"[MissionChapterManager] COOP mode - Host loading {chapter.sceneName} for all players");
+                NetworkGameManager.Instance.LoadNetworkedScene(chapter.sceneName);
+            }
+            else if (isCoop && !isHost)
+            {
+                // COOP: Client waits for host (scene loading synced by FishNet)
+                Debug.Log("[MissionChapterManager] COOP mode - Client waiting for host to load scene");
+                awaitingSceneValidation = true; // Client also needs to validate scene once loaded!
+            }
+            else
+            {
+                // Singleplayer: Load scene directly
+                SceneManager.LoadScene(chapter.sceneName);
+            }
         }
 
         OnChapterStarted?.Invoke(currentChapter);
         Debug.Log($"Chapter {currentChapterIndex + 1} Started: {currentChapter.chapterName}");
+
+        // EXPLICIT NETWORK SYNC (Push)
+        if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsServer)
+        {
+            if (NetworkedMissionManager.Instance != null)
+            {
+                NetworkedMissionManager.Instance.ServerSetChapter(currentChapter);
+            }
+        }
     }
 
     /// <summary>
@@ -283,6 +453,12 @@ public class MissionChapterManager : MonoBehaviour
     /// </summary>
     private void CleanupBeforeSceneLoad()
     {
+        // Unsubscribe from events
+        if (BuildingManager.Instance != null)
+        {
+            BuildingManager.Instance.OnBuildingPlaced -= OnBuildingPlaced;
+        }
+
         // Clear all active enemies
         if (EnemyManager.Instance != null)
         {
@@ -293,6 +469,14 @@ public class MissionChapterManager : MonoBehaviour
 
         // Note: PathfindingManager and GridManager handle their own cleanup via OnSceneLoaded
         // They will reinitialize when the new scene loads
+    }
+
+    private void OnBuildingPlaced(Building building)
+    {
+        if (building != null)
+        {
+            UpdateObjectiveProgress(ObjectiveType.BuildStructures, 1, buildingData: building.BuildingData);
+        }
     }
 
     /// <summary>
@@ -403,16 +587,25 @@ public class MissionChapterManager : MonoBehaviour
     {
         if (currentChapter == null || ResourceManager.Instance == null) return;
 
+        // Check if we are the server to update authoritative network state
+        bool useNetwork = NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsServer && NetworkedResourceManager.Instance != null;
+
         foreach (var resourceCost in currentChapter.startingResources)
         {
             if (resourceCost.resourceType != null)
             {
-                // Register type with base capacity and starting amount
+                // Register type with base capacity and starting amount locally
                 ResourceManager.Instance.RegisterResourceType(resourceCost.resourceType, resourceCost.amount);
+
+                // If networked, update the authoritative server state
+                if (useNetwork)
+                {
+                    NetworkedResourceManager.Instance.ServerSetResource(resourceCost.resourceType, resourceCost.amount);
+                }
             }
         }
 
-        Debug.Log($"[MissionChapterManager] Chapter resources initialized: {currentChapter.startingResources.Count} resource types");
+        Debug.Log($"[MissionChapterManager] Chapter resources initialized: {currentChapter.startingResources.Count} resource types. Network Sync: {useNetwork}");
     }
 
     /// <summary>
@@ -423,16 +616,25 @@ public class MissionChapterManager : MonoBehaviour
     {
         if (currentChapter == null || WorkerManager.Instance == null) return;
 
+        // Check if we are the server to update authoritative network state
+        bool useNetwork = NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsServer && NetworkedWorkerManager.Instance != null;
+
         foreach (var workerConfig in currentChapter.startingWorkers)
         {
             if (workerConfig.workerData != null)
             {
                 // Register type with base capacity and starting count
                 WorkerManager.Instance.RegisterWorkerType(workerConfig.workerData, workerConfig.initialCount);
+
+                // If networked, update the authoritative server state
+                if (useNetwork)
+                {
+                    NetworkedWorkerManager.Instance.ServerSetWorkers(workerConfig.workerData, workerConfig.initialCount);
+                }
             }
         }
 
-        Debug.Log($"[MissionChapterManager] Chapter workers initialized: {currentChapter.startingWorkers.Count} worker types");
+        Debug.Log($"[MissionChapterManager] Chapter workers initialized: {currentChapter.startingWorkers.Count} worker types. Network Sync: {useNetwork}");
     }
 
     /// <summary>
@@ -501,6 +703,12 @@ public class MissionChapterManager : MonoBehaviour
             objective.currentTime = 0f;
         }
 
+        // Reset scripted waves
+        foreach (var wave in currentMission.scriptedWaves)
+        {
+            wave.isTriggered = false;
+        }
+
         // Start coroutine to handle dialogue then activate mission
         StartCoroutine(PlayMissionIntroAndActivate());
     }
@@ -520,6 +728,16 @@ public class MissionChapterManager : MonoBehaviour
             while (DialogueManager.Instance.IsDialogueActive)
             {
                 yield return null;
+            }
+        }
+
+        // Apply wave settings
+        if (WaveController.Instance != null)
+        {
+            WaveController.Instance.SetPaused(currentMission.disableNaturalWaves);
+            if (currentMission.disableNaturalWaves)
+            {
+                Debug.Log("[MissionChapterManager] Natural waves paused for this mission");
             }
         }
 
@@ -575,7 +793,7 @@ public class MissionChapterManager : MonoBehaviour
         }
     }
 
-    public void UpdateObjectiveProgress(ObjectiveType type, int amount, ResourceType resourceType = null, RaceType? raceType = null)
+    public void UpdateObjectiveProgress(ObjectiveType type, int amount, ResourceType resourceType = null, RaceType? raceType = null, BuildingData buildingData = null)
     {
         if (!missionActive || currentMission == null) return;
 
@@ -590,6 +808,10 @@ public class MissionChapterManager : MonoBehaviour
 
             // Check if race type matches (for enemy defeat objectives)
             if (type == ObjectiveType.DefeatEnemies && raceType.HasValue && objective.targetRace != raceType.Value)
+                continue;
+
+            // Check if building type matches (for build objectives)
+            if (type == ObjectiveType.BuildStructures && buildingData != null && objective.requiredBuilding != buildingData)
                 continue;
 
             objective.currentAmount += amount;

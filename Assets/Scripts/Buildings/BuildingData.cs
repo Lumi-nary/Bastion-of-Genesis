@@ -90,6 +90,9 @@ public class BuildingData : ScriptableObject
     [Tooltip("Height in grid tiles")]
     public int height = 1;
 
+    [Tooltip("If true, this building spreads the integration (buildable) zone around it.")]
+    public bool spreadsIntegration = true;
+
     /// <summary>
     /// Check if this building has a specific feature type
     /// </summary>

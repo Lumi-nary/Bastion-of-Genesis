@@ -529,6 +529,38 @@ public class WaveController : MonoBehaviour
     }
 
     /// <summary>
+    /// Trigger a scripted wave with specific parameters (ignores threat threshold)
+    /// </summary>
+    public void TriggerScriptedWave(int overrideCount = 0)
+    {
+        currentWave++;
+        currentThreat = 0f;
+        timeSinceLastWave = 0f;
+
+        // Get spawn edges based on pollution tier
+        List<MapEdge> edges = GetSpawnEdges();
+
+        // Determine enemy count
+        int enemyCount;
+        if (overrideCount > 0)
+        {
+            enemyCount = overrideCount;
+        }
+        else
+        {
+            enemyCount = GetEnemyCountForWave();
+        }
+
+        Debug.Log($"[WaveController] === SCRIPTED WAVE {currentWave} === Spawning {enemyCount} enemies from {edges.Count} edge(s)");
+
+        // Spawn enemies across selected edges
+        SpawnEnemiesOnEdges(edges, enemyCount);
+
+        OnWaveStarted?.Invoke(currentWave);
+        OnThreatChanged?.Invoke(0f, threatThreshold);
+    }
+
+    /// <summary>
     /// Reset for new mission
     /// </summary>
     public void ResetForNewMission()

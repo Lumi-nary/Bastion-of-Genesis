@@ -180,6 +180,31 @@ public class EnemyManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Register a networked enemy spawned by FishNet
+    /// </summary>
+    public void RegisterNetworkedEnemy(Enemy enemy)
+    {
+        if (!activeEnemies.Contains(enemy))
+        {
+            activeEnemies.Add(enemy);
+            OnEnemySpawned?.Invoke(enemy);
+            Debug.Log($"[EnemyManager] Networked enemy registered: {enemy.name}");
+        }
+    }
+
+    /// <summary>
+    /// Unregister a networked enemy
+    /// </summary>
+    public void UnregisterNetworkedEnemy(Enemy enemy)
+    {
+        if (activeEnemies.Contains(enemy))
+        {
+            activeEnemies.Remove(enemy);
+            Debug.Log($"[EnemyManager] Networked enemy unregistered: {enemy.name}");
+        }
+    }
+
+    /// <summary>
     /// Spawn a single enemy of the specified type
     /// </summary>
     public Enemy SpawnEnemy(EnemyData enemyData, Vector3 spawnPosition)
@@ -225,8 +250,31 @@ public class EnemyManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Select an enemy type for the current wave/pollution (Public for NetworkedEnemyManager)
+    /// </summary>
+    public EnemyData SelectEnemyForWave(int waveNumber, float pollutionNormalized)
+    {
+        // Enemies are already filtered by ChapterData, just use allEnemyTypes
+        if (allEnemyTypes.Count == 0) return null;
+
+        // Filter enemies that can spawn in current chapter
+        int currentChapter = 1;
+        if (MissionChapterManager.Instance != null)
+        {
+            currentChapter = MissionChapterManager.Instance.CurrentChapterIndex + 1;
+        }
+
+        List<EnemyData> availableEnemies = allEnemyTypes
+            .Where(e => e.CanSpawnInChapter(currentChapter))
+            .ToList();
+
+        if (availableEnemies.Count == 0) return null;
+
+        return SelectWeightedEnemy(availableEnemies, pollutionNormalized);
+    }
+
+    /// <summary>
     /// Spawn a single enemy for a wave using pollution-based weighted selection
-    /// Called by WaveController for each individual enemy spawn
     /// </summary>
     public Enemy SpawnEnemyForWave(int waveNumber, Vector3 spawnPosition, float pollutionNormalized)
     {
