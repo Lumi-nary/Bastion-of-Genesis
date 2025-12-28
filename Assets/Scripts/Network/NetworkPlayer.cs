@@ -1,6 +1,7 @@
 using FishNet.Connection;
 using FishNet.Object;
 using FishNet.Object.Synchronizing;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -15,6 +16,11 @@ public class NetworkPlayer : NetworkBehaviour
     private readonly SyncVar<int> _playerId = new SyncVar<int>();
     private readonly SyncVar<bool> _isReady = new SyncVar<bool>();
 
+    // Placement preview state (synced to all clients)
+    private readonly SyncVar<bool> _isPlacingBuilding = new SyncVar<bool>();
+    private readonly SyncVar<int> _placingBuildingIndex = new SyncVar<int>(-1);
+    private readonly SyncVar<Vector3> _placingPreviewPosition = new SyncVar<Vector3>();
+
     // Local reference
     public static NetworkPlayer LocalPlayer { get; private set; }
 
@@ -23,16 +29,38 @@ public class NetworkPlayer : NetworkBehaviour
     public int PlayerId => _playerId.Value;
     public bool IsReady => _isReady.Value;
 
+    // Placement preview properties
+    public bool IsPlacingBuilding => _isPlacingBuilding.Value;
+    public int PlacingBuildingIndex => _placingBuildingIndex.Value;
+    public Vector3 PlacingPreviewPosition => _placingPreviewPosition.Value;
+
+    // All players tracking (for preview visualization)
+    public static List<NetworkPlayer> AllPlayers { get; } = new List<NetworkPlayer>();
+
+    // Events for placement preview changes
+    public event System.Action<NetworkPlayer> OnPlacementPreviewChanged;
+
     public override void OnStartNetwork()
     {
         base.OnStartNetwork();
         _playerName.OnChange += OnPlayerNameChanged;
+        _isPlacingBuilding.OnChange += OnPlacementStateChanged;
+        _placingBuildingIndex.OnChange += OnPlacementIndexChanged;
+        _placingPreviewPosition.OnChange += OnPlacementPositionChanged;
+
+        if (!AllPlayers.Contains(this))
+            AllPlayers.Add(this);
     }
 
     public override void OnStopNetwork()
     {
         base.OnStopNetwork();
         _playerName.OnChange -= OnPlayerNameChanged;
+        _isPlacingBuilding.OnChange -= OnPlacementStateChanged;
+        _placingBuildingIndex.OnChange -= OnPlacementIndexChanged;
+        _placingPreviewPosition.OnChange -= OnPlacementPositionChanged;
+
+        AllPlayers.Remove(this);
     }
 
     public override void OnStartClient()
@@ -84,6 +112,21 @@ public class NetworkPlayer : NetworkBehaviour
         Debug.Log($"[NetworkPlayer] Player name changed: {prev} -> {next}");
     }
 
+    private void OnPlacementStateChanged(bool prev, bool next, bool asServer)
+    {
+        OnPlacementPreviewChanged?.Invoke(this);
+    }
+
+    private void OnPlacementIndexChanged(int prev, int next, bool asServer)
+    {
+        OnPlacementPreviewChanged?.Invoke(this);
+    }
+
+    private void OnPlacementPositionChanged(Vector3 prev, Vector3 next, bool asServer)
+    {
+        OnPlacementPreviewChanged?.Invoke(this);
+    }
+
     // ============================================================================
     // SERVER RPCS (Client -> Server)
     // ============================================================================
@@ -106,6 +149,29 @@ public class NetworkPlayer : NetworkBehaviour
     {
         _isReady.Value = ready;
         Debug.Log($"[NetworkPlayer] Player {_playerId.Value} ready: {ready}");
+    }
+
+    [ServerRpc]
+    public void CmdStartPlacementPreview(int buildingIndex)
+    {
+        _isPlacingBuilding.Value = true;
+        _placingBuildingIndex.Value = buildingIndex;
+    }
+
+    [ServerRpc]
+    public void CmdUpdatePlacementPreviewPosition(Vector3 position)
+    {
+        if (_isPlacingBuilding.Value)
+        {
+            _placingPreviewPosition.Value = position;
+        }
+    }
+
+    [ServerRpc]
+    public void CmdStopPlacementPreview()
+    {
+        _isPlacingBuilding.Value = false;
+        _placingBuildingIndex.Value = -1;
     }
 
     // ============================================================================

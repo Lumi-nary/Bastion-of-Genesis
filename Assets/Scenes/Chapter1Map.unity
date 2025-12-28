@@ -3963,6 +3963,7 @@ GameObject:
   m_Component:
   - component: {fileID: 583981175}
   - component: {fileID: 583981176}
+  - component: {fileID: 583981177}
   m_Layer: 0
   m_Name: PlacementSystem
   m_TagString: Untagged
@@ -4000,6 +4001,20 @@ MonoBehaviour:
   gridManager: {fileID: 1610123393}
   validPlacementMaterial: {fileID: 2100000, guid: d22dfd113af13b441a39b12ab4c00e3a, type: 2}
   invalidPlacementMaterial: {fileID: 2100000, guid: addb8f033008b7147a22c63c88863f80, type: 2}
+--- !u!114 &583981177
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 583981173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86f6f6dcea0299844872f71ef8ef0a45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkedPlacementPreview
+  otherPlayerPreviewMaterial: {fileID: 0}
+  previewColor: {r: 0.3, g: 0.5, b: 1, a: 0.5}
 --- !u!1 &605304114
 GameObject:
   m_ObjectHideFlags: 0

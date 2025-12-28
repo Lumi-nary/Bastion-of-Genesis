@@ -24,6 +24,11 @@ public class PlacementSystem : MonoBehaviour
     private Vector2Int dragStartPos;
     private List<GameObject> previewObjects = new List<GameObject>();
 
+    // Network preview position update throttling
+    private float lastNetworkPreviewUpdate = 0f;
+    private const float NETWORK_PREVIEW_UPDATE_INTERVAL = 0.05f; // 20 updates per second max
+    private Vector3 lastSentPreviewPosition;
+
     public BuildingData BuildingToPlace => buildingToPlace;
 
     public bool IsBuilding => buildingToPlace != null;
@@ -151,6 +156,17 @@ public class PlacementSystem : MonoBehaviour
         {
             previewBuilding.enabled = false;
         }
+
+        // Notify network of build mode (multiplayer preview sync)
+        if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsOnline &&
+            NetworkPlayer.LocalPlayer != null && NetworkedBuildingManager.Instance != null)
+        {
+            int buildingIndex = NetworkedBuildingManager.Instance.GetAvailableBuildings().IndexOf(building);
+            if (buildingIndex >= 0)
+            {
+                NetworkPlayer.LocalPlayer.CmdStartPlacementPreview(buildingIndex);
+            }
+        }
     }
 
     private void ExitBuildMode()
@@ -165,6 +181,13 @@ public class PlacementSystem : MonoBehaviour
         }
         previewObjects.Clear();
         isDragging = false;
+
+        // Notify network of exit build mode (multiplayer preview sync)
+        if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsOnline &&
+            NetworkPlayer.LocalPlayer != null)
+        {
+            NetworkPlayer.LocalPlayer.CmdStopPlacementPreview();
+        }
     }
 
     private void OnRightClick(InputAction.CallbackContext context)
@@ -241,6 +264,34 @@ public class PlacementSystem : MonoBehaviour
         {
             previewRenderer.material = invalidPlacementMaterial;
         }
+
+        // Send network preview position update (throttled)
+        SendNetworkPreviewUpdate(worldPos);
+    }
+
+    private void SendNetworkPreviewUpdate(Vector3 position)
+    {
+        if (NetworkGameManager.Instance == null || !NetworkGameManager.Instance.IsOnline ||
+            NetworkPlayer.LocalPlayer == null)
+        {
+            return;
+        }
+
+        // Throttle updates to avoid network spam
+        if (Time.time - lastNetworkPreviewUpdate < NETWORK_PREVIEW_UPDATE_INTERVAL)
+        {
+            return;
+        }
+
+        // Only send if position changed significantly (grid-snapped, so check exact match)
+        if (position == lastSentPreviewPosition)
+        {
+            return;
+        }
+
+        lastNetworkPreviewUpdate = Time.time;
+        lastSentPreviewPosition = position;
+        NetworkPlayer.LocalPlayer.CmdUpdatePlacementPreviewPosition(position);
     }
 
     private bool CanPlaceBuilding(Vector2Int startCell, int width, int height)
@@ -440,6 +491,10 @@ public class PlacementSystem : MonoBehaviour
         {
             UpdateWallDragPreview(gridPos, gridPos);
         }
+
+        // Send network preview position update for walls (use current mouse position)
+        Vector3 worldPos = gridManager.GridToWorldPosition(gridPos);
+        SendNetworkPreviewUpdate(worldPos);
 
         // End Drag (Place)
         if (Mouse.current.leftButton.wasReleasedThisFrame)
