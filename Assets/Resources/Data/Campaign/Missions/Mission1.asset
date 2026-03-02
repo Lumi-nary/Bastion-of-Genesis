@@ -12,24 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a993e16b31dae5247853b2c5685a635f, type: 3}
   m_Name: Mission1
   m_EditorClassIdentifier: Assembly-CSharp::MissionData
-  missionName: Crashlanded
-  missionDescription: You have been crashlanded to this Unknown Planet
+  missionName: First Steps
+  missionDescription: Learn the basics of resource gathering. Build an Iron Extractor,
+    assign workers, and collect iron to establish your colony.
   missionNumber: 1
   missionType: 0
   introDialogue: {fileID: 0}
   objectives:
-  - objectiveDescription: Build Steam Generator
-    type: 2
-    isOptional: 0
-    targetAmount: 1
-    targetTime: 0
-    requiredResource: {fileID: 0}
-    requiredBuilding: {fileID: 11400000, guid: 98b686f2c4591fa459bcb351eb8876dc, type: 2}
-    targetRace: 0
-    currentAmount: 0
-    currentTime: 0
-    isCompleted: 0
-  - objectiveDescription: Build Iron Extractor
+  - objectiveDescription: Build an Iron Extractor on an iron node
     type: 2
     isOptional: 0
     targetAmount: 1
@@ -40,7 +30,36 @@ MonoBehaviour:
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
-  mainRewards: []
+  - objectiveDescription: Assign 1 Extractor worker to the Iron Extractor
+    type: 6
+    isOptional: 0
+    targetAmount: 1
+    targetTime: 0
+    requiredResource: {fileID: 0}
+    requiredBuilding: {fileID: 0}
+    targetRace: 0
+    currentAmount: 0
+    currentTime: 0
+    isCompleted: 0
+  - objectiveDescription: Collect 100 Iron
+    type: 1
+    isOptional: 0
+    targetAmount: 100
+    targetTime: 0
+    requiredResource: {fileID: 11400000, guid: f44ba9d81749962419739a7656fee1cc, type: 2}
+    requiredBuilding: {fileID: 0}
+    targetRace: 0
+    currentAmount: 0
+    currentTime: 0
+    isCompleted: 0
+  mainRewards:
+  - rewardType: 0
+    resourceRewards:
+    - resourceType: {fileID: 11400000, guid: f44ba9d81749962419739a7656fee1cc, type: 2}
+      amount: 50
+    techUnlocks: []
+    buildingUnlocks: []
+    isOptionalReward: 0
   optionalRewards: []
   timeLimit: 0
   failOnTimeExpired: 0

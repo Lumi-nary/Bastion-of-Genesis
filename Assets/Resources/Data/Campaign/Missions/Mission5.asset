@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a993e16b31dae5247853b2c5685a635f, type: 3}
+  m_Name: Mission5
+  m_EditorClassIdentifier: Assembly-CSharp::MissionData
+  missionName: Fortification
+  missionDescription: Stockpile resources and research defensive technologies. Accumulate
+    iron reserves and unlock Iron Wall construction to prepare for threats ahead.
+  missionNumber: 5
+  missionType: 0
+  introDialogue: {fileID: 11400000, guid: dd44ee55ff66778899001122334455bb, type: 2}
+  objectives:
+  - objectiveDescription: Accumulate 200 Iron
+    type: 1
+    isOptional: 0
+    targetAmount: 200
+    targetTime: 0
+    requiredResource: {fileID: 11400000, guid: f44ba9d81749962419739a7656fee1cc, type: 2}
+    requiredBuilding: {fileID: 0}
+    targetRace: 0
+    currentAmount: 0
+    currentTime: 0
+    isCompleted: 0
+  - objectiveDescription: Research Iron Wall technology
+    type: 5
+    isOptional: 0
+    targetAmount: 1
+    targetTime: 0
+    requiredResource: {fileID: 0}
+    requiredBuilding: {fileID: 0}
+    targetRace: 0
+    currentAmount: 0
+    currentTime: 0
+    isCompleted: 0
+  mainRewards:
+  - rewardType: 1
+    resourceRewards: []
+    techUnlocks:
+    - {fileID: 11400000, guid: b98401c7a0d37b44e9d0af36edc2a041, type: 2}
+    buildingUnlocks: []
+    isOptionalReward: 0
+  optionalRewards: []
+  timeLimit: 0
+  failOnTimeExpired: 0
+  disableNaturalWaves: 1
+  scriptedWaves: []

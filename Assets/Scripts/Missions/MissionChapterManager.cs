@@ -350,7 +350,16 @@ public class MissionChapterManager : MonoBehaviour
 
                 if (WaveController.Instance != null)
                 {
-                    WaveController.Instance.TriggerScriptedWave(wave.enemyCount);
+                    // Use the extended overload if edges or spawnList are specified
+                    if ((wave.spawnEdges != null && wave.spawnEdges.Count > 0) ||
+                        (wave.spawnList != null && wave.spawnList.Count > 0))
+                    {
+                        WaveController.Instance.TriggerScriptedWave(wave.enemyCount, wave.spawnEdges, wave.spawnList);
+                    }
+                    else
+                    {
+                        WaveController.Instance.TriggerScriptedWave(wave.enemyCount);
+                    }
                 }
             }
         }
@@ -773,8 +782,9 @@ public class MissionChapterManager : MonoBehaviour
                 case ObjectiveType.MaintainPollution:
                     if (PollutionManager.Instance != null)
                     {
-                        // Check if pollution is within acceptable range
-                        if (PollutionManager.Instance.CurrentPollution <= objective.targetAmount)
+                        float pollutionPercent = PollutionManager.Instance.PollutionNormalized * 100f;
+                        // Track time while pollution is at or above the target threshold
+                        if (pollutionPercent >= objective.targetAmount)
                         {
                             objective.currentTime += Time.deltaTime;
                             if (objective.currentTime >= objective.targetTime)
@@ -784,8 +794,20 @@ public class MissionChapterManager : MonoBehaviour
                         }
                         else
                         {
-                            // Reset timer if pollution goes over limit
+                            // Reset timer if pollution drops below threshold
                             objective.currentTime = 0f;
+                        }
+                    }
+                    break;
+
+                case ObjectiveType.ReachPollutionLevel:
+                    if (PollutionManager.Instance != null)
+                    {
+                        float currentPollutionPercent = PollutionManager.Instance.PollutionNormalized * 100f;
+                        objective.currentAmount = Mathf.RoundToInt(currentPollutionPercent);
+                        if (currentPollutionPercent >= objective.targetAmount)
+                        {
+                            CompleteObjective(objective);
                         }
                     }
                     break;

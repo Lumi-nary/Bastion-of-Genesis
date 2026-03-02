@@ -106,8 +106,16 @@ public class ResourceManager : MonoBehaviour
 
         if (newAmount > currentAmount)
         {
+            int added = newAmount - currentAmount;
             resourceAmounts[canonical] = newAmount;
             OnResourceChanged?.Invoke(canonical, newAmount);
+
+            // Notify mission objective tracking
+            if (MissionChapterManager.Instance != null)
+            {
+                MissionChapterManager.Instance.UpdateObjectiveProgress(
+                    ObjectiveType.CollectResources, added, resourceType: canonical);
+            }
         }
     }
 

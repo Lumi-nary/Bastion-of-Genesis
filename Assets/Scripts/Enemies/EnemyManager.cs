@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using FishNet;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -223,6 +224,16 @@ public class EnemyManager : MonoBehaviour
             Debug.LogError($"[EnemyManager] Enemy prefab {enemyData.prefab.name} is missing Enemy component!");
             Destroy(enemyGO);
             return null;
+        }
+
+        // Network-spawn the enemy so FishNet's NetworkBehaviour properties activate
+        if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsServer)
+        {
+            var nob = enemyGO.GetComponent<FishNet.Object.NetworkObject>();
+            if (nob != null)
+            {
+                InstanceFinder.ServerManager.Spawn(nob);
+            }
         }
 
         // Calculate difficulty and pollution multipliers
@@ -503,6 +514,13 @@ public class EnemyManager : MonoBehaviour
             enemiesKilled++;
 
             OnEnemyKilledEvent?.Invoke(enemy);
+
+            // Notify mission objective tracking
+            if (MissionChapterManager.Instance != null)
+            {
+                MissionChapterManager.Instance.UpdateObjectiveProgress(
+                    ObjectiveType.DefeatEnemies, 1);
+            }
 
             Debug.Log($"[EnemyManager] Enemy killed: {enemy.Data.GetDisplayName()} ({activeEnemies.Count} remaining)");
 

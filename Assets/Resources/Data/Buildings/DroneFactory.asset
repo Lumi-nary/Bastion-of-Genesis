@@ -12,19 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0085d395165c104bbca07356b52ab46, type: 3}
   m_Name: DroneFactory
   m_EditorClassIdentifier: Assembly-CSharp::BuildingData
-  buildingName: 
-  description: 
+  buildingName: Drone Factory
+  description: Converts Robots into Drones for manning turrets.
   icon: {fileID: 0}
-  category: 0
+  category: 3
   prefab: {fileID: 0}
+  isPlayerBuildable: 1
   requiredTech: {fileID: 0}
   maxHealth: 100
-  resourceCost: []
-  builderType: {fileID: 0}
-  buildersConsumed: 0
+  resourceCost:
+  - resourceType: {fileID: 11400000, guid: f44ba9d81749962419739a7656fee1cc, type: 2}
+    amount: 30
+  builderType: {fileID: 11400000, guid: 91c98282305e56e4ebff8c175e677795, type: 2}
+  buildersConsumed: 1
   capacityType: 0
   totalWorkerCapacity: 0
   workerRequirements: []
-  features: []
+  features:
+  - {fileID: 11400000, guid: b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4, type: 2}
   width: 1
   height: 1

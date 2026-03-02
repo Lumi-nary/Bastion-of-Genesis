@@ -197,6 +197,12 @@ public class LoadGameUI : MonoBehaviour
 
         if (loadSuccess)
         {
+            // Start local FishNet host for singleplayer saves so NetworkBehaviour code works
+            if (metadata.mode == GameMode.Singleplayer && NetworkGameManager.Instance != null)
+            {
+                NetworkGameManager.Instance.StartLocalHost();
+            }
+
             // AC5.4: Load GameWorld scene asynchronously
             Debug.Log("[LoadGameUI] Save loaded successfully, transitioning to GameWorld scene");
             SceneManager.LoadSceneAsync("GameWorld");

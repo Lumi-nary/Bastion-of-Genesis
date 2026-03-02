@@ -561,6 +561,102 @@ public class WaveController : MonoBehaviour
     }
 
     /// <summary>
+    /// Trigger a scripted wave with specific edges and enemy types
+    /// Used by MissionChapterManager for missions with directed spawns
+    /// </summary>
+    public void TriggerScriptedWave(int overrideCount, List<SpawnEdge> spawnEdges, List<ScriptedSpawnEntry> spawnList)
+    {
+        currentWave++;
+        currentThreat = 0f;
+        timeSinceLastWave = 0f;
+
+        // Determine edges: use provided edges, or fall back to pollution-based random
+        List<MapEdge> edges;
+        if (spawnEdges != null && spawnEdges.Count > 0)
+        {
+            edges = new List<MapEdge>();
+            foreach (var spawnEdge in spawnEdges)
+            {
+                edges.Add((MapEdge)spawnEdge);
+            }
+        }
+        else
+        {
+            edges = GetSpawnEdges();
+        }
+
+        // If spawnList is provided, spawn specific enemies
+        if (spawnList != null && spawnList.Count > 0)
+        {
+            int totalCount = 0;
+            foreach (var entry in spawnList)
+            {
+                totalCount += entry.count;
+            }
+
+            Debug.Log($"[WaveController] === SCRIPTED WAVE {currentWave} === Spawning {totalCount} specific enemies from {edges.Count} edge(s)");
+            SpawnSpecificEnemiesOnEdges(edges, spawnList);
+        }
+        else
+        {
+            // Use override count with weighted random selection
+            int enemyCount = overrideCount > 0 ? overrideCount : GetEnemyCountForWave();
+
+            Debug.Log($"[WaveController] === SCRIPTED WAVE {currentWave} === Spawning {enemyCount} enemies from {edges.Count} edge(s)");
+            SpawnEnemiesOnEdges(edges, enemyCount);
+        }
+
+        OnWaveStarted?.Invoke(currentWave);
+        OnThreatChanged?.Invoke(0f, threatThreshold);
+    }
+
+    /// <summary>
+    /// Spawn specific enemy types distributed across selected edges
+    /// </summary>
+    private void SpawnSpecificEnemiesOnEdges(List<MapEdge> edges, List<ScriptedSpawnEntry> spawnList)
+    {
+        if (EnemyManager.Instance == null || edges.Count == 0) return;
+
+        float diffMult = 1f;
+        float pollMult = 1f;
+
+        // Build flat list of enemies to spawn
+        List<EnemyData> enemiesToSpawn = new List<EnemyData>();
+        foreach (var entry in spawnList)
+        {
+            if (entry.enemyData == null) continue;
+            for (int i = 0; i < entry.count; i++)
+            {
+                enemiesToSpawn.Add(entry.enemyData);
+            }
+        }
+
+        // Distribute across edges
+        int enemiesPerEdge = enemiesToSpawn.Count / edges.Count;
+        int remainder = enemiesToSpawn.Count % edges.Count;
+        int enemyIndex = 0;
+
+        for (int i = 0; i < edges.Count; i++)
+        {
+            int countForThisEdge = enemiesPerEdge + (i < remainder ? 1 : 0);
+            Vector3 baseSpawnPos = GetSpawnPositionOnEdge(edges[i]);
+
+            for (int j = 0; j < countForThisEdge && enemyIndex < enemiesToSpawn.Count; j++)
+            {
+                Vector3 offset = new Vector3(
+                    Random.Range(-spawnSpread, spawnSpread),
+                    Random.Range(-spawnSpread, spawnSpread),
+                    0f
+                );
+                Vector3 spawnPos = baseSpawnPos + offset;
+
+                EnemyManager.Instance.SpawnEnemy(enemiesToSpawn[enemyIndex], spawnPos);
+                enemyIndex++;
+            }
+        }
+    }
+
+    /// <summary>
     /// Reset for new mission
     /// </summary>
     public void ResetForNewMission()
@@ -573,7 +669,7 @@ public class WaveController : MonoBehaviour
         Debug.Log("[WaveController] Reset for new mission");
     }
 
-    private enum MapEdge { North, South, East, West }
+    public enum MapEdge { North, South, East, West }
 
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()

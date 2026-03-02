@@ -30,14 +30,25 @@ MonoBehaviour:
     initialCount: 3
   - workerData: {fileID: 11400000, guid: 4032d19a78fcf444596b3b15ff750222, type: 2}
     initialCount: 3
-  startingIntegrationRadius: 10
+  startingIntegrationRadius: 15
   maxPollution: 5000
   pollutionDecayRate: 0.5
   missions:
   - {fileID: 11400000, guid: 6bbcd645cef2e5a499a4995c7ebdf274, type: 2}
+  - {fileID: 11400000, guid: f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1, type: 2}
+  - {fileID: 11400000, guid: a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2, type: 2}
+  - {fileID: 11400000, guid: b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3, type: 2}
+  - {fileID: 11400000, guid: c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4, type: 2}
+  - {fileID: 11400000, guid: d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5, type: 2}
+  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6, type: 2}
+  - {fileID: 11400000, guid: f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7, type: 2}
+  - {fileID: 11400000, guid: a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8, type: 2}
+  - {fileID: 11400000, guid: b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9, type: 2}
   activeRaces: 00000000
   chapterEnemies:
   - {fileID: 11400000, guid: ea7b570b3d85d5c4a9cdeac7babd8071, type: 2}
+  - {fileID: 11400000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6, type: 2}
+  - {fileID: 11400000, guid: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7, type: 2}
   sceneName: Chapter1Map
   chapterThumbnail: {fileID: 0}
   backgroundMusic: {fileID: 8300000, guid: 85ed3e89b45a61c40991a223fc9551be, type: 3}

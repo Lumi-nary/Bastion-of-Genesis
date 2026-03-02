@@ -103,14 +103,15 @@ public class UIManager : MonoBehaviour
 
         isPaused = true;
 
-        // Only stop time in singleplayer
-        if (NetworkGameManager.Instance == null || !NetworkGameManager.Instance.IsOnline)
+        // Only stop time in singleplayer (check GameMode, not IsOnline, since SP uses local host)
+        bool isCoop = SaveManager.Instance != null && SaveManager.Instance.pendingMode == GameMode.COOP;
+        if (!isCoop)
         {
             Time.timeScale = 0f;
         }
         else
         {
-            Debug.Log("[UIManager] Multiplayer active - Time.timeScale NOT set to 0");
+            Debug.Log("[UIManager] COOP active - Time.timeScale NOT set to 0");
         }
 
         // Lower music volume (don't stop it)

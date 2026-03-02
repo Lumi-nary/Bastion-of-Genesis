@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a993e16b31dae5247853b2c5685a635f, type: 3}
+  m_Name: Mission8
+  m_EditorClassIdentifier: Assembly-CSharp::MissionData
+  missionName: Pincer Attack
+  missionDescription: Face a coordinated assault from multiple directions. Enemies
+    will attack from both the north and west simultaneously. Prepare your defenses
+    on all fronts.
+  missionNumber: 8
+  missionType: 1
+  introDialogue: {fileID: 11400000, guid: 00112233445566778899aabbccddeeff, type: 2}
+  objectives:
+  - objectiveDescription: Defeat all enemies
+    type: 3
+    isOptional: 0
+    targetAmount: 7
+    targetTime: 0
+    requiredResource: {fileID: 0}
+    requiredBuilding: {fileID: 0}
+    targetRace: 0
+    currentAmount: 0
+    currentTime: 0
+    isCompleted: 0
+  mainRewards:
+  - rewardType: 0
+    resourceRewards:
+    - resourceType: {fileID: 11400000, guid: f44ba9d81749962419739a7656fee1cc, type: 2}
+      amount: 150
+    - resourceType: {fileID: 11400000, guid: bb2aea2cb49421c46aabf3bfd3252158, type: 2}
+      amount: 20
+    techUnlocks: []
+    buildingUnlocks: []
+    isOptionalReward: 0
+  optionalRewards: []
+  timeLimit: 0
+  failOnTimeExpired: 0
+  disableNaturalWaves: 1
+  scriptedWaves:
+  - triggerTime: 5
+    enemyCount: 0
+    waveMessage: Enemies attacking from the north!
+    spawnEdges:
+    - 0
+    spawnList:
+    - enemyData: {fileID: 11400000, guid: ea7b570b3d85d5c4a9cdeac7babd8071, type: 2}
+      count: 3
+    - enemyData: {fileID: 11400000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6, type: 2}
+      count: 1
+  - triggerTime: 8
+    enemyCount: 0
+    waveMessage: More enemies from the west!
+    spawnEdges:
+    - 3
+    spawnList:
+    - enemyData: {fileID: 11400000, guid: ea7b570b3d85d5c4a9cdeac7babd8071, type: 2}
+      count: 2
+    - enemyData: {fileID: 11400000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6, type: 2}
+      count: 1

@@ -11,7 +11,8 @@ public enum MissionType
     ReachPollution,       // Reach pollution threshold
     KillCount,            // Kill X enemies
     ResearchUnderFire,    // Research tech while under attack
-    ResourceGoal          // Accumulate X resources
+    ResourceGoal,         // Accumulate X resources
+    MaintainPollution     // Maintain pollution above threshold for duration
 }
 
 /// <summary>
@@ -257,15 +258,33 @@ public class MissionData : ScriptableObject
     /// </summary>
     public void ApplyBuildingUnlocks(List<BuildingData> buildings)
     {
-        // Building unlocks are handled by checking mission completion in BuildingDatabase
         foreach (BuildingData building in buildings)
         {
             if (building != null)
             {
+                if (BuildingManager.Instance != null)
+                {
+                    BuildingManager.Instance.UnlockBuilding(building);
+                }
                 Debug.Log($"[Mission] Building unlocked: {building.buildingName}");
             }
         }
     }
+}
+
+/// <summary>
+/// Edge of the map for directional spawning
+/// </summary>
+public enum SpawnEdge { North, South, East, West }
+
+/// <summary>
+/// Specific enemy type + count for scripted waves
+/// </summary>
+[System.Serializable]
+public class ScriptedSpawnEntry
+{
+    public EnemyData enemyData;
+    public int count = 1;
 }
 
 /// <summary>
@@ -277,13 +296,36 @@ public class ScriptedWave
     [Tooltip("Time in seconds from mission start to trigger this wave")]
     public float triggerTime;
 
-    [Tooltip("Number of enemies to spawn (0 = use standard wave calculation)")]
+    [Tooltip("Number of enemies to spawn (0 = use standard wave calculation). Ignored if spawnList is set.")]
     public int enemyCount = 0;
 
     [Tooltip("Optional message to display when wave triggers")]
     public string waveMessage;
 
+    [Tooltip("Which map edges to spawn from. Empty = random (pollution-based).")]
+    public List<SpawnEdge> spawnEdges = new List<SpawnEdge>();
+
+    [Tooltip("Specific enemies to spawn. Empty = use weighted random selection with enemyCount.")]
+    public List<ScriptedSpawnEntry> spawnList = new List<ScriptedSpawnEntry>();
+
     // Runtime state
     [System.NonSerialized]
     public bool isTriggered = false;
+
+    /// <summary>
+    /// Get total enemy count from spawnList entries, or fallback to enemyCount field
+    /// </summary>
+    public int GetTotalEnemyCount()
+    {
+        if (spawnList != null && spawnList.Count > 0)
+        {
+            int total = 0;
+            foreach (var entry in spawnList)
+            {
+                total += entry.count;
+            }
+            return total;
+        }
+        return enemyCount;
+    }
 }

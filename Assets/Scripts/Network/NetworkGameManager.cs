@@ -222,6 +222,34 @@ public class NetworkGameManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Start as local host for singleplayer (server + client on localhost, no LAN broadcast).
+    /// All NetworkBehaviour code works transparently without any COOP networking.
+    /// </summary>
+    public void StartLocalHost()
+    {
+        if (networkManager == null)
+        {
+            Debug.LogError("[NetworkGameManager] Cannot start local host - NetworkManager not found");
+            return;
+        }
+
+        if (IsOnline)
+        {
+            Debug.LogWarning("[NetworkGameManager] Already online, disconnect first");
+            return;
+        }
+
+        Debug.Log("[NetworkGameManager] Starting local host for singleplayer...");
+
+        isHost = true;
+        hostIP = "127.0.0.1";
+
+        // Start server + local client (no LAN broadcast)
+        networkManager.ServerManager.StartConnection(port);
+        networkManager.ClientManager.StartConnection("localhost", port);
+    }
+
+    /// <summary>
     /// Stop hosting (disconnects all clients and stops server)
     /// </summary>
     public void StopHost()

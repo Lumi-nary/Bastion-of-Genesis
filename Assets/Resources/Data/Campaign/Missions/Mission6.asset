@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a993e16b31dae5247853b2c5685a635f, type: 3}
+  m_Name: Mission6
+  m_EditorClassIdentifier: Assembly-CSharp::MissionData
+  missionName: First Contact
+  missionDescription: Build your first defenses and face hostile forces. Construct
+    walls and turrets, then survive your first enemy encounter.
+  missionNumber: 6
+  missionType: 0
+  introDialogue: {fileID: 11400000, guid: ee55ff667788990011223344556677cc, type: 2}
+  objectives:
+  - objectiveDescription: Build 4 Iron Walls
+    type: 2
+    isOptional: 0
+    targetAmount: 4
+    targetTime: 0
+    requiredResource: {fileID: 0}
+    requiredBuilding: {fileID: 11400000, guid: eb6c78fd58692da47ad170bbe65e08d3, type: 2}
+    targetRace: 0
+    currentAmount: 0
+    currentTime: 0
+    isCompleted: 0
+  - objectiveDescription: Research Starter Turret
+    type: 5
+    isOptional: 0
+    targetAmount: 1
+    targetTime: 0
+    requiredResource: {fileID: 0}
+    requiredBuilding: {fileID: 0}
+    targetRace: 0
+    currentAmount: 0
+    currentTime: 0
+    isCompleted: 0
+  - objectiveDescription: Build a Gun Turret
+    type: 2
+    isOptional: 0
+    targetAmount: 1
+    targetTime: 0
+    requiredResource: {fileID: 0}
+    requiredBuilding: {fileID: 11400000, guid: b91bd58d66a7c924caccae47417f8f29, type: 2}
+    targetRace: 0
+    currentAmount: 0
+    currentTime: 0
+    isCompleted: 0
+  - objectiveDescription: Survive the attack
+    type: 3
+    isOptional: 0
+    targetAmount: 2
+    targetTime: 0
+    requiredResource: {fileID: 0}
+    requiredBuilding: {fileID: 0}
+    targetRace: 0
+    currentAmount: 0
+    currentTime: 0
+    isCompleted: 0
+  mainRewards:
+  - rewardType: 0
+    resourceRewards:
+    - resourceType: {fileID: 11400000, guid: f44ba9d81749962419739a7656fee1cc, type: 2}
+      amount: 100
+    techUnlocks: []
+    buildingUnlocks: []
+    isOptionalReward: 0
+  optionalRewards: []
+  timeLimit: 0
+  failOnTimeExpired: 0
+  disableNaturalWaves: 1
+  scriptedWaves:
+  - triggerTime: 10
+    enemyCount: 0
+    waveMessage: Enemies approaching!
+    spawnEdges:
+    - 0
+    spawnList:
+    - enemyData: {fileID: 11400000, guid: ea7b570b3d85d5c4a9cdeac7babd8071, type: 2}
+      count: 2

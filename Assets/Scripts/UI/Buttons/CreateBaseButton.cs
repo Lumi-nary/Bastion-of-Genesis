@@ -53,7 +53,12 @@ public class CreateBaseButton : MonoBehaviour
 
         if (mode == GameMode.Singleplayer)
         {
-            // Singleplayer: Load cutscene immediately
+            // Singleplayer: Start local FishNet host so NetworkBehaviour code works
+            if (NetworkGameManager.Instance != null)
+            {
+                NetworkGameManager.Instance.StartLocalHost();
+            }
+
             Debug.Log("[CreateBaseButton] Singleplayer - Loading CutsceneScene");
             SceneManager.LoadSceneAsync("CutsceneScene");
         }

@@ -67,6 +67,13 @@ public class WorkerManager : MonoBehaviour
         {
             SpendResources(workerData.cost);
             AddWorkerToPool(workerData);
+
+            // Notify mission objective tracking
+            if (MissionChapterManager.Instance != null)
+            {
+                MissionChapterManager.Instance.UpdateObjectiveProgress(
+                    ObjectiveType.AssignWorkers, 1);
+            }
         }
         else
         {
@@ -80,6 +87,14 @@ public class WorkerManager : MonoBehaviour
         {
             availableWorkers[workerData]--;
             OnWorkerCountChanged?.Invoke(workerData, availableWorkers[workerData]);
+
+            // Notify mission objective tracking
+            if (MissionChapterManager.Instance != null)
+            {
+                MissionChapterManager.Instance.UpdateObjectiveProgress(
+                    ObjectiveType.AssignWorkers, 1);
+            }
+
             return true;
         }
         return false;

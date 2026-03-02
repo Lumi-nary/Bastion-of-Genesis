@@ -27,10 +27,10 @@ public class Enemy : NetworkBehaviour
         private set => _syncedHealth.Value = value; 
     }
 
-    private float maxHealth;
-    private float effectiveDamage;
+    protected float maxHealth;
+    protected float effectiveDamage;
     private float lastAttackTime;
-    private bool isDead = false;
+    protected bool isDead = false;
 
     // Difficulty and pollution multipliers (set by spawner)
     private float difficultyMultiplier = 1f;
@@ -114,7 +114,7 @@ public class Enemy : NetworkBehaviour
     /// <summary>
     /// Initialize enemy with data and multipliers (called by spawner)
     /// </summary>
-    public void Initialize(EnemyData data, float diffMult, float pollMult)
+    public virtual void Initialize(EnemyData data, float diffMult, float pollMult)
     {
         enemyData = data;
         difficultyMultiplier = diffMult;
@@ -160,7 +160,7 @@ public class Enemy : NetworkBehaviour
         }
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         if (isDead) return;
         
@@ -309,7 +309,7 @@ public class Enemy : NetworkBehaviour
     /// Priority: Base → Generators → Extractors → Defenses → Walls
     /// Abilities can override targeting (e.g., Elven Healer prioritizes production buildings)
     /// </summary>
-    private void FindTarget()
+    protected virtual void FindTarget()
     {
         Building defaultTarget = null;
 
@@ -863,7 +863,7 @@ public class Enemy : NetworkBehaviour
     /// Attack the current target
     /// All special abilities are executed on attack
     /// </summary>
-    private void AttackTarget()
+    protected virtual void AttackTarget()
     {
         if (currentTarget == null || enemyData == null) return;
 
@@ -905,7 +905,7 @@ public class Enemy : NetworkBehaviour
     /// Take damage from turrets or other sources
     /// Abilities can block/modify damage (e.g., DodgeAbility, shield abilities)
     /// </summary>
-    public void TakeDamage(float damage)
+    public virtual void TakeDamage(float damage)
     {
         if (isDead) return;
         
@@ -955,7 +955,7 @@ public class Enemy : NetworkBehaviour
     /// <summary>
     /// Enemy death logic
     /// </summary>
-    private void Die()
+    protected virtual void Die()
     {
         if (isDead) return;
 

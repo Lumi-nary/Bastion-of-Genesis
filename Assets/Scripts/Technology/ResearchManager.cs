@@ -221,6 +221,13 @@ public class ResearchManager : MonoBehaviour
         // Notify listeners
         OnTechResearched?.Invoke(completedTech);
 
+        // Notify mission objective tracking
+        if (MissionChapterManager.Instance != null)
+        {
+            MissionChapterManager.Instance.UpdateObjectiveProgress(
+                ObjectiveType.ResearchTechnology, 1);
+        }
+
         Debug.Log($"[ResearchManager] Completed research: {completedTech.techName}");
     }
 

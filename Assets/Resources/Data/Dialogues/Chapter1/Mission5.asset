@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 922cbf48982aa4f4ba81c16e6a7c9123, type: 3}
+  m_Name: Mission5
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueData
+  dialogueName: Mission5
+  pauseGame: 0
+  entries:
+  - speakerName: Nexus
+    portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
+    expression: {fileID: 0}
+    dialogueText: Long-range sensors are picking up movement beyond the perimeter. I recommend stockpiling iron reserves and researching defensive wall structures.
+    voiceClip: {fileID: 0}
+  - speakerName: Kyra-Dominia
+    portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
+    expression: {fileID: 0}
+    dialogueText: Agreed. I want walls up before whatever is out there decides to pay us a visit.
+    voiceClip: {fileID: 0}

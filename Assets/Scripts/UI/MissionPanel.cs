@@ -252,6 +252,8 @@ public class MissionPanel : MonoBehaviour
         MissionData mission = MissionChapterManager.Instance.CurrentMission;
         if (mission != null && mission.timeLimit > 0)
         {
+            missionTimerText.gameObject.SetActive(true);
+
             float remaining = mission.timeLimit - time;
             int minutes = Mathf.FloorToInt(remaining / 60f);
             int seconds = Mathf.FloorToInt(remaining % 60f);
@@ -266,10 +268,8 @@ public class MissionPanel : MonoBehaviour
         }
         else
         {
-            // No time limit, just show elapsed time
-            int minutes = Mathf.FloorToInt(time / 60f);
-            int seconds = Mathf.FloorToInt(time % 60f);
-            missionTimerText.text = $"Time: {minutes:00}:{seconds:00}";
+            // No time limit — hide the timer
+            missionTimerText.gameObject.SetActive(false);
         }
     }
 }

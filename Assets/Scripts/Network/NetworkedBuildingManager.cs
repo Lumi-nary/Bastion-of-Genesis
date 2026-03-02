@@ -378,6 +378,12 @@ public class NetworkedBuildingManager : NetworkBehaviour
         syncedAssignments[gridPos] = new WorkerAssignmentData { workerTypeIndices = currentIndices.ToArray() };
         
         Debug.Log($"[NetworkedBuildingManager] Worker {wData.workerName} assigned to building at {gridPos}. Total: {currentIndices.Count}");
+
+        // Notify mission objective tracking
+        if (MissionChapterManager.Instance != null)
+        {
+            MissionChapterManager.Instance.UpdateObjectiveProgress(ObjectiveType.AssignWorkers, 1);
+        }
     }
 
     [Server]

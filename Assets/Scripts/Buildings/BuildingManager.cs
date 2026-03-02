@@ -17,6 +17,9 @@ public class BuildingManager : MonoBehaviour
     private List<ResourceConverterComponent> allConverters = new List<ResourceConverterComponent>();
     private Dictionary<ResourceType, List<ResourceConverterComponent>> convertersByOutputType = new Dictionary<ResourceType, List<ResourceConverterComponent>>();
 
+    // Mission-unlocked buildings (unlocked via mission rewards, no tech required)
+    private HashSet<BuildingData> missionUnlockedBuildings = new HashSet<BuildingData>();
+
     // Events
     public event System.Action<Building> OnBuildingPlaced;
     public event System.Action<Building> OnBuildingDestroyedEvent;
@@ -33,6 +36,24 @@ public class BuildingManager : MonoBehaviour
         {
             Instance = this;
         }
+    }
+
+    /// <summary>
+    /// Unlock a building via mission reward (bypasses tech requirements)
+    /// </summary>
+    public void UnlockBuilding(BuildingData buildingData)
+    {
+        if (buildingData == null) return;
+        missionUnlockedBuildings.Add(buildingData);
+        Debug.Log($"[BuildingManager] Building unlocked via mission: {buildingData.buildingName}");
+    }
+
+    /// <summary>
+    /// Check if a building has been unlocked via mission rewards
+    /// </summary>
+    public bool IsBuildingUnlockedByMission(BuildingData buildingData)
+    {
+        return buildingData != null && missionUnlockedBuildings.Contains(buildingData);
     }
 
     public void PlaceBuilding(BuildingData buildingData, Vector3 position, bool ignoreCost = false)
