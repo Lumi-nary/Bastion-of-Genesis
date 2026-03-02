@@ -83,6 +83,10 @@ public class BuildingData : ScriptableObject
     [Tooltip("List of features this building has (energy, combat, pollution, etc.)")]
     public List<BuildingFeature> features = new List<BuildingFeature>();
 
+    [Header("Placement Cap")]
+    [Tooltip("Maximum number of this building that can be placed (0 = unlimited)")]
+    public int maxPlacementCount = 0;
+
     [Header("Grid Properties")]
     [Tooltip("Width in grid tiles")]
     public int width = 1;

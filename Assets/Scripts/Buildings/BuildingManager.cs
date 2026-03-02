@@ -236,6 +236,43 @@ public class BuildingManager : MonoBehaviour
     }
 
     // ============================================================================
+    // PLACEMENT CAP
+    // ============================================================================
+
+    /// <summary>
+    /// Get the maximum number of a building type that can be placed,
+    /// including research bonuses.
+    /// </summary>
+    public int GetMaxPlacementCount(BuildingData data)
+    {
+        if (data == null || data.maxPlacementCount <= 0) return int.MaxValue;
+
+        int baseCap = data.maxPlacementCount;
+        int researchBonus = 0;
+
+        if (ResearchManager.Instance != null)
+        {
+            string modifierKey = $"BuildingCap_{data.buildingName}";
+            researchBonus = Mathf.RoundToInt(ResearchManager.Instance.GetModifier(modifierKey));
+        }
+
+        return baseCap + researchBonus;
+    }
+
+    /// <summary>
+    /// Check if the placement cap has been reached for a building type.
+    /// Returns false (not at cap) if maxPlacementCount is 0 (unlimited).
+    /// </summary>
+    public bool IsAtPlacementCap(BuildingData data)
+    {
+        if (data == null || data.maxPlacementCount <= 0) return false;
+
+        int currentCount = GetBuildingsByType(data).Count;
+        int maxCount = GetMaxPlacementCount(data);
+        return currentCount >= maxCount;
+    }
+
+    // ============================================================================
     // FACTORY MANAGEMENT
     // ============================================================================
 

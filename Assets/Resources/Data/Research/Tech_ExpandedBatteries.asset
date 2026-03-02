@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f1267cfc97a6ba429e700ace2023c1f, type: 3}
+  m_Name: Tech_ExpandedBatteries
+  m_EditorClassIdentifier: Assembly-CSharp::TechnologyData
+  techName: Expanded Batteries
+  description: Allows construction of 2 additional Energy Batteries.
+  icon: {fileID: 0}
+  tier: 2
+  unlockMethod: 0
+  researchCost:
+  - resourceType: {fileID: 11400000, guid: bb2aea2cb49421c46aabf3bfd3252158, type: 2}
+    amount: 120
+  researchTime: 40
+  requiredTechs:
+  - {fileID: 11400000, guid: 6cffa3d89a354891bc15d33b900d23c3, type: 2}
+  effects:
+  - {fileID: 11400000, guid: f37833a53f4c445dbf2623fc020da543, type: 2}
+  category: 0
+  isResearched: 0
+  isAvailable: 0

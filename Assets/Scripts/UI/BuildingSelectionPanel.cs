@@ -190,14 +190,16 @@ public class BuildingSelectionPanel : MonoBehaviour
         {
             if (buildingData == null) continue;
 
-            // TODO: Check tech requirements when TechnologyManager is implemented
-            // if (buildingData.requiredTech != null)
-            // {
-            //     if (TechnologyManager.Instance == null || !TechnologyManager.Instance.IsTechUnlocked(buildingData.requiredTech))
-            //     {
-            //         continue; // Skip locked buildings
-            //     }
-            // }
+            // Check tech requirements - skip buildings whose tech hasn't been researched
+            if (buildingData.requiredTech != null)
+            {
+                bool unlockedByResearch = ResearchManager.Instance != null && ResearchManager.Instance.IsTechResearched(buildingData.requiredTech);
+                bool unlockedByMission = BuildingManager.Instance != null && BuildingManager.Instance.IsBuildingUnlockedByMission(buildingData);
+                if (!unlockedByResearch && !unlockedByMission)
+                {
+                    continue; // Skip locked buildings
+                }
+            }
 
             GameObject buttonGO = Instantiate(buildingButtonPrefab, buildingContainer);
             buttonGO.name = buildingData.buildingName + "_Button";

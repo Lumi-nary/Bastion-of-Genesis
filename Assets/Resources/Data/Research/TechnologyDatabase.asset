@@ -14,3 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TechnologyDatabase
   technologies:
   - {fileID: 11400000, guid: b98401c7a0d37b44e9d0af36edc2a041, type: 2}
+  - {fileID: 11400000, guid: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9, type: 2}
+  - {fileID: 11400000, guid: 1b157d4c536444faa6fee78ba097aa94, type: 2}
+  - {fileID: 11400000, guid: 6cffa3d89a354891bc15d33b900d23c3, type: 2}
+  - {fileID: 11400000, guid: ffcc335a7ed645758d95b77b0c21d87d, type: 2}
+  - {fileID: 11400000, guid: ef0212b38bdb414383098af3c6b0bc5e, type: 2}
+  - {fileID: 11400000, guid: 706c980aa97a41c9a2ae8713cadced43, type: 2}
+  - {fileID: 11400000, guid: 556a2a5935bc4afc883b2373b231fe36, type: 2}

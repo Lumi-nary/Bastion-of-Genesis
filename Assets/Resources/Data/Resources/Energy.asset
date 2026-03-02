@@ -15,3 +15,4 @@ MonoBehaviour:
   resourceName: Energy
   description: Energy is Energy
   icon: {fileID: -7213742777133032008, guid: 2358d14db2bd13d47badca432aa9fb4f, type: 3}
+  baseCapacity: 300

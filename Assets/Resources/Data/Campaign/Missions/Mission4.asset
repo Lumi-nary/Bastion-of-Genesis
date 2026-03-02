@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Mission4
   m_EditorClassIdentifier: Assembly-CSharp::MissionData
   missionName: Knowledge is Power
-  missionDescription: Establish your research capabilities. Build a Laboratory, assign
-    researchers, and complete your first technology research.
+  missionDescription: Establish your research capabilities. Build a Laboratory, research
+    storage technologies, and construct storage buildings to expand your colony's capacity.
   missionNumber: 4
   missionType: 0
   introDialogue: {fileID: 11400000, guid: cc33dd44ee55ff6677889900112233aa, type: 2}
@@ -41,13 +41,46 @@ MonoBehaviour:
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
-  - objectiveDescription: Complete any research
+  - objectiveDescription: Research 3 storage technologies
     type: 5
+    isOptional: 0
+    targetAmount: 3
+    targetTime: 0
+    requiredResource: {fileID: 0}
+    requiredBuilding: {fileID: 0}
+    targetRace: 0
+    currentAmount: 0
+    currentTime: 0
+    isCompleted: 0
+  - objectiveDescription: Build a Resource Warehouse
+    type: 2
     isOptional: 0
     targetAmount: 1
     targetTime: 0
     requiredResource: {fileID: 0}
-    requiredBuilding: {fileID: 0}
+    requiredBuilding: {fileID: 11400000, guid: 57f678dcbe0d44619d5ac8dea29666b9, type: 2}
+    targetRace: 0
+    currentAmount: 0
+    currentTime: 0
+    isCompleted: 0
+  - objectiveDescription: Build an Energy Battery
+    type: 2
+    isOptional: 0
+    targetAmount: 1
+    targetTime: 0
+    requiredResource: {fileID: 0}
+    requiredBuilding: {fileID: 11400000, guid: 4bc383f0ff2f4af2978719723f129fc4, type: 2}
+    targetRace: 0
+    currentAmount: 0
+    currentTime: 0
+    isCompleted: 0
+  - objectiveDescription: Build a Robot Bay
+    type: 2
+    isOptional: 0
+    targetAmount: 1
+    targetTime: 0
+    requiredResource: {fileID: 0}
+    requiredBuilding: {fileID: 11400000, guid: f87d57d6d94d4d058ff4ae1b5a3b7a84, type: 2}
     targetRace: 0
     currentAmount: 0
     currentTime: 0

@@ -296,6 +296,14 @@ public class PlacementSystem : MonoBehaviour
 
     private bool CanPlaceBuilding(Vector2Int startCell, int width, int height)
     {
+        // Check placement cap
+        if (buildingToPlace != null && BuildingManager.Instance != null &&
+            BuildingManager.Instance.IsAtPlacementCap(buildingToPlace))
+        {
+            Debug.Log($"[Placement] BLOCKED: Placement cap reached for {buildingToPlace.buildingName} ({BuildingManager.Instance.GetMaxPlacementCount(buildingToPlace)} max)");
+            return false;
+        }
+
         // Check if building requires ore mound (extractors)
         bool requiresOreMound = false;
         OreMound mound = null;

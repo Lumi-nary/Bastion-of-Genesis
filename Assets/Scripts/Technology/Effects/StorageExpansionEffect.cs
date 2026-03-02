@@ -16,33 +16,39 @@ public class StorageExpansionEffect : TechnologyEffect
 
     public override void OnResearched(TechnologyData tech)
     {
-        if (ResourceManager.Instance != null)
+        if (ResourceManager.Instance == null) return;
+
+        if (storageResource != null)
         {
-            // TODO: Add IncreaseStorageCapacity method to ResourceManager
-            if (storageResource != null)
+            ResourceManager.Instance.AddCapacity(storageResource, storageIncrease);
+            Debug.Log($"[StorageExpansionEffect] Increased {storageResource.ResourceName} storage by {storageIncrease}");
+        }
+        else
+        {
+            foreach (var kvp in ResourceManager.Instance.GetAllResources())
             {
-                Debug.Log($"[StorageExpansionEffect] Increased {storageResource.ResourceName} storage by {storageIncrease}");
+                ResourceManager.Instance.AddCapacity(kvp.Key, storageIncrease);
             }
-            else
-            {
-                Debug.Log($"[StorageExpansionEffect] Increased all resource storage by {storageIncrease}");
-            }
+            Debug.Log($"[StorageExpansionEffect] Increased all resource storage by {storageIncrease}");
         }
     }
 
     public override void OnRemoved(TechnologyData tech)
     {
-        if (ResourceManager.Instance != null)
+        if (ResourceManager.Instance == null) return;
+
+        if (storageResource != null)
         {
-            // TODO: Add DecreaseStorageCapacity method to ResourceManager
-            if (storageResource != null)
+            ResourceManager.Instance.RemoveCapacity(storageResource, storageIncrease);
+            Debug.Log($"[StorageExpansionEffect] Removed {storageIncrease} {storageResource.ResourceName} storage");
+        }
+        else
+        {
+            foreach (var kvp in ResourceManager.Instance.GetAllResources())
             {
-                Debug.Log($"[StorageExpansionEffect] Removed {storageIncrease} {storageResource.ResourceName} storage");
+                ResourceManager.Instance.RemoveCapacity(kvp.Key, storageIncrease);
             }
-            else
-            {
-                Debug.Log($"[StorageExpansionEffect] Removed {storageIncrease} from all resource storage");
-            }
+            Debug.Log($"[StorageExpansionEffect] Removed {storageIncrease} from all resource storage");
         }
     }
 

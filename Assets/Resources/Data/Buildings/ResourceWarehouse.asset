@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0085d395165c104bbca07356b52ab46, type: 3}
+  m_Name: ResourceWarehouse
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingData
+  buildingName: Resource Warehouse
+  description: Increases Iron storage capacity by 50. Essential for stockpiling resources.
+  icon: {fileID: 0}
+  category: 3
+  prefab: {fileID: 0}
+  isPlayerBuildable: 1
+  requiredTech: {fileID: 11400000, guid: 1b157d4c536444faa6fee78ba097aa94, type: 2}
+  maxHealth: 80
+  resourceCost:
+  - resourceType: {fileID: 11400000, guid: f44ba9d81749962419739a7656fee1cc, type: 2}
+    amount: 40
+  builderType: {fileID: 11400000, guid: 91c98282305e56e4ebff8c175e677795, type: 2}
+  buildersConsumed: 1
+  capacityType: 0
+  totalWorkerCapacity: 0
+  workerRequirements: []
+  features:
+  - {fileID: 11400000, guid: e7f603bde31340e9a9dbbe923ab42e22, type: 2}
+  maxPlacementCount: 2
+  width: 2
+  height: 2
+  spreadsIntegration: 1

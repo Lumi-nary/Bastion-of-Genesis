@@ -16,37 +16,39 @@ public class StorageFeature : BuildingFeature
 
     public override void OnBuilt(Building building)
     {
-        // Increase storage capacity when built
-        if (ResourceManager.Instance != null)
+        if (ResourceManager.Instance == null) return;
+
+        if (specificResource != null)
         {
-            if (specificResource != null)
+            ResourceManager.Instance.AddCapacity(specificResource, storageCapacity);
+            Debug.Log($"[Storage] Added {storageCapacity} storage for {specificResource.ResourceName}");
+        }
+        else
+        {
+            foreach (var kvp in ResourceManager.Instance.GetAllResources())
             {
-                // TODO: Add specific resource storage
-                Debug.Log($"[Storage] Added {storageCapacity} storage for {specificResource.ResourceName}");
+                ResourceManager.Instance.AddCapacity(kvp.Key, storageCapacity);
             }
-            else
-            {
-                // TODO: Add general storage
-                Debug.Log($"[Storage] Added {storageCapacity} general storage");
-            }
+            Debug.Log($"[Storage] Added {storageCapacity} general storage");
         }
     }
 
     public override void OnDestroyed(Building building)
     {
-        // Decrease storage capacity when destroyed
-        if (ResourceManager.Instance != null)
+        if (ResourceManager.Instance == null) return;
+
+        if (specificResource != null)
         {
-            if (specificResource != null)
+            ResourceManager.Instance.RemoveCapacity(specificResource, storageCapacity);
+            Debug.Log($"[Storage] Removed {storageCapacity} storage for {specificResource.ResourceName}");
+        }
+        else
+        {
+            foreach (var kvp in ResourceManager.Instance.GetAllResources())
             {
-                // TODO: Remove specific resource storage
-                Debug.Log($"[Storage] Removed {storageCapacity} storage for {specificResource.ResourceName}");
+                ResourceManager.Instance.RemoveCapacity(kvp.Key, storageCapacity);
             }
-            else
-            {
-                // TODO: Remove general storage
-                Debug.Log($"[Storage] Removed {storageCapacity} general storage");
-            }
+            Debug.Log($"[Storage] Removed {storageCapacity} general storage");
         }
     }
 }

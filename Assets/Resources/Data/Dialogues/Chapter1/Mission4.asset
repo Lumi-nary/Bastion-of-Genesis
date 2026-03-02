@@ -25,3 +25,8 @@ MonoBehaviour:
     expression: {fileID: 0}
     dialogueText: If this planet has secrets, I want them working for us. Construct a Laboratory and begin research immediately.
     voiceClip: {fileID: 0}
+  - speakerName: Nexus
+    portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
+    expression: {fileID: 0}
+    dialogueText: Our current storage capacity is limited. I recommend researching Resource Warehouses, Energy Batteries, and Robot Bays to expand our reserves before we proceed further.
+    voiceClip: {fileID: 0}
