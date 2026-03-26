@@ -339,7 +339,12 @@ public class MissionChapterManager : MonoBehaviour
         // Check scripted waves
         foreach (var wave in currentMission.scriptedWaves)
         {
-            if (!wave.isTriggered && missionTimer >= wave.triggerTime)
+            // Check objective prerequisite if set
+            bool objectiveReady = wave.triggerAfterObjectiveIndex < 0 ||
+                (wave.triggerAfterObjectiveIndex < currentMission.objectives.Count &&
+                 currentMission.objectives[wave.triggerAfterObjectiveIndex].isCompleted);
+
+            if (!wave.isTriggered && missionTimer >= wave.triggerTime && objectiveReady)
             {
                 wave.isTriggered = true;
                 if (!string.IsNullOrEmpty(wave.waveMessage))
@@ -815,7 +820,7 @@ public class MissionChapterManager : MonoBehaviour
         }
     }
 
-    public void UpdateObjectiveProgress(ObjectiveType type, int amount, ResourceType resourceType = null, RaceType? raceType = null, BuildingData buildingData = null)
+    public void UpdateObjectiveProgress(ObjectiveType type, int amount, ResourceType resourceType = null, RaceType? raceType = null, BuildingData buildingData = null, WorkerData workerData = null)
     {
         if (!missionActive || currentMission == null) return;
 
@@ -834,6 +839,10 @@ public class MissionChapterManager : MonoBehaviour
 
             // Check if building type matches (for build objectives)
             if (type == ObjectiveType.BuildStructures && buildingData != null && objective.requiredBuilding != buildingData)
+                continue;
+
+            // Check if worker type matches (for worker assembly/assignment objectives)
+            if (type == ObjectiveType.AssignWorkers && objective.requiredWorker != null && objective.requiredWorker != workerData)
                 continue;
 
             objective.currentAmount += amount;

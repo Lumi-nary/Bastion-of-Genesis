@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Iron
   m_EditorClassIdentifier: Assembly-CSharp::ResourceType
   resourceName: Iron
-  description: Metallic metal
+  description: Primary construction material extracted from ore mounds.
   icon: {fileID: 5103231540499187363, guid: accce59b501de3b4595ac5d3e64d99c2, type: 3}
   baseCapacity: 100

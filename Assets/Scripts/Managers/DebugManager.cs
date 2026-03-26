@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// Unified Debug System for Planetfall
@@ -15,8 +16,13 @@ public class DebugManager : MonoBehaviour
     public bool showDebugMenu = false;
 
     // Tab system
-    private enum DebugTab { Resources, Workers, Waves, Pollution, Enemies }
+    private enum DebugTab { Resources, Workers, Waves, Pollution, Enemies, Mission, Visuals }
     private DebugTab currentTab = DebugTab.Resources;
+
+    // Visual debug toggles
+    public static bool ShowTurretRange { get; private set; } = false;
+    public static bool ShowEnemyPaths { get; private set; } = false;
+    public static bool ShowEnemyTargets { get; private set; } = false;
 
     // Input caches
     private Dictionary<ResourceType, string> resourceInputAmounts = new Dictionary<ResourceType, string>();
@@ -32,6 +38,10 @@ public class DebugManager : MonoBehaviour
 
     // Pollution debug inputs
     private string pollutionAddInput = "100";
+
+    // Mission debug inputs
+    private string missionJumpInput = "1";
+    private Vector2 missionScrollPos = Vector2.zero;
 
     // Panel dimensions
     private const float PANEL_WIDTH = 400f;
@@ -49,6 +59,16 @@ public class DebugManager : MonoBehaviour
             return;
         }
         Instance = this;
+    }
+
+    private void OnEnable()
+    {
+        RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
+    }
+
+    private void OnDisable()
+    {
+        RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
     }
 
     private void Start()
@@ -143,6 +163,12 @@ public class DebugManager : MonoBehaviour
             case DebugTab.Enemies:
                 DrawEnemiesTab(contentY);
                 break;
+            case DebugTab.Mission:
+                DrawMissionTab(contentY);
+                break;
+            case DebugTab.Visuals:
+                DrawVisualsTab(contentY);
+                break;
         }
 
         // Make the window draggable by its title bar (top 25 pixels)
@@ -151,12 +177,12 @@ public class DebugManager : MonoBehaviour
 
     private void DrawTabs()
     {
-        float tabWidth = 75f;
+        float tabWidth = 55f;
         float tabY = 25f;
-        float tabX = 10f;
+        float tabX = 5f;
 
-        string[] tabNames = { "Resources", "Workers", "Waves", "Pollution", "Enemies" };
-        DebugTab[] tabs = { DebugTab.Resources, DebugTab.Workers, DebugTab.Waves, DebugTab.Pollution, DebugTab.Enemies };
+        string[] tabNames = { "Resources", "Workers", "Waves", "Pollution", "Enemies", "Mission", "Visuals" };
+        DebugTab[] tabs = { DebugTab.Resources, DebugTab.Workers, DebugTab.Waves, DebugTab.Pollution, DebugTab.Enemies, DebugTab.Mission, DebugTab.Visuals };
 
         for (int i = 0; i < tabNames.Length; i++)
         {
@@ -583,6 +609,535 @@ public class DebugManager : MonoBehaviour
 
     #endregion
 
+    #region Mission Tab
+
+    private void DrawMissionTab(float startY)
+    {
+        float y = startY;
+
+        GUI.Label(new Rect(20, y, 350, 20), "<b>Mission Debug</b>");
+        y += 25f;
+
+        var mcm = MissionChapterManager.Instance;
+        if (mcm == null)
+        {
+            GUI.Label(new Rect(20, y, 300, 20), "MissionChapterManager not found!");
+            return;
+        }
+
+        // Chapter info
+        string chapterName = mcm.CurrentChapter != null ? mcm.CurrentChapter.chapterName : "None";
+        GUI.Label(new Rect(20, y, 350, 20), $"Chapter: {mcm.CurrentChapterIndex + 1} - {chapterName}");
+        y += 22f;
+
+        // Mission info
+        string missionName = mcm.CurrentMission != null ? mcm.CurrentMission.missionName : "None";
+        int missionNum = mcm.CurrentMission != null ? mcm.CurrentMission.missionNumber : 0;
+        GUI.Label(new Rect(20, y, 350, 20), $"Mission: {missionNum} - {missionName}");
+        y += 22f;
+
+        GUI.Label(new Rect(20, y, 350, 20),
+            $"Active: {mcm.IsMissionActive} | Timer: {mcm.MissionTimer:F1}s");
+        y += 28f;
+
+        // --- Objectives ---
+        if (mcm.CurrentMission != null && mcm.CurrentMission.objectives.Count > 0)
+        {
+            GUI.Label(new Rect(20, y, 350, 20), "<b>Objectives:</b>");
+            y += 22f;
+
+            foreach (var obj in mcm.CurrentMission.objectives)
+            {
+                // Status icon
+                string status = obj.isCompleted ? "<color=green>[DONE]</color>" :
+                                obj.isOptional ? "<color=yellow>[OPT]</color>" : "<color=red>[    ]</color>";
+
+                GUI.Label(new Rect(20, y, 250, 20),
+                    $"{status} {obj.objectiveDescription}");
+
+                // Progress
+                GUI.Label(new Rect(270, y, 80, 20), obj.GetProgressText());
+
+                // Force complete button
+                if (!obj.isCompleted)
+                {
+                    if (GUI.Button(new Rect(345, y, 40, 18), "Done"))
+                    {
+                        ForceCompleteObjective(obj);
+                    }
+                }
+                y += 22f;
+            }
+        }
+        else
+        {
+            GUI.Label(new Rect(20, y, 300, 20), "No active mission objectives.");
+            y += 22f;
+        }
+
+        y += 10f;
+
+        // --- Action Buttons ---
+        GUI.Label(new Rect(20, y, 350, 20), "<b>Actions:</b>");
+        y += 25f;
+
+        // Skip mission (force complete all main objectives)
+        if (GUI.Button(new Rect(20, y, 110, 25), "Skip Mission"))
+        {
+            SkipCurrentMission();
+        }
+
+        // Complete all optional objectives too
+        if (GUI.Button(new Rect(140, y, 130, 25), "Complete All Obj."))
+        {
+            CompleteAllObjectives();
+        }
+        y += 30f;
+
+        // Jump to mission number
+        GUI.Label(new Rect(20, y, 80, 20), "Jump to M#:");
+        missionJumpInput = GUI.TextField(new Rect(100, y, 40, 20), missionJumpInput);
+
+        if (GUI.Button(new Rect(150, y, 60, 20), "Go"))
+        {
+            if (int.TryParse(missionJumpInput, out int targetMission))
+            {
+                JumpToMission(targetMission);
+            }
+        }
+        y += 28f;
+
+        // Restart current mission
+        if (GUI.Button(new Rect(20, y, 110, 25), "Restart Mission"))
+        {
+            RestartCurrentMission();
+        }
+
+        // Fail mission
+        if (GUI.Button(new Rect(140, y, 110, 25), "Fail Mission"))
+        {
+            if (mcm.IsMissionActive)
+            {
+                mcm.FailMission();
+                Debug.Log("[DebugManager] Mission force-failed");
+            }
+        }
+        y += 30f;
+
+        // Spawn boss for testing
+        if (GUI.Button(new Rect(20, y, 130, 25), "Spawn Warden"))
+        {
+            SpawnWardenBoss();
+        }
+    }
+
+    private void ForceCompleteObjective(MissionObjective objective)
+    {
+        if (objective == null || objective.isCompleted) return;
+
+        var mcm = MissionChapterManager.Instance;
+        int remaining = objective.targetAmount - objective.currentAmount;
+
+        switch (objective.type)
+        {
+            case ObjectiveType.CollectResources:
+                // Actually grant the resources so the ResourceManager event fires naturally
+                if (objective.requiredResource != null && ResourceManager.Instance != null)
+                {
+                    ResourceManager.Instance.AddResource(objective.requiredResource, remaining);
+                    Debug.Log($"[DebugManager] Granted {remaining} {objective.requiredResource.ResourceName}");
+                }
+                else
+                {
+                    // No specific resource — just force the objective done
+                    ForceObjectiveDone(objective);
+                }
+                break;
+
+            case ObjectiveType.AssignWorkers:
+                // Pass worker type so the filter matches the correct objective
+                if (mcm != null)
+                {
+                    mcm.UpdateObjectiveProgress(ObjectiveType.AssignWorkers, remaining, workerData: objective.requiredWorker);
+                }
+                break;
+
+            case ObjectiveType.BuildStructures:
+                // Building objectives filter by requiredBuilding — pass it through
+                if (mcm != null && objective.requiredBuilding != null)
+                {
+                    mcm.UpdateObjectiveProgress(ObjectiveType.BuildStructures, remaining, buildingData: objective.requiredBuilding);
+                }
+                else
+                {
+                    ForceObjectiveDone(objective);
+                }
+                break;
+
+            case ObjectiveType.DefeatEnemies:
+                if (mcm != null)
+                {
+                    mcm.UpdateObjectiveProgress(ObjectiveType.DefeatEnemies, remaining);
+                }
+                break;
+
+            case ObjectiveType.DefeatBoss:
+                if (mcm != null)
+                {
+                    mcm.UpdateObjectiveProgress(ObjectiveType.DefeatBoss, remaining);
+                }
+                break;
+
+            case ObjectiveType.ResearchTechnology:
+                if (mcm != null)
+                {
+                    mcm.UpdateObjectiveProgress(ObjectiveType.ResearchTechnology, remaining);
+                }
+                break;
+
+            case ObjectiveType.ReachPollutionLevel:
+                // Set pollution to the target level
+                if (PollutionManager.Instance != null)
+                {
+                    float targetPollution = PollutionManager.Instance.MaxPollution * (objective.targetAmount / 100f);
+                    PollutionManager.Instance.SetPollution(targetPollution);
+                    Debug.Log($"[DebugManager] Set pollution to {targetPollution:F0} ({objective.targetAmount}%)");
+                }
+                break;
+
+            case ObjectiveType.SurviveTime:
+            case ObjectiveType.MaintainPollution:
+                // Time-based — force complete directly
+                ForceObjectiveDone(objective);
+                break;
+
+            default:
+                ForceObjectiveDone(objective);
+                break;
+        }
+
+        Debug.Log($"[DebugManager] Force completed objective: {objective.objectiveDescription}");
+    }
+
+    /// <summary>
+    /// Directly mark an objective as complete, bypassing UpdateObjectiveProgress filters.
+    /// Used when the normal event path can't be triggered from debug.
+    /// </summary>
+    private void ForceObjectiveDone(MissionObjective objective)
+    {
+        objective.currentAmount = objective.targetAmount;
+        objective.currentTime = objective.targetTime;
+        objective.isCompleted = true;
+    }
+
+    private void SkipCurrentMission()
+    {
+        var mcm = MissionChapterManager.Instance;
+        if (mcm == null || mcm.CurrentMission == null) return;
+
+        // Force complete all main (non-optional) objectives
+        foreach (var obj in mcm.CurrentMission.objectives)
+        {
+            if (!obj.isOptional && !obj.isCompleted)
+            {
+                ForceCompleteObjective(obj);
+            }
+        }
+
+        Debug.Log($"[DebugManager] Skipped mission: {mcm.CurrentMission.missionName}");
+    }
+
+    private void CompleteAllObjectives()
+    {
+        var mcm = MissionChapterManager.Instance;
+        if (mcm == null || mcm.CurrentMission == null) return;
+
+        foreach (var obj in mcm.CurrentMission.objectives)
+        {
+            if (!obj.isCompleted)
+            {
+                ForceCompleteObjective(obj);
+            }
+        }
+
+        Debug.Log("[DebugManager] All objectives force-completed");
+    }
+
+    private void JumpToMission(int missionNumber)
+    {
+        var mcm = MissionChapterManager.Instance;
+        if (mcm == null || mcm.CurrentChapter == null) return;
+
+        // Mission numbers are 1-based, index is 0-based
+        int targetIndex = missionNumber - 1;
+
+        if (targetIndex < 0 || targetIndex >= mcm.CurrentChapter.missions.Count)
+        {
+            Debug.LogWarning($"[DebugManager] Invalid mission number: {missionNumber} (chapter has {mcm.CurrentChapter.missions.Count} missions)");
+            return;
+        }
+
+        // Use reflection to set the private currentMissionIndex
+        var indexField = typeof(MissionChapterManager).GetField("currentMissionIndex",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var activeField = typeof(MissionChapterManager).GetField("missionActive",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        if (indexField != null)
+        {
+            // Deactivate current mission
+            if (activeField != null)
+            {
+                activeField.SetValue(mcm, false);
+            }
+
+            // Set the index and start
+            indexField.SetValue(mcm, targetIndex);
+            mcm.StartNextMission();
+
+            Debug.Log($"[DebugManager] Jumped to Mission {missionNumber}: {mcm.CurrentChapter.missions[targetIndex].missionName}");
+        }
+    }
+
+    private void RestartCurrentMission()
+    {
+        var mcm = MissionChapterManager.Instance;
+        if (mcm == null || mcm.CurrentMission == null) return;
+
+        // Deactivate then restart the same mission
+        var activeField = typeof(MissionChapterManager).GetField("missionActive",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (activeField != null)
+        {
+            activeField.SetValue(mcm, false);
+        }
+
+        mcm.StartMission(mcm.CurrentMission);
+        Debug.Log($"[DebugManager] Restarted mission: {mcm.CurrentMission.missionName}");
+    }
+
+    private void SpawnWardenBoss()
+    {
+        if (EnemyManager.Instance == null) return;
+
+        var wardenData = Resources.Load<EnemyData>("Data/Enemies/Enemy_Warden");
+        if (wardenData == null)
+        {
+            Debug.LogWarning("[DebugManager] Could not load Enemy_Warden data!");
+            return;
+        }
+
+        // Spawn near a random edge
+        Vector3 spawnPos = Vector3.zero;
+        if (Camera.main != null)
+        {
+            spawnPos = Camera.main.transform.position + new Vector3(15f, 0f, 0f);
+        }
+
+        Enemy boss = EnemyManager.Instance.SpawnEnemy(wardenData, spawnPos);
+        if (boss != null)
+        {
+            Debug.Log($"[DebugManager] Spawned Warden boss at {spawnPos}. IsBossEnemy: {boss is BossEnemy}");
+        }
+    }
+
+    #endregion
+
+    #region Visuals Tab
+
+    private void DrawVisualsTab(float startY)
+    {
+        float y = startY;
+
+        GUI.Label(new Rect(20, y, 300, 20), "<b>Visual Debug Toggles</b>");
+        y += 30f;
+
+        // Turret Range toggle
+        GUI.color = ShowTurretRange ? Color.green : Color.white;
+        if (GUI.Button(new Rect(20, y, 350, 25), ShowTurretRange ? "[ON]  Turret Attack Range" : "[OFF] Turret Attack Range"))
+        {
+            ShowTurretRange = !ShowTurretRange;
+        }
+        GUI.color = Color.white;
+        y += 30f;
+
+        // Enemy Paths toggle
+        GUI.color = ShowEnemyPaths ? Color.green : Color.white;
+        if (GUI.Button(new Rect(20, y, 350, 25), ShowEnemyPaths ? "[ON]  Enemy Flow Field Path" : "[OFF] Enemy Flow Field Path"))
+        {
+            ShowEnemyPaths = !ShowEnemyPaths;
+        }
+        GUI.color = Color.white;
+        y += 30f;
+
+        // Enemy Targets toggle
+        GUI.color = ShowEnemyTargets ? Color.green : Color.white;
+        if (GUI.Button(new Rect(20, y, 350, 25), ShowEnemyTargets ? "[ON]  Enemy Target Lines" : "[OFF] Enemy Target Lines"))
+        {
+            ShowEnemyTargets = !ShowEnemyTargets;
+        }
+        GUI.color = Color.white;
+        y += 40f;
+
+        // Info text
+        GUI.Label(new Rect(20, y, 360, 60),
+            "Turret Range: Red circle around turrets\n" +
+            "Enemy Path: Yellow dots showing flow field direction\n" +
+            "Enemy Target: Red line to targeted building");
+    }
+
+    #endregion
+
+    #region Visual Debug Rendering
+
+    private void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
+    {
+        // Only render debug visuals for the main camera
+        if (camera != Camera.main) return;
+
+        if (ShowTurretRange) DrawTurretRanges();
+        if (ShowEnemyPaths) DrawEnemyPaths();
+        if (ShowEnemyTargets) DrawEnemyTargetLines();
+    }
+
+    private static Material _debugLineMat;
+    private static Material DebugLineMat
+    {
+        get
+        {
+            if (_debugLineMat == null)
+            {
+                Shader shader = Shader.Find("Hidden/Internal-Colored");
+                _debugLineMat = new Material(shader);
+                _debugLineMat.hideFlags = HideFlags.HideAndDontSave;
+                _debugLineMat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                _debugLineMat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                _debugLineMat.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
+                _debugLineMat.SetInt("_ZWrite", 0);
+                _debugLineMat.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.Always);
+            }
+            return _debugLineMat;
+        }
+    }
+
+    private void DrawTurretRanges()
+    {
+        if (BuildingManager.Instance == null) return;
+
+        DebugLineMat.SetPass(0);
+        GL.PushMatrix();
+        GL.MultMatrix(Matrix4x4.identity);
+
+        foreach (var building in BuildingManager.Instance.AllBuildings)
+        {
+            if (building == null || building.IsDestroyed) continue;
+
+            Turret turret = building.GetComponent<Turret>();
+            if (turret == null) continue;
+
+            float range = turret.GetEffectiveRange();
+            Vector3 center = building.transform.position;
+
+            // Draw range circle
+            GL.Begin(GL.LINES);
+            GL.Color(new Color(1f, 0.2f, 0.2f, 0.6f));
+            int segments = 48;
+            for (int i = 0; i < segments; i++)
+            {
+                float angle1 = (i / (float)segments) * Mathf.PI * 2f;
+                float angle2 = ((i + 1) / (float)segments) * Mathf.PI * 2f;
+                GL.Vertex3(center.x + Mathf.Cos(angle1) * range, center.y + Mathf.Sin(angle1) * range, 0f);
+                GL.Vertex3(center.x + Mathf.Cos(angle2) * range, center.y + Mathf.Sin(angle2) * range, 0f);
+            }
+            GL.End();
+
+            // Draw line to current target
+            if (turret.CurrentTarget != null && !turret.CurrentTarget.IsDead)
+            {
+                GL.Begin(GL.LINES);
+                GL.Color(new Color(1f, 1f, 0f, 0.8f));
+                GL.Vertex3(center.x, center.y, 0f);
+                Vector3 targetPos = turret.CurrentTarget.transform.position;
+                GL.Vertex3(targetPos.x, targetPos.y, 0f);
+                GL.End();
+            }
+        }
+
+        GL.PopMatrix();
+    }
+
+    private void DrawEnemyPaths()
+    {
+        if (EnemyManager.Instance == null || PathfindingManager.Instance == null) return;
+
+        DebugLineMat.SetPass(0);
+        GL.PushMatrix();
+        GL.MultMatrix(Matrix4x4.identity);
+
+        foreach (var enemy in EnemyManager.Instance.ActiveEnemies)
+        {
+            if (enemy == null || enemy.IsDead) continue;
+
+            Vector3 pos = enemy.transform.position;
+
+            // Draw flow field path preview (next several cells)
+            GL.Begin(GL.LINES);
+            GL.Color(new Color(1f, 0.9f, 0.2f, 0.5f));
+
+            // Get enemy's movement type for correct flow field lookup
+            MovementType moveType = enemy.Data != null ? enemy.Data.movementType : MovementType.Ground;
+
+            Vector3 current = pos;
+            for (int step = 0; step < 10; step++)
+            {
+                Vector3 flowDir = PathfindingManager.Instance.GetFlowDirection(current, moveType);
+                if (flowDir == Vector3.zero) break;
+
+                Vector3 next = current + flowDir * 1f;
+                GL.Vertex3(current.x, current.y, 0f);
+                GL.Vertex3(next.x, next.y, 0f);
+                current = next;
+            }
+            GL.End();
+        }
+
+        GL.PopMatrix();
+    }
+
+    private void DrawEnemyTargetLines()
+    {
+        if (EnemyManager.Instance == null) return;
+
+        DebugLineMat.SetPass(0);
+        GL.PushMatrix();
+        GL.MultMatrix(Matrix4x4.identity);
+
+        foreach (var enemy in EnemyManager.Instance.ActiveEnemies)
+        {
+            if (enemy == null || enemy.IsDead) continue;
+
+            // Get the enemy's current building target via reflection
+            var targetField = typeof(Enemy).GetField("currentTarget",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (targetField == null) continue;
+
+            Building target = targetField.GetValue(enemy) as Building;
+            if (target == null || target.IsDestroyed) continue;
+
+            GL.Begin(GL.LINES);
+            GL.Color(new Color(1f, 0.1f, 0.1f, 0.7f));
+            Vector3 enemyPos = enemy.transform.position;
+            Vector3 targetPos = target.transform.position;
+            GL.Vertex3(enemyPos.x, enemyPos.y, 0f);
+            GL.Vertex3(targetPos.x, targetPos.y, 0f);
+            GL.End();
+        }
+
+        GL.PopMatrix();
+    }
+
+    #endregion
+
     /// <summary>
     /// Public method to toggle debug menu from other scripts
     /// </summary>
@@ -603,6 +1158,8 @@ public class DebugManager : MonoBehaviour
             case "waves": currentTab = DebugTab.Waves; break;
             case "pollution": currentTab = DebugTab.Pollution; break;
             case "enemies": currentTab = DebugTab.Enemies; break;
+            case "mission": currentTab = DebugTab.Mission; break;
+            case "visuals": currentTab = DebugTab.Visuals; break;
         }
     }
 }

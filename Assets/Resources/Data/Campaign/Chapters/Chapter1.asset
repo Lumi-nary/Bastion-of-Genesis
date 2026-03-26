@@ -27,9 +27,13 @@ MonoBehaviour:
     amount: 0
   startingWorkers:
   - workerData: {fileID: 11400000, guid: 91c98282305e56e4ebff8c175e677795, type: 2}
-    initialCount: 3
+    initialCount: 5
   - workerData: {fileID: 11400000, guid: 4032d19a78fcf444596b3b15ff750222, type: 2}
-    initialCount: 3
+    initialCount: 5
+  - workerData: {fileID: 11400000, guid: 1bcbdcbd154fdf1498bb2031cb36c0bd, type: 2}
+    initialCount: 0
+  - workerData: {fileID: 11400000, guid: 216587715e5a72f4dafb90fd6b71cd1b, type: 2}
+    initialCount: 0
   startingIntegrationRadius: 15
   maxPollution: 5000
   pollutionDecayRate: 0.5

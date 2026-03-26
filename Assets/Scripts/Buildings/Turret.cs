@@ -23,10 +23,21 @@ public class Turret : MonoBehaviour
     [SerializeField] private float targetSearchInterval = 0.5f;
     private float targetSearchTimer = 0f;
 
+    [Header("Gun Pivot")]
+    [Tooltip("Child transform that rotates to aim at target (auto-found by name 'GunPivot')")]
+    [SerializeField] private Transform gunPivot;
+
+    [Tooltip("Rotation speed in degrees per second")]
+    [SerializeField] private float rotationSpeed = 360f;
+
+    // Current aim angle (z-rotation in 2D)
+    private float currentAimAngle = 0f;
+
     // Public properties
     public bool IsActive => isActive;
     public bool IsManned => building != null && building.GetTotalAssignedWorkerCount() > 0;
     public Enemy CurrentTarget => currentTarget;
+    public Transform GunPivot => gunPivot;
 
     private void Awake()
     {
@@ -46,6 +57,17 @@ public class Turret : MonoBehaviour
             Debug.LogWarning($"[Turret] {building.BuildingData.buildingName} does not have TurretFeature!");
             enabled = false;
             return;
+        }
+
+        // Auto-find GunPivot child if not assigned
+        if (gunPivot == null)
+        {
+            gunPivot = transform.Find("GunPivot");
+        }
+
+        if (gunPivot != null)
+        {
+            currentAimAngle = gunPivot.eulerAngles.z;
         }
     }
 
@@ -69,6 +91,9 @@ public class Turret : MonoBehaviour
             FindTarget();
         }
 
+        // Rotate gun pivot toward target
+        RotateGunPivot();
+
         // Attack current target if in range
         if (currentTarget != null)
         {
@@ -82,6 +107,26 @@ public class Turret : MonoBehaviour
                 currentTarget = null;
             }
         }
+    }
+
+    /// <summary>
+    /// Smoothly rotate the gun pivot to aim at the current target.
+    /// </summary>
+    private void RotateGunPivot()
+    {
+        if (gunPivot == null) return;
+
+        if (currentTarget != null && !currentTarget.IsDead)
+        {
+            // Calculate angle to target in 2D
+            Vector3 direction = currentTarget.transform.position - gunPivot.position;
+            float targetAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+
+            // Smoothly rotate toward target
+            currentAimAngle = Mathf.MoveTowardsAngle(currentAimAngle, targetAngle, rotationSpeed * Time.deltaTime);
+            gunPivot.rotation = Quaternion.Euler(0f, 0f, currentAimAngle);
+        }
+        // No target: gun stays at last aimed angle (doesn't snap back)
     }
 
     /// <summary>
@@ -101,10 +146,10 @@ public class Turret : MonoBehaviour
             }
         }
 
-        // Check energy requirements (unless turret can function without energy)
-        if (!turretFeature.CanFunctionWithoutEnergy())
+        // Check energy requirements
+        // Manned turrets can function without energy; automated turrets cannot
+        if (!IsManned)
         {
-            // Check if we have power
             if (EnergyManager.Instance != null && !EnergyManager.Instance.HasEnergy)
             {
                 return false;
@@ -112,6 +157,47 @@ public class Turret : MonoBehaviour
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Get effective attack range including research modifiers
+    /// </summary>
+    public float GetEffectiveRange()
+    {
+        float range = turretFeature.attackRange;
+        if (ResearchManager.Instance != null)
+        {
+            range *= (1f + ResearchManager.Instance.GetModifier("TurretRange_*"));
+        }
+        return range;
+    }
+
+    /// <summary>
+    /// Get effective damage including research modifiers
+    /// </summary>
+    private float GetEffectiveDamage()
+    {
+        float dmg = turretFeature.damage;
+        if (ResearchManager.Instance != null)
+        {
+            dmg *= (1f + ResearchManager.Instance.GetModifier("TurretDamage_*"));
+        }
+        return dmg;
+    }
+
+    /// <summary>
+    /// Get effective attack speed including research modifiers
+    /// </summary>
+    private float GetEffectiveAttackSpeed()
+    {
+        float speed = turretFeature.attackSpeed;
+        if (ResearchManager.Instance != null)
+        {
+            float fireRateBonus = ResearchManager.Instance.GetModifier("TurretFireRate_*");
+            // Fire rate bonus reduces cooldown (higher bonus = faster attacks)
+            speed /= (1f + fireRateBonus);
+        }
+        return speed;
     }
 
     /// <summary>
@@ -123,6 +209,7 @@ public class Turret : MonoBehaviour
 
         Enemy nearestEnemy = null;
         float nearestDistance = float.MaxValue;
+        float effectiveRange = GetEffectiveRange();
 
         // Search all active enemies
         foreach (Enemy enemy in EnemyManager.Instance.ActiveEnemies)
@@ -132,7 +219,7 @@ public class Turret : MonoBehaviour
             float distance = Vector3.Distance(transform.position, enemy.transform.position);
 
             // Check if enemy is in range
-            if (distance <= turretFeature.attackRange && distance < nearestDistance)
+            if (distance <= effectiveRange && distance < nearestDistance)
             {
                 nearestEnemy = enemy;
                 nearestDistance = distance;
@@ -150,7 +237,7 @@ public class Turret : MonoBehaviour
         if (currentTarget == null) return false;
 
         float distance = Vector3.Distance(transform.position, currentTarget.transform.position);
-        return distance <= turretFeature.attackRange;
+        return distance <= GetEffectiveRange();
     }
 
     /// <summary>
@@ -160,8 +247,8 @@ public class Turret : MonoBehaviour
     {
         if (currentTarget == null) return;
 
-        // Check attack cooldown
-        if (Time.time - lastAttackTime < turretFeature.attackSpeed) return;
+        // Check attack cooldown (with fire rate modifiers)
+        if (Time.time - lastAttackTime < GetEffectiveAttackSpeed()) return;
 
         // Perform attack
         Attack(currentTarget);
@@ -176,19 +263,7 @@ public class Turret : MonoBehaviour
     {
         if (enemy == null || enemy.IsDead) return;
 
-        float damage = turretFeature.damage;
-
-        // Apply damage modifiers based on mode
-        if (IsManned)
-        {
-            // Manned turrets could have damage bonus (future enhancement)
-            damage = turretFeature.damage;
-        }
-        else
-        {
-            // Automated turrets
-            damage = turretFeature.damage;
-        }
+        float damage = GetEffectiveDamage();
 
         // Deal damage to primary target
         enemy.TakeDamage(damage);
@@ -313,12 +388,12 @@ public class Turret : MonoBehaviour
         if (turretFeature != null)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position, turretFeature.attackRange);
+            Gizmos.DrawWireSphere(transform.position, GetEffectiveRange());
 
             if (HasExplosiveAmmo())
             {
                 Gizmos.color = Color.orange;
-                Gizmos.DrawWireSphere(transform.position, turretFeature.attackRange + 2f);
+                Gizmos.DrawWireSphere(transform.position, GetEffectiveRange() + 2f);
             }
         }
     }

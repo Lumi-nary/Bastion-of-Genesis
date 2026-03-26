@@ -33,5 +33,5 @@ MonoBehaviour:
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 0}
-    dialogueText: We gonna need power and resources, Now.
+    dialogueText: We need power and resources. Now.
     voiceClip: {fileID: 0}

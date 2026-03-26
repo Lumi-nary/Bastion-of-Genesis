@@ -399,6 +399,10 @@ public class Enemy : NetworkBehaviour
 
         // Calculate movement this frame
         float speed = enemyData.moveSpeed;
+        if (this is BossEnemy boss)
+        {
+            speed *= boss.GetPhaseSpeedMultiplier();
+        }
         float moveDistance = speed * Time.deltaTime;
 
         // Don't overshoot the target

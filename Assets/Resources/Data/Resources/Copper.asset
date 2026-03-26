@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: Copper
   m_EditorClassIdentifier: Assembly-CSharp::ResourceType
   resourceName: Copper
-  description: copper
+  description: Advanced material used in higher-tier construction.
   icon: {fileID: 6398492527668056779, guid: 9058ac4dce34f064d81e81f280c80d92, type: 3}
+  baseCapacity: 50

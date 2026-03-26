@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MissionData
   missionName: Assembly Line
   missionDescription: Set up your production pipeline. Build a Builder Factory, produce
-    robotic workers, and train researchers to unlock advanced technologies.
+    robotic workers, and assemble researchers to unlock advanced technologies.
   missionNumber: 3
   missionType: 0
   introDialogue: {fileID: 11400000, guid: bb22cc33dd44ee55ff66778899001122, type: 2}
@@ -26,6 +26,7 @@ MonoBehaviour:
     targetTime: 0
     requiredResource: {fileID: 0}
     requiredBuilding: {fileID: 11400000, guid: 0b6ffc8e53a1f6c48ac9b79296c80336, type: 2}
+    requiredWorker: {fileID: 0}
     targetRace: 0
     currentAmount: 0
     currentTime: 0
@@ -37,17 +38,19 @@ MonoBehaviour:
     targetTime: 0
     requiredResource: {fileID: 11400000, guid: 0505f28487f172248a00b967bda2d6d4, type: 2}
     requiredBuilding: {fileID: 0}
+    requiredWorker: {fileID: 0}
     targetRace: 0
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
-  - objectiveDescription: Train 2 Researchers
+  - objectiveDescription: Assemble 2 Researchers
     type: 6
     isOptional: 0
     targetAmount: 2
     targetTime: 0
     requiredResource: {fileID: 0}
     requiredBuilding: {fileID: 0}
+    requiredWorker: {fileID: 11400000, guid: 1bcbdcbd154fdf1498bb2031cb36c0bd, type: 2}
     targetRace: 0
     currentAmount: 0
     currentTime: 0

@@ -93,8 +93,8 @@ public class BuildingSelectionPanel : MonoBehaviour
         // Create button for each category
         foreach (BuildingCategory category in System.Enum.GetValues(typeof(BuildingCategory)))
         {
-            // Skip categories with no buildings
-            if (buildingsByCategory[category].Count == 0) continue;
+            // Skip categories with no unlocked buildings
+            if (CountUnlockedInCategory(category) == 0) continue;
 
             GameObject buttonGO = Instantiate(categoryButtonPrefab, categoryContainer);
             buttonGO.name = category.ToString() + "_Tab";
@@ -188,18 +188,7 @@ public class BuildingSelectionPanel : MonoBehaviour
         List<BuildingData> buildings = buildingsByCategory[category];
         foreach (BuildingData buildingData in buildings)
         {
-            if (buildingData == null) continue;
-
-            // Check tech requirements - skip buildings whose tech hasn't been researched
-            if (buildingData.requiredTech != null)
-            {
-                bool unlockedByResearch = ResearchManager.Instance != null && ResearchManager.Instance.IsTechResearched(buildingData.requiredTech);
-                bool unlockedByMission = BuildingManager.Instance != null && BuildingManager.Instance.IsBuildingUnlockedByMission(buildingData);
-                if (!unlockedByResearch && !unlockedByMission)
-                {
-                    continue; // Skip locked buildings
-                }
-            }
+            if (!IsBuildingUnlocked(buildingData)) continue;
 
             GameObject buttonGO = Instantiate(buildingButtonPrefab, buildingContainer);
             buttonGO.name = buildingData.buildingName + "_Button";
@@ -227,6 +216,32 @@ public class BuildingSelectionPanel : MonoBehaviour
     }
 
     /// <summary>
+    /// Check if a building is currently unlocked (no tech requirement, or tech researched, or mission unlocked).
+    /// </summary>
+    private bool IsBuildingUnlocked(BuildingData buildingData)
+    {
+        if (buildingData == null) return false;
+        if (buildingData.requiredTech == null) return true;
+
+        bool unlockedByResearch = ResearchManager.Instance != null && ResearchManager.Instance.IsTechResearched(buildingData.requiredTech);
+        bool unlockedByMission = BuildingManager.Instance != null && BuildingManager.Instance.IsBuildingUnlockedByMission(buildingData);
+        return unlockedByResearch || unlockedByMission;
+    }
+
+    /// <summary>
+    /// Count how many buildings in a category are currently unlocked.
+    /// </summary>
+    private int CountUnlockedInCategory(BuildingCategory category)
+    {
+        int count = 0;
+        foreach (BuildingData building in buildingsByCategory[category])
+        {
+            if (IsBuildingUnlocked(building)) count++;
+        }
+        return count;
+    }
+
+    /// <summary>
     /// Show the building selection panel.
     /// </summary>
     public void ShowPanel()
@@ -234,8 +249,8 @@ public class BuildingSelectionPanel : MonoBehaviour
         if (panel != null)
         {
             panel.SetActive(true);
-            // Refresh buildings in case tech was unlocked
-            ShowBuildingsForCategory(currentCategory);
+            // Rebuild category tabs and buildings in case tech was unlocked
+            CreateCategoryButtons();
         }
     }
 

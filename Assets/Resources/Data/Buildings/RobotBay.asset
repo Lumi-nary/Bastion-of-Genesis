@@ -16,7 +16,7 @@ MonoBehaviour:
   description: Increases Robot capacity by 5 and all worker type capacities by 5.
   icon: {fileID: 0}
   category: 3
-  prefab: {fileID: 0}
+  prefab: {fileID: 3300000000000000, guid: 0b1a811c993a497994e63378f2fa1755, type: 3}
   isPlayerBuildable: 1
   requiredTech: {fileID: 11400000, guid: ffcc335a7ed645758d95b77b0c21d87d, type: 2}
   maxHealth: 80
@@ -33,6 +33,6 @@ MonoBehaviour:
   features:
   - {fileID: 11400000, guid: c1ffa1ca1c4b42b4a7b8bbcecfd22f07, type: 2}
   maxPlacementCount: 2
-  width: 2
-  height: 2
+  width: 3
+  height: 3
   spreadsIntegration: 1

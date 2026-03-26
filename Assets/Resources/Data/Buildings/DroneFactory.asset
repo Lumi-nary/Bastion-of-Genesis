@@ -16,7 +16,7 @@ MonoBehaviour:
   description: Converts Robots into Drones for manning turrets.
   icon: {fileID: 0}
   category: 3
-  prefab: {fileID: 0}
+  prefab: {fileID: 4400000000000000, guid: 6a3b7bced3784432a9ac2f2b7081eaa7, type: 3}
   isPlayerBuildable: 1
   requiredTech: {fileID: 0}
   maxHealth: 100
@@ -30,5 +30,5 @@ MonoBehaviour:
   workerRequirements: []
   features:
   - {fileID: 11400000, guid: b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4, type: 2}
-  width: 1
-  height: 1
+  width: 3
+  height: 3

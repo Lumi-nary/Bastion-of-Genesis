@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: StarterTurret
   m_EditorClassIdentifier: Assembly-CSharp::BuildingData
   buildingName: Gun Turret
-  description: 
+  description: Basic automated gun turret. Can be manned by Drones for reduced energy
+    cost.
   icon: {fileID: 0}
-  category: 0
-  prefab: {fileID: 0}
+  category: 4
+  prefab: {fileID: 8800000000000000, guid: 73ccaf23f09a401e90f9fba9d2f13407, type: 3}
   isPlayerBuildable: 1
   requiredTech: {fileID: 11400000, guid: b98401c7a0d37b44e9d0af36edc2a041, type: 2}
   maxHealth: 100
@@ -33,5 +34,5 @@ MonoBehaviour:
     requiredCount: 1
   features:
   - {fileID: 11400000, guid: ef865cd6fd778ec4a952e51dc3523fd5, type: 2}
-  width: 1
-  height: 1
+  width: 2
+  height: 2

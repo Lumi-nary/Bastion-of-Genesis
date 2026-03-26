@@ -201,13 +201,13 @@ public class NetworkPlayer : NetworkBehaviour
     }
 
     [ServerRpc]
-    public void CmdRequestTrainWorker(int workerTypeIndex)
+    public void CmdRequestAssembleWorker(int workerTypeIndex)
     {
-        Debug.Log($"[NetworkPlayer] Player {_playerId.Value} requesting to train worker type {workerTypeIndex}");
+        Debug.Log($"[NetworkPlayer] Player {_playerId.Value} requesting to assemble worker type {workerTypeIndex}");
 
         if (NetworkedWorkerManager.Instance != null)
         {
-            NetworkedWorkerManager.Instance.ServerTrainWorker(workerTypeIndex, this);
+            NetworkedWorkerManager.Instance.ServerAssembleWorker(workerTypeIndex, this);
         }
     }
 

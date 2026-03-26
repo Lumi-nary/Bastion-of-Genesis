@@ -16,7 +16,7 @@ MonoBehaviour:
   description: Research facility where Researchers unlock new technologies.
   icon: {fileID: 0}
   category: 5
-  prefab: {fileID: 0}
+  prefab: {fileID: 6600000000000000, guid: 2dc9e56176c24c42b9c65785062a747c, type: 3}
   isPlayerBuildable: 1
   requiredTech: {fileID: 0}
   maxHealth: 150

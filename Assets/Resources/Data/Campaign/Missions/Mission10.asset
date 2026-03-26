@@ -21,12 +21,13 @@ MonoBehaviour:
   introDialogue: {fileID: 11400000, guid: 2233445566778899aabbccddeeff0022, type: 2}
   objectives:
   - objectiveDescription: Defeat the Warden
-    type: 3
+    type: 8
     isOptional: 0
     targetAmount: 1
     targetTime: 0
     requiredResource: {fileID: 0}
     requiredBuilding: {fileID: 0}
+    requiredWorker: {fileID: 0}
     targetRace: 0
     currentAmount: 0
     currentTime: 0
@@ -38,6 +39,7 @@ MonoBehaviour:
     targetTime: 0
     requiredResource: {fileID: 0}
     requiredBuilding: {fileID: 0}
+    requiredWorker: {fileID: 0}
     targetRace: 0
     currentAmount: 0
     currentTime: 0

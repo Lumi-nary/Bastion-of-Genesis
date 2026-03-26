@@ -520,6 +520,13 @@ public class EnemyManager : MonoBehaviour
             {
                 MissionChapterManager.Instance.UpdateObjectiveProgress(
                     ObjectiveType.DefeatEnemies, 1);
+
+                // Track boss kills separately for DefeatBoss objectives
+                if (enemy is BossEnemy)
+                {
+                    MissionChapterManager.Instance.UpdateObjectiveProgress(
+                        ObjectiveType.DefeatBoss, 1);
+                }
             }
 
             Debug.Log($"[EnemyManager] Enemy killed: {enemy.Data.GetDisplayName()} ({activeEnemies.Count} remaining)");

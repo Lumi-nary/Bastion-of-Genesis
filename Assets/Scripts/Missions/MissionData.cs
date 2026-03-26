@@ -302,6 +302,9 @@ public class ScriptedWave
     [Tooltip("Optional message to display when wave triggers")]
     public string waveMessage;
 
+    [Tooltip("Only trigger after this objective index is completed (-1 = no requirement, time-based only).")]
+    public int triggerAfterObjectiveIndex = -1;
+
     [Tooltip("Which map edges to spawn from. Empty = random (pollution-based).")]
     public List<SpawnEdge> spawnEdges = new List<SpawnEdge>();
 

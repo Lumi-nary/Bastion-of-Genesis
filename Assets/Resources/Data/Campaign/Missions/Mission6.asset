@@ -76,8 +76,9 @@ MonoBehaviour:
   failOnTimeExpired: 0
   disableNaturalWaves: 1
   scriptedWaves:
-  - triggerTime: 10
+  - triggerTime: 5
     enemyCount: 0
+    triggerAfterObjectiveIndex: 2
     waveMessage: Enemies approaching!
     spawnEdges:
     - 0

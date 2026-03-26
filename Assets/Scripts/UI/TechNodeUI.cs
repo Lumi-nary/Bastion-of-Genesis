@@ -145,7 +145,7 @@ public class TechNodeUI : MonoBehaviour
         if (lockIcon != null) lockIcon.SetActive(false);
         if (checkIcon != null) checkIcon.SetActive(true);
         if (statusOverlay != null) statusOverlay.color = Color.clear;
-        if (nodeButton != null) nodeButton.interactable = true;
+        if (nodeButton != null) nodeButton.interactable = false;
     }
 
     private void OnDestroy()

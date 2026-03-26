@@ -16,7 +16,7 @@ MonoBehaviour:
   description: Increases Energy storage capacity by 100. Stores excess energy for later use.
   icon: {fileID: 0}
   category: 1
-  prefab: {fileID: 0}
+  prefab: {fileID: 2200000000000000, guid: 28a92664193242bdb9882aaea5089015, type: 3}
   isPlayerBuildable: 1
   requiredTech: {fileID: 11400000, guid: 6cffa3d89a354891bc15d33b900d23c3, type: 2}
   maxHealth: 80
@@ -33,6 +33,6 @@ MonoBehaviour:
   features:
   - {fileID: 11400000, guid: d744b8a56c63424fb2780011786e7e4b, type: 2}
   maxPlacementCount: 2
-  width: 2
-  height: 2
+  width: 3
+  height: 3
   spreadsIntegration: 1

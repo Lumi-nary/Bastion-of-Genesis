@@ -381,7 +381,7 @@ public class NetworkedWorkerManager : NetworkBehaviour
     // ============================================================================
 
     [Server]
-    public void ServerTrainWorker(int workerTypeIndex, NetworkPlayer requestingPlayer)
+    public void ServerAssembleWorker(int workerTypeIndex, NetworkPlayer requestingPlayer)
     {
         if (workerTypeIndex < 0 || workerTypeIndex >= workerTypes.Count)
         {
@@ -406,7 +406,7 @@ public class NetworkedWorkerManager : NetworkBehaviour
         {
             if (!NetworkedResourceManager.Instance.CanAfford(workerData.cost))
             {
-                SendErrorToPlayer(requestingPlayer, "Not enough resources to train worker");
+                SendErrorToPlayer(requestingPlayer, "Not enough resources to assemble worker");
                 return;
             }
             NetworkedResourceManager.Instance.ServerSpendResources(workerData.cost);
@@ -415,14 +415,14 @@ public class NetworkedWorkerManager : NetworkBehaviour
         // Add worker
         int newAmount = current + 1;
         syncedAvailable[workerTypeIndex] = newAmount;
-        
+
         // Update local manager on Host
         if (WorkerManager.Instance != null)
         {
             WorkerManager.Instance.SetWorkerCount(workerData, newAmount);
         }
 
-        Debug.Log($"[NetworkedWorkerManager] Trained {workerData.workerName}, now: {syncedAvailable[workerTypeIndex]}");
+        Debug.Log($"[NetworkedWorkerManager] Assembled {workerData.workerName}, now: {syncedAvailable[workerTypeIndex]}");
     }
 
     [Server]

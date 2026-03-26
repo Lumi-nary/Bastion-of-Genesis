@@ -15,7 +15,7 @@ MonoBehaviour:
   enemyName: The Warden
   description: A powerful boss enemy. Commander of the human forces in Chapter 1.
   icon: {fileID: 0}
-  prefab: {fileID: 4847702409958486025, guid: ef32b97948232fb48864f0f624c6ac04, type: 3}
+  prefab: {fileID: 8371502409958486025, guid: a1b2c3d4e5f6789012345678abcdef01, type: 3}
   race: 0
   damageType: 0
   movementType: 0

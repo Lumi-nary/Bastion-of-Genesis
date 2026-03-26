@@ -12,7 +12,8 @@ public enum ObjectiveType
     MaintainPollution,     // Keep pollution below X for Y seconds
     ResearchTechnology,    // Research a specific technology
     AssignWorkers,         // Assign X workers to buildings
-    ReachPollutionLevel    // Reach a specific pollution threshold (for testing)
+    ReachPollutionLevel,   // Reach a specific pollution threshold (for testing)
+    DefeatBoss             // Defeat a boss enemy
 }
 
 [System.Serializable]
@@ -28,6 +29,7 @@ public class MissionObjective
     public float targetTime;               // Time in seconds (for time-based objectives)
     public ResourceType requiredResource;  // For resource collection objectives
     public BuildingData requiredBuilding;  // For building construction objectives
+    public WorkerData requiredWorker;     // For worker assembly/assignment objectives
     public RaceType targetRace;           // For enemy defeat objectives
 
     [Header("Completion Status")]

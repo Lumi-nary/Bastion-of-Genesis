@@ -15,7 +15,7 @@ MonoBehaviour:
   enemyName: Human Soldier
   description: A well-armed human soldier. Tougher and better equipped than peasants.
   icon: {fileID: 0}
-  prefab: {fileID: 4847702409958486025, guid: ef32b97948232fb48864f0f624c6ac04, type: 3}
+  prefab: {fileID: 5947702409958486025, guid: c2d3e4f5a6b7890123456789abcdef02, type: 3}
   race: 0
   damageType: 0
   movementType: 0

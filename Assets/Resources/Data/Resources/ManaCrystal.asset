@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: ManaCrystal
   m_EditorClassIdentifier: Assembly-CSharp::ResourceType
   resourceName: Mana Crystal
-  description: Mana mana mana mana
+  description: Crystallized energy harvested from defeated enemies.
   icon: {fileID: -6043657294105173317, guid: c8f433fbaf6ad0441940abd85946022e, type: 3}
+  baseCapacity: 20

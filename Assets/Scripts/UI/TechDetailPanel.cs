@@ -138,7 +138,7 @@ public class TechDetailPanel : MonoBehaviour
             costParts.Add($"<color={colorTag}>{cost.amount} {cost.resourceType.ResourceName}</color>");
         }
 
-        costText.text = $"Cost: {string.Join(", ", costParts)}";
+        costText.text = $"Cost (over time): {string.Join(", ", costParts)}";
     }
 
     private void UpdateButtonState()
@@ -175,11 +175,15 @@ public class TechDetailPanel : MonoBehaviour
             researchButtonText.text = "Busy";
             researchButton.interactable = false;
         }
+        else if (!ResearchManager.Instance.HasActiveResearchLab())
+        {
+            researchButtonText.text = "No Lab";
+            researchButton.interactable = false;
+        }
         else
         {
-            bool canAfford = CanAffordResearch();
             researchButtonText.text = "Research";
-            researchButton.interactable = canAfford;
+            researchButton.interactable = true;
         }
     }
 

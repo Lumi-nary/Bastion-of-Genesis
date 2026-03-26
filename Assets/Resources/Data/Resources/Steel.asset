@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: Steel
   m_EditorClassIdentifier: Assembly-CSharp::ResourceType
   resourceName: Steel
-  description: nigga
+  description: Refined iron alloy used in advanced construction.
   icon: {fileID: 0}
+  baseCapacity: 50

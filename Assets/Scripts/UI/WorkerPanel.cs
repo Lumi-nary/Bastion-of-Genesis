@@ -51,32 +51,18 @@ public class WorkerPanel : MonoBehaviour
 
         if (workerSlots.ContainsKey(workerData))
         {
-            // Slot exists
-            if (amount > 0)
-            {
-                // Update existing slot
-                workerSlots[workerData].UpdateAmount(amount, capacity);
-            }
-            else
-            {
-                // Amount is zero or negative, destroy the slot
-                Destroy(workerSlots[workerData].gameObject);
-                workerSlots.Remove(workerData);
-            }
+            // Update existing slot (keep visible even at 0)
+            workerSlots[workerData].UpdateAmount(amount, capacity);
         }
         else
         {
-            // Slot does not exist
-            if (amount > 0)
+            // Create a new slot (even at 0, so it stays visible)
+            GameObject slotGO = Instantiate(workerSlotPrefab, container);
+            WorkerDisplaySlotUI slotUI = slotGO.GetComponent<WorkerDisplaySlotUI>();
+            if (slotUI != null)
             {
-                // Create a new slot
-                GameObject slotGO = Instantiate(workerSlotPrefab, container);
-                WorkerDisplaySlotUI slotUI = slotGO.GetComponent<WorkerDisplaySlotUI>();
-                if (slotUI != null)
-                {
-                    slotUI.Setup(workerData, amount, capacity);
-                    workerSlots.Add(workerData, slotUI);
-                }
+                slotUI.Setup(workerData, amount, capacity);
+                workerSlots.Add(workerData, slotUI);
             }
         }
     }

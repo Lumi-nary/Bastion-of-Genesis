@@ -217,13 +217,10 @@ public class ResearchPanel : MonoBehaviour
 
     private void PopulateTechNodes()
     {
-        // Clear existing nodes
-        foreach (var node in spawnedNodes)
+        // Clear all children (nodes + tier headers)
+        foreach (Transform child in techNodesContainer)
         {
-            if (node != null)
-            {
-                Destroy(node.gameObject);
-            }
+            Destroy(child.gameObject);
         }
         spawnedNodes.Clear();
 
@@ -233,19 +230,68 @@ public class ResearchPanel : MonoBehaviour
         // Get technologies for current category
         List<TechnologyData> techs = ResearchManager.Instance.GetTechnologiesByCategory(currentCategory);
 
-        // Sort by tier
+        // Sort by tier (Tier 1 on top, Tier 2 on bottom)
         techs.Sort((a, b) => a.tier.CompareTo(b.tier));
 
-        // Create nodes
+        // Group techs by tier
+        Dictionary<int, List<TechnologyData>> tierGroups = new Dictionary<int, List<TechnologyData>>();
         foreach (TechnologyData tech in techs)
         {
-            GameObject nodeGO = Instantiate(techNodePrefab, techNodesContainer);
-            TechNodeUI node = nodeGO.GetComponent<TechNodeUI>();
+            if (!tierGroups.ContainsKey(tech.tier))
+                tierGroups[tech.tier] = new List<TechnologyData>();
+            tierGroups[tech.tier].Add(tech);
+        }
 
-            if (node != null)
+        List<int> sortedTiers = new List<int>(tierGroups.Keys);
+        sortedTiers.Sort();
+
+        // Get grid column count from GridLayoutGroup
+        UnityEngine.UI.GridLayoutGroup grid = techNodesContainer.GetComponent<UnityEngine.UI.GridLayoutGroup>();
+        int columns = 4; // fallback
+        if (grid != null)
+        {
+            float containerWidth = ((RectTransform)techNodesContainer).rect.width;
+            if (containerWidth > 0)
+                columns = Mathf.Max(1, Mathf.FloorToInt((containerWidth + grid.spacing.x) / (grid.cellSize.x + grid.spacing.x)));
+        }
+
+        foreach (int tier in sortedTiers)
+        {
+            // Add tier label as the first cell in the row
+            GameObject headerGO = new GameObject($"Tier{tier}Header", typeof(RectTransform));
+            headerGO.transform.SetParent(techNodesContainer, false);
+            UnityEngine.UI.Text headerText = headerGO.AddComponent<UnityEngine.UI.Text>();
+            headerText.text = $"Tier {tier}";
+            headerText.font = UnityEngine.Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            headerText.fontSize = 16;
+            headerText.fontStyle = FontStyle.Bold;
+            headerText.alignment = TextAnchor.MiddleCenter;
+            headerText.color = new Color(0.9f, 0.85f, 0.7f);
+
+            // Create tech nodes for this tier (tier label takes 1 cell)
+            int cellsUsed = 1;
+            foreach (TechnologyData tech in tierGroups[tier])
             {
-                node.Initialize(tech, this);
-                spawnedNodes.Add(node);
+                GameObject nodeGO = Instantiate(techNodePrefab, techNodesContainer);
+                TechNodeUI node = nodeGO.GetComponent<TechNodeUI>();
+
+                if (node != null)
+                {
+                    node.Initialize(tech, this);
+                    spawnedNodes.Add(node);
+                    cellsUsed++;
+                }
+            }
+
+            // Fill remaining cells in the last row so next tier starts on a new row
+            int remainder = cellsUsed % columns;
+            if (remainder > 0)
+            {
+                for (int i = 0; i < columns - remainder; i++)
+                {
+                    GameObject trailingSpacer = new GameObject($"Tier{tier}TrailSpacer{i}", typeof(RectTransform));
+                    trailingSpacer.transform.SetParent(techNodesContainer, false);
+                }
             }
         }
     }

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Tech_StarterTurret
   m_EditorClassIdentifier: Assembly-CSharp::TechnologyData
   techName: Starter Turret
-  description: You need to defense yourself
+  description: Unlocks Gun Turret construction for base defense.
   icon: {fileID: 0}
   tier: 1
   unlockMethod: 0

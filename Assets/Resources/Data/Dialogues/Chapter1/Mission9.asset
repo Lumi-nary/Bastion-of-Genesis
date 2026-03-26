@@ -18,15 +18,15 @@ MonoBehaviour:
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 0}
-    dialogueText: Analysis complete. There is a direct correlation between our industrial output and hostile aggression. The more we pollute, the harder they hit us.
+    dialogueText: Analysis complete. Our terraforming emissions are directly provoking the indigenous population. The more we reshape this environment, the more aggressively they resist.
     voiceClip: {fileID: 0}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 0}
-    dialogueText: Noted. But shutting down production is not an option. Push output, reinforce defenses, and hold the line.
+    dialogueText: The whole point is to reshape this environment. We do not stop. Push output, reinforce defenses, and hold the line.
     voiceClip: {fileID: 0}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 0}
-    dialogueText: Understood. Monitoring pollution levels. Expect escalating hostility with each expansion.
+    dialogueText: Understood. Monitoring terraforming levels. Expect escalating hostility with each expansion cycle.
     voiceClip: {fileID: 0}

@@ -51,33 +51,18 @@ public class ResourcePanel : MonoBehaviour
 
         if (resourceSlots.ContainsKey(type))
         {
-            // Slot exists
-            if (amount > 0)
-            {
-                // Update existing slot
-                resourceSlots[type].UpdateAmount(amount, capacity);
-            }
-            else
-            {
-                // Amount is zero, destroy the slot
-                Destroy(resourceSlots[type].gameObject);
-                resourceSlots.Remove(type);
-            }
+            // Update existing slot (keep visible even at 0)
+            resourceSlots[type].UpdateAmount(amount, capacity);
         }
         else
         {
-            // Slot does not exist
-            if (amount > 0)
+            // Create a new slot (even at 0, so it stays visible)
+            GameObject slotGO = Instantiate(resourceSlotPrefab, container);
+            ResourceSlotUI slotUI = slotGO.GetComponent<ResourceSlotUI>();
+            if (slotUI != null)
             {
-                // Create a new slot
-                // Debug.Log($"[ResourcePanel] Creating slot for {type.ResourceName}");
-                GameObject slotGO = Instantiate(resourceSlotPrefab, container);
-                ResourceSlotUI slotUI = slotGO.GetComponent<ResourceSlotUI>();
-                if (slotUI != null)
-                {
-                    slotUI.Setup(type, amount, capacity);
-                    resourceSlots.Add(type, slotUI);
-                }
+                slotUI.Setup(type, amount, capacity);
+                resourceSlots.Add(type, slotUI);
             }
         }
     }

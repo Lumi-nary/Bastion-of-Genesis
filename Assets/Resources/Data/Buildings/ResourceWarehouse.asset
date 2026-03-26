@@ -16,7 +16,7 @@ MonoBehaviour:
   description: Increases Iron storage capacity by 50. Essential for stockpiling resources.
   icon: {fileID: 0}
   category: 3
-  prefab: {fileID: 0}
+  prefab: {fileID: 1100000000000000, guid: f59ea6db499f4aa1a59a01340258a783, type: 3}
   isPlayerBuildable: 1
   requiredTech: {fileID: 11400000, guid: 1b157d4c536444faa6fee78ba097aa94, type: 2}
   maxHealth: 80
@@ -31,6 +31,6 @@ MonoBehaviour:
   features:
   - {fileID: 11400000, guid: e7f603bde31340e9a9dbbe923ab42e22, type: 2}
   maxPlacementCount: 2
-  width: 2
-  height: 2
+  width: 3
+  height: 3
   spreadsIntegration: 1

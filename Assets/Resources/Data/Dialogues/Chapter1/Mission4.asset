@@ -18,15 +18,20 @@ MonoBehaviour:
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 0}
-    dialogueText: Preliminary scans reveal unknown mineral compounds and anomalous physics on this world. A Laboratory would allow us to analyze and exploit these properties.
+    dialogueText: Commander, our Researchers can develop new structural blueprints given sufficient energy and time. A Laboratory would enable this.
     voiceClip: {fileID: 0}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 0}
-    dialogueText: If this planet has secrets, I want them working for us. Construct a Laboratory and begin research immediately.
+    dialogueText: Engineering superiority is how we hold this ground. Build it.
     voiceClip: {fileID: 0}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 0}
-    dialogueText: Our current storage capacity is limited. I recommend researching Resource Warehouses, Energy Batteries, and Robot Bays to expand our reserves before we proceed further.
+    dialogueText: Our reserves are capped at baseline capacity. I recommend prioritizing storage infrastructure—Resource Warehouses, Energy Batteries, and a Robot Bay. Without expanded reserves, further expansion stalls.
+    voiceClip: {fileID: 0}
+  - speakerName: Kyra-Dominia
+    portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
+    expression: {fileID: 0}
+    dialogueText: A fortress without stockpiles is just a target. Research them all.
     voiceClip: {fileID: 0}

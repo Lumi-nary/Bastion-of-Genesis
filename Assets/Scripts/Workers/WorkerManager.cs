@@ -61,23 +61,23 @@ public class WorkerManager : MonoBehaviour
         Debug.Log($"[WorkerManager] Registered {workerData.workerName}: {startingCount}/{workerData.baseCapacity}");
     }
 
-    public void TrainWorker(WorkerData workerData)
+    public void AssembleWorker(WorkerData workerData)
     {
         if (HasEnoughResources(workerData.cost))
         {
             SpendResources(workerData.cost);
             AddWorkerToPool(workerData);
 
-            // Notify mission objective tracking
+            // Notify mission objective tracking with worker type
             if (MissionChapterManager.Instance != null)
             {
                 MissionChapterManager.Instance.UpdateObjectiveProgress(
-                    ObjectiveType.AssignWorkers, 1);
+                    ObjectiveType.AssignWorkers, 1, workerData: workerData);
             }
         }
         else
         {
-            Debug.Log("Not enough resources to train " + workerData.workerName);
+            Debug.Log("Not enough resources to assemble " + workerData.workerName);
         }
     }
 
@@ -88,11 +88,11 @@ public class WorkerManager : MonoBehaviour
             availableWorkers[workerData]--;
             OnWorkerCountChanged?.Invoke(workerData, availableWorkers[workerData]);
 
-            // Notify mission objective tracking
+            // Notify mission objective tracking with worker type
             if (MissionChapterManager.Instance != null)
             {
                 MissionChapterManager.Instance.UpdateObjectiveProgress(
-                    ObjectiveType.AssignWorkers, 1);
+                    ObjectiveType.AssignWorkers, 1, workerData: workerData);
             }
 
             return true;
@@ -103,6 +103,13 @@ public class WorkerManager : MonoBehaviour
     public void ReturnWorker(WorkerData workerData)
     {
         AddWorkerToPool(workerData);
+
+        // Notify mission objective tracking with worker type
+        if (MissionChapterManager.Instance != null)
+        {
+            MissionChapterManager.Instance.UpdateObjectiveProgress(
+                ObjectiveType.AssignWorkers, 1, workerData: workerData);
+        }
     }
 
     public int GetAvailableWorkerCount(WorkerData workerData)

@@ -379,10 +379,10 @@ public class NetworkedBuildingManager : NetworkBehaviour
         
         Debug.Log($"[NetworkedBuildingManager] Worker {wData.workerName} assigned to building at {gridPos}. Total: {currentIndices.Count}");
 
-        // Notify mission objective tracking
+        // Notify mission objective tracking with worker type
         if (MissionChapterManager.Instance != null)
         {
-            MissionChapterManager.Instance.UpdateObjectiveProgress(ObjectiveType.AssignWorkers, 1);
+            MissionChapterManager.Instance.UpdateObjectiveProgress(ObjectiveType.AssignWorkers, 1, workerData: wData);
         }
     }
 

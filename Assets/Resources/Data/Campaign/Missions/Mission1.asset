@@ -26,6 +26,7 @@ MonoBehaviour:
     targetTime: 0
     requiredResource: {fileID: 0}
     requiredBuilding: {fileID: 11400000, guid: a4ce82139003cca46a9abf6f002f9e7f, type: 2}
+    requiredWorker: {fileID: 0}
     targetRace: 0
     currentAmount: 0
     currentTime: 0
@@ -37,6 +38,7 @@ MonoBehaviour:
     targetTime: 0
     requiredResource: {fileID: 0}
     requiredBuilding: {fileID: 0}
+    requiredWorker: {fileID: 11400000, guid: 4032d19a78fcf444596b3b15ff750222, type: 2}
     targetRace: 0
     currentAmount: 0
     currentTime: 0
@@ -48,6 +50,7 @@ MonoBehaviour:
     targetTime: 0
     requiredResource: {fileID: 11400000, guid: f44ba9d81749962419739a7656fee1cc, type: 2}
     requiredBuilding: {fileID: 0}
+    requiredWorker: {fileID: 0}
     targetRace: 0
     currentAmount: 0
     currentTime: 0

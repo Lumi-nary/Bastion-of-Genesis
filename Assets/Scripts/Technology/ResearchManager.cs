@@ -33,6 +33,9 @@ public class ResearchManager : MonoBehaviour
     [Tooltip("Time elapsed on current research")]
     private float researchTimeElapsed = 0f;
 
+    [Tooltip("Fraction of resources consumed so far (0-1)")]
+    private float resourcesConsumed = 0f;
+
     [Header("Research Lab Requirements")]
     [Tooltip("Can only research one tech at a time (Research Lab limit)")]
     private bool isResearching = false;
@@ -71,12 +74,50 @@ public class ResearchManager : MonoBehaviour
         LoadAllTechnologies();
     }
 
+    // Cached reference to Researcher worker type (loaded once)
+    private WorkerData researcherWorkerData;
+
     private void Update()
     {
         if (isResearching && currentResearch != null)
         {
             UpdateResearch(Time.deltaTime);
         }
+    }
+
+    /// <summary>
+    /// Get total number of Researchers assigned to Laboratory buildings
+    /// </summary>
+    public int GetActiveResearcherCount()
+    {
+        if (BuildingManager.Instance == null) return 0;
+
+        // Lazy-load Researcher WorkerData
+        if (researcherWorkerData == null)
+        {
+            researcherWorkerData = Resources.Load<WorkerData>("Data/Workers/Researcher");
+            if (researcherWorkerData == null) return 0;
+        }
+
+        int totalResearchers = 0;
+        foreach (Building building in BuildingManager.Instance.AllBuildings)
+        {
+            if (building == null || building.IsDestroyed) continue;
+            if (building.BuildingData == null) continue;
+            if (building.BuildingData.buildingName != "Laboratory") continue;
+
+            totalResearchers += building.GetAssignedWorkerCount(researcherWorkerData);
+        }
+
+        return totalResearchers;
+    }
+
+    /// <summary>
+    /// Check if there is at least one Laboratory with a Researcher assigned
+    /// </summary>
+    public bool HasActiveResearchLab()
+    {
+        return GetActiveResearcherCount() > 0;
     }
 
     /// <summary>
@@ -130,24 +171,18 @@ public class ResearchManager : MonoBehaviour
             return false;
         }
 
-        // Check resource costs
-        if (!CanAffordResearch(tech))
+        // Check that we have a Laboratory with Researcher assigned
+        if (!HasActiveResearchLab())
         {
-            Debug.LogWarning($"[ResearchManager] Not enough resources to research {tech.techName}");
+            Debug.LogWarning($"[ResearchManager] Cannot start research: no Laboratory with Researcher assigned");
             return false;
         }
 
-        // Consume resources
-        if (!ConsumeResearchCost(tech))
-        {
-            Debug.LogWarning($"[ResearchManager] Failed to consume resources for {tech.techName}");
-            return false;
-        }
-
-        // Start research
+        // Start research (resources are consumed over time, not upfront)
         currentResearch = tech;
         currentResearchProgress = 0f;
         researchTimeElapsed = 0f;
+        resourcesConsumed = 0f;
         isResearching = true;
 
         Debug.Log($"[ResearchManager] Started researching {tech.techName} ({tech.GetTimeString()})");
@@ -170,27 +205,103 @@ public class ResearchManager : MonoBehaviour
         currentResearch = null;
         currentResearchProgress = 0f;
         researchTimeElapsed = 0f;
+        resourcesConsumed = 0f;
         isResearching = false;
     }
 
     /// <summary>
-    /// Update research progress
+    /// Update research progress.
+    /// Requires at least 1 Researcher in a Laboratory. Speed scales with researcher count.
+    /// Resources are consumed gradually over the research duration.
     /// </summary>
     private void UpdateResearch(float deltaTime)
     {
         if (currentResearch == null) return;
 
-        researchTimeElapsed += deltaTime;
+        // Check for active lab+researcher — pause if none
+        int researcherCount = GetActiveResearcherCount();
+        if (researcherCount <= 0) return;
+
+        // Speed scales with researcher count (1 researcher = 1x, 2 = 1.5x, etc.)
+        float speedMultiplier = 1f + (researcherCount - 1) * 0.5f;
+
+        researchTimeElapsed += deltaTime * speedMultiplier;
         currentResearchProgress = Mathf.Clamp01(researchTimeElapsed / currentResearch.researchTime);
+
+        // Consume resources proportionally over time
+        ConsumeResourcesOverTime();
 
         // Notify UI of progress update
         OnResearchProgress?.Invoke(currentResearch, currentResearchProgress);
 
-        // Check if research is completea
+        // Check if research is complete
         if (researchTimeElapsed >= currentResearch.researchTime)
         {
+            // Consume any remaining resources
+            ConsumeRemainingResources();
             CompleteResearch();
         }
+    }
+
+    /// <summary>
+    /// Consume resources proportionally based on current progress
+    /// </summary>
+    private void ConsumeResourcesOverTime()
+    {
+        if (currentResearch == null || ResourceManager.Instance == null) return;
+
+        float targetConsumed = currentResearchProgress;
+        float delta = targetConsumed - resourcesConsumed;
+        if (delta <= 0f) return;
+
+        foreach (ResourceCost cost in currentResearch.researchCost)
+        {
+            if (cost.resourceType == null) continue;
+
+            int amountToConsume = Mathf.CeilToInt(cost.amount * delta);
+            if (amountToConsume > 0)
+            {
+                // Clamp to what's available — if insufficient, research still progresses
+                // (cost is spread over time as a drain, not a hard gate)
+                int available = ResourceManager.Instance.GetResourceAmount(cost.resourceType);
+                int consume = Mathf.Min(amountToConsume, available);
+                if (consume > 0)
+                {
+                    ResourceManager.Instance.RemoveResource(cost.resourceType, consume);
+                }
+            }
+        }
+
+        resourcesConsumed = targetConsumed;
+    }
+
+    /// <summary>
+    /// Consume any resources not yet consumed at research completion
+    /// </summary>
+    private void ConsumeRemainingResources()
+    {
+        if (currentResearch == null || ResourceManager.Instance == null) return;
+
+        float remaining = 1f - resourcesConsumed;
+        if (remaining <= 0f) return;
+
+        foreach (ResourceCost cost in currentResearch.researchCost)
+        {
+            if (cost.resourceType == null) continue;
+
+            int amountToConsume = Mathf.CeilToInt(cost.amount * remaining);
+            if (amountToConsume > 0)
+            {
+                int available = ResourceManager.Instance.GetResourceAmount(cost.resourceType);
+                int consume = Mathf.Min(amountToConsume, available);
+                if (consume > 0)
+                {
+                    ResourceManager.Instance.RemoveResource(cost.resourceType, consume);
+                }
+            }
+        }
+
+        resourcesConsumed = 1f;
     }
 
     /// <summary>
@@ -216,6 +327,7 @@ public class ResearchManager : MonoBehaviour
         currentResearch = null;
         currentResearchProgress = 0f;
         researchTimeElapsed = 0f;
+        resourcesConsumed = 0f;
         isResearching = false;
 
         // Notify listeners
@@ -408,6 +520,7 @@ public class ResearchManager : MonoBehaviour
         currentResearch = null;
         currentResearchProgress = 0f;
         researchTimeElapsed = 0f;
+        resourcesConsumed = 0f;
         isResearching = false;
 
         // Reset all tech status
