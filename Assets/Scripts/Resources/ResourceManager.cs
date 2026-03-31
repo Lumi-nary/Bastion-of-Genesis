@@ -300,4 +300,57 @@ public class ResourceManager : MonoBehaviour
 
         Debug.Log($"[ResourceManager] {canonical.ResourceName} capacity decreased by {amount} to {resourceCapacities[canonical]}");
     }
+
+    // ============================================================================
+    // SAVE/LOAD
+    // ============================================================================
+
+    public ResourceSaveData ExportState()
+    {
+        var amounts = new SerializableKeyValue[resourceAmounts.Count];
+        var capacities = new SerializableKeyValue[resourceCapacities.Count];
+
+        int i = 0;
+        foreach (var kvp in resourceAmounts)
+        {
+            amounts[i] = new SerializableKeyValue(kvp.Key.ResourceName, kvp.Value);
+            i++;
+        }
+
+        i = 0;
+        foreach (var kvp in resourceCapacities)
+        {
+            capacities[i] = new SerializableKeyValue(kvp.Key.ResourceName, kvp.Value);
+            i++;
+        }
+
+        return new ResourceSaveData { amounts = amounts, capacities = capacities };
+    }
+
+    public void ImportState(ResourceSaveData data)
+    {
+        if (data == null) return;
+
+        ResetAllResources();
+
+        // Restore capacities first, then amounts (amounts are clamped to capacity)
+        foreach (var entry in data.capacities)
+        {
+            ResourceType rt = ScriptableObjectResolver.ResolveResource(entry.key);
+            if (rt != null)
+            {
+                RegisterResourceType(rt, 0);
+                SetCapacity(rt, entry.value);
+            }
+        }
+
+        foreach (var entry in data.amounts)
+        {
+            ResourceType rt = ScriptableObjectResolver.ResolveResource(entry.key);
+            if (rt != null)
+                SetResourceAmount(rt, entry.value);
+        }
+
+        Debug.Log($"[ResourceManager] State imported: {data.amounts.Length} resources");
+    }
 }

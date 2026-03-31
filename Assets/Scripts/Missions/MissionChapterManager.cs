@@ -31,6 +31,7 @@ public class MissionChapterManager : MonoBehaviour
 
     // Scene transition tracking
     private bool awaitingSceneValidation = false;
+    private bool isLoadingFromSave = false;
 
     #region Events
     // Mission Events
@@ -207,6 +208,40 @@ public class MissionChapterManager : MonoBehaviour
 
         Debug.Log($"[MissionChapterManager] Initializing chapter state for: {currentChapter.chapterName}");
 
+        // Loading from save: RestoreStateFromSave handles resources/workers/pollution/buildings
+        if (isLoadingFromSave)
+        {
+            isLoadingFromSave = false;
+            Debug.Log("[MissionChapterManager] Loading from save — skipping normal init, restoring state");
+
+            // Configure pollution limits from chapter (needed before importing pollution values)
+            if (PollutionManager.Instance != null)
+                PollutionManager.Instance.ConfigureFromChapter(currentChapter.maxPollution, currentChapter.pollutionDecayRate);
+
+            // Scene setup that's always needed
+            if (TileStateManager.Instance != null)
+                TileStateManager.Instance.SetIntegrationRadius(currentChapter.startingIntegrationRadius);
+            if (BuildingManager.Instance != null)
+                BuildingManager.Instance.OnBuildingPlaced += OnBuildingPlaced;
+            if (EnemyManager.Instance != null)
+                EnemyManager.Instance.ReloadEnemyTypesFromChapter();
+
+            // Music
+            if (AudioManager.Instance != null)
+            {
+                if (currentChapter.backgroundMusic != null)
+                    AudioManager.Instance.SetNormalMusic(currentChapter.backgroundMusic);
+                if (currentChapter.battleMusic != null)
+                    AudioManager.Instance.SetBattleMusic(currentChapter.battleMusic);
+            }
+
+            // Restore all manager state from save
+            if (SaveManager.Instance != null)
+                SaveManager.Instance.RestoreStateFromSave();
+
+            return;
+        }
+
         bool isClientOnly = NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsClient && !NetworkGameManager.Instance.IsServer;
 
         // Reset and initialize resources (Server only, or singleplayer)
@@ -221,7 +256,7 @@ public class MissionChapterManager : MonoBehaviour
             else
             {
                 Debug.Log("[MissionChapterManager] Client: Skipping resource reset to preserve networked state.");
-                
+
                 // Force a sync from the network to local manager now that the scene is ready
                 if (NetworkedResourceManager.Instance != null)
                 {
@@ -242,7 +277,7 @@ public class MissionChapterManager : MonoBehaviour
             else
             {
                 Debug.Log("[MissionChapterManager] Client: Skipping worker reset to preserve networked state.");
-                
+
                 if (NetworkedWorkerManager.Instance != null)
                 {
                     NetworkedWorkerManager.Instance.RequestFullSyncServerRpc();
@@ -291,6 +326,10 @@ public class MissionChapterManager : MonoBehaviour
         }
 
         Debug.Log("[MissionChapterManager] Chapter state initialization complete");
+
+        // Start tracking gameplay for new games
+        if (SaveManager.Instance != null)
+            SaveManager.Instance.StartGameplayTracking();
 
         // Play chapter intro dialogue (if set), then start first mission
         StartCoroutine(PlayChapterIntroAndStartMission());
@@ -392,6 +431,16 @@ public class MissionChapterManager : MonoBehaviour
     /// <summary>
     /// Start a specific chapter by index
     /// </summary>
+    /// <summary>
+    /// Start a chapter from a loaded save file.
+    /// Skips normal state initialization — SaveManager.RestoreStateFromSave() handles it.
+    /// </summary>
+    public void StartChapterFromLoad(int chapterIndex)
+    {
+        isLoadingFromSave = true;
+        StartChapter(chapterIndex);
+    }
+
     public void StartChapter(int chapterIndex)
     {
         if (chapterIndex < 0 || chapterIndex >= chapters.Count)
@@ -919,4 +968,93 @@ public class MissionChapterManager : MonoBehaviour
         missionTimer = 0f;
     }
     #endregion
+
+    // ============================================================================
+    // SAVE/LOAD
+    // ============================================================================
+
+    public MissionSaveData ExportState()
+    {
+        var data = new MissionSaveData
+        {
+            currentChapterIndex = currentChapterIndex,
+            currentMissionIndex = currentMissionIndex,
+            missionTimer = missionTimer,
+            missionActive = missionActive
+        };
+
+        // Export objective progress
+        if (currentMission != null && currentMission.objectives != null)
+        {
+            data.objectives = new ObjectiveSaveData[currentMission.objectives.Count];
+            for (int i = 0; i < currentMission.objectives.Count; i++)
+            {
+                var obj = currentMission.objectives[i];
+                data.objectives[i] = new ObjectiveSaveData
+                {
+                    isCompleted = obj.isCompleted,
+                    currentAmount = obj.currentAmount,
+                    currentTime = obj.currentTime
+                };
+            }
+        }
+
+        // Export scripted wave triggers
+        if (currentMission != null && currentMission.scriptedWaves != null)
+        {
+            data.scriptedWaves = new ScriptedWaveSaveData[currentMission.scriptedWaves.Count];
+            for (int i = 0; i < currentMission.scriptedWaves.Count; i++)
+            {
+                data.scriptedWaves[i] = new ScriptedWaveSaveData
+                {
+                    isTriggered = currentMission.scriptedWaves[i].isTriggered
+                };
+            }
+        }
+
+        return data;
+    }
+
+    public void ImportState(MissionSaveData data)
+    {
+        if (data == null) return;
+
+        currentChapterIndex = data.currentChapterIndex;
+        currentMissionIndex = data.currentMissionIndex;
+        missionTimer = data.missionTimer;
+        missionActive = data.missionActive;
+
+        // Restore chapter and mission references
+        if (currentChapterIndex >= 0 && currentChapterIndex < chapters.Count)
+        {
+            currentChapter = chapters[currentChapterIndex];
+
+            if (currentMissionIndex >= 0 && currentMissionIndex < currentChapter.missions.Count)
+            {
+                currentMission = currentChapter.missions[currentMissionIndex];
+
+                // Restore objective progress
+                if (data.objectives != null && currentMission.objectives != null)
+                {
+                    for (int i = 0; i < Mathf.Min(data.objectives.Length, currentMission.objectives.Count); i++)
+                    {
+                        currentMission.objectives[i].isCompleted = data.objectives[i].isCompleted;
+                        currentMission.objectives[i].currentAmount = data.objectives[i].currentAmount;
+                        currentMission.objectives[i].currentTime = data.objectives[i].currentTime;
+                    }
+                }
+
+                // Restore scripted wave triggers
+                if (data.scriptedWaves != null && currentMission.scriptedWaves != null)
+                {
+                    for (int i = 0; i < Mathf.Min(data.scriptedWaves.Length, currentMission.scriptedWaves.Count); i++)
+                    {
+                        currentMission.scriptedWaves[i].isTriggered = data.scriptedWaves[i].isTriggered;
+                    }
+                }
+            }
+        }
+
+        Debug.Log($"[MissionChapterManager] State imported: chapter={currentChapterIndex}, mission={currentMissionIndex}, timer={missionTimer:F1}");
+    }
 }

@@ -27,6 +27,12 @@ public class PauseMenuUI : MonoBehaviour
 
     private void Awake()
     {
+        // Ensure pause menu stays interactive when gameplay CanvasGroup is disabled
+        CanvasGroup cg = GetComponent<CanvasGroup>();
+        if (cg == null)
+            cg = gameObject.AddComponent<CanvasGroup>();
+        cg.ignoreParentGroups = true;
+
         SetupButtons();
         Hide();
     }
@@ -93,6 +99,7 @@ public class PauseMenuUI : MonoBehaviour
     }
 
     public bool IsVisible => pausePanel != null && pausePanel.activeSelf;
+    public bool IsOptionsVisible => optionsCanvas != null && optionsCanvas.gameObject.activeSelf;
 
     // ============================================================================
     // Button Handlers
@@ -108,14 +115,25 @@ public class PauseMenuUI : MonoBehaviour
 
     private void OnSaveGameClicked()
     {
+        // Multiplayer guard: only host can save
+        if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsOnline
+            && !NetworkGameManager.Instance.IsServer)
+        {
+            if (ModalDialog.Instance != null)
+                ModalDialog.Instance.ShowError("Only the host can save the game.");
+            return;
+        }
+
         if (SaveManager.Instance != null)
         {
-            SaveManager.Instance.AutoSave();
+            bool success = SaveManager.Instance.ManualSave();
 
-            // Show confirmation
             if (ModalDialog.Instance != null)
             {
-                ModalDialog.Instance.ShowInfo("Game Saved", "Your progress has been saved.");
+                if (success)
+                    ModalDialog.Instance.ShowInfo("Game Saved", "Your progress has been saved.");
+                else
+                    ModalDialog.Instance.ShowError("Failed to save game.");
             }
         }
         else
@@ -159,6 +177,16 @@ public class PauseMenuUI : MonoBehaviour
     /// </summary>
     public void ReturnFromOptions()
     {
+        // Revert audio to saved settings (sliders applied live previews)
+        if (SettingsManager.Instance != null && AudioManager.Instance != null)
+        {
+            var saved = SettingsManager.Instance.CurrentSettings;
+            AudioManager.Instance.SetMasterVolume(saved.masterVolume);
+            AudioManager.Instance.SetMusicVolume(saved.musicVolume);
+            AudioManager.Instance.SetSFXVolume(saved.sfxVolume);
+            AudioManager.Instance.SetVoiceVolume(saved.voiceVolume);
+        }
+
         if (optionsCanvas != null)
             optionsCanvas.gameObject.SetActive(false);
 
@@ -176,6 +204,12 @@ public class PauseMenuUI : MonoBehaviour
                 {
                     // Unpause before loading scene
                     Time.timeScale = 1f;
+
+                    // Stop FishNet host/client before leaving gameplay
+                    if (NetworkGameManager.Instance != null)
+                    {
+                        NetworkGameManager.Instance.StopHost();
+                    }
 
                     // Restore audio
                     if (AudioManager.Instance != null)

@@ -10,6 +10,7 @@ public class Building : MonoBehaviour
     public BuildingData BuildingData => buildingData;
 
     private List<WorkerData> assignedWorkers = new List<WorkerData>();
+    public IReadOnlyList<WorkerData> AssignedWorkers => assignedWorkers;
 
     [Header("Grid Information")]
     public Vector2Int gridPosition;
@@ -323,5 +324,13 @@ public class Building : MonoBehaviour
     public void Repair(float amount)
     {
         CurrentHealth = Mathf.Min(CurrentHealth + amount, buildingData.maxHealth);
+    }
+
+    /// <summary>
+    /// Set health directly (used by save/load system)
+    /// </summary>
+    public void SetHealth(float health)
+    {
+        CurrentHealth = Mathf.Clamp(health, 0f, buildingData.maxHealth);
     }
 }

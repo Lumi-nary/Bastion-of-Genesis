@@ -226,6 +226,7 @@ public class OptionsMenuUI : MonoBehaviour
     /// </summary>
     private void OnMasterVolumeChanged(float value)
     {
+        if (workingSettings == null) return;
         workingSettings.masterVolume = value;
 
         // Apply live
@@ -239,6 +240,7 @@ public class OptionsMenuUI : MonoBehaviour
     /// </summary>
     private void OnMusicVolumeChanged(float value)
     {
+        if (workingSettings == null) return;
         workingSettings.musicVolume = value;
 
         // Apply live
@@ -252,6 +254,7 @@ public class OptionsMenuUI : MonoBehaviour
     /// </summary>
     private void OnSFXVolumeChanged(float value)
     {
+        if (workingSettings == null) return;
         workingSettings.sfxVolume = value;
 
         // Apply live
@@ -265,6 +268,7 @@ public class OptionsMenuUI : MonoBehaviour
     /// </summary>
     private void OnVoiceVolumeChanged(float value)
     {
+        if (workingSettings == null) return;
         workingSettings.voiceVolume = value;
 
         // Apply live
@@ -324,11 +328,50 @@ public class OptionsMenuUI : MonoBehaviour
     }
 
     /// <summary>
+    /// Called when the Options canvas becomes visible.
+    /// Since MenuManager uses Canvas.enabled (not SetActive), OnEnable doesn't re-fire,
+    /// so this must be called explicitly to reinitialize the UI.
+    /// </summary>
+    public void OnShow()
+    {
+        if (SettingsManager.Instance != null)
+        {
+            LoadCurrentSettings();
+        }
+    }
+
+    /// <summary>
     /// Back button clicked - Discard changes and return to main menu (AC8).
     /// </summary>
     private void OnBackClicked()
     {
         Debug.Log("[OptionsMenuUI] Back clicked - Discarding changes");
+
+        // Remove slider listeners first so reverting values doesn't trigger callbacks
+        if (masterVolumeSlider != null) masterVolumeSlider.onValueChanged.RemoveAllListeners();
+        if (musicVolumeSlider != null) musicVolumeSlider.onValueChanged.RemoveAllListeners();
+        if (sfxVolumeSlider != null) sfxVolumeSlider.onValueChanged.RemoveAllListeners();
+        if (voiceVolumeSlider != null) voiceVolumeSlider.onValueChanged.RemoveAllListeners();
+
+        // Revert audio and sliders to saved settings
+        if (SettingsManager.Instance != null)
+        {
+            SettingsData saved = SettingsManager.Instance.CurrentSettings;
+
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.SetMasterVolume(saved.masterVolume);
+                AudioManager.Instance.SetMusicVolume(saved.musicVolume);
+                AudioManager.Instance.SetSFXVolume(saved.sfxVolume);
+                AudioManager.Instance.SetVoiceVolume(saved.voiceVolume);
+            }
+
+            // Revert slider positions to saved values
+            if (masterVolumeSlider != null) masterVolumeSlider.value = saved.masterVolume;
+            if (musicVolumeSlider != null) musicVolumeSlider.value = saved.musicVolume;
+            if (sfxVolumeSlider != null) sfxVolumeSlider.value = saved.sfxVolume;
+            if (voiceVolumeSlider != null) voiceVolumeSlider.value = saved.voiceVolume;
+        }
 
         // Discard working settings (do not save)
         workingSettings = null;

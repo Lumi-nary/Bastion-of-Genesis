@@ -16,6 +16,7 @@ public class BuildingSelectionPanel : MonoBehaviour
 
     [Header("UI References")]
     [SerializeField] private GameObject panel;
+    public bool IsVisible => panel != null && panel.activeSelf;
     [SerializeField] private Transform categoryContainer;
     [SerializeField] private Transform buildingContainer;
 

@@ -203,6 +203,14 @@ public class MenuManager : MonoBehaviour
     public void ShowLoadGameCanvas()
     {
         SwitchCanvas(loadGameCanvas);
+
+        // Canvas.enabled doesn't trigger OnEnable, so explicitly refresh save list
+        if (loadGameCanvas != null)
+        {
+            LoadGameUI loadGameUI = loadGameCanvas.GetComponentInChildren<LoadGameUI>();
+            if (loadGameUI != null)
+                loadGameUI.RefreshSaveList();
+        }
     }
 
     /// <summary>
@@ -237,6 +245,14 @@ public class MenuManager : MonoBehaviour
     public void ShowOptionsCanvas()
     {
         SwitchCanvas(optionsCanvas);
+
+        // Canvas.enabled doesn't trigger OnEnable, so explicitly reinitialize
+        if (optionsCanvas != null)
+        {
+            OptionsMenuUI optionsUI = optionsCanvas.GetComponentInChildren<OptionsMenuUI>();
+            if (optionsUI != null)
+                optionsUI.OnShow();
+        }
     }
 
     /// <summary>

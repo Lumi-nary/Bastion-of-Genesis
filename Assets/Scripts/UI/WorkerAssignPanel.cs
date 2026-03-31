@@ -23,6 +23,7 @@ public class WorkerAssignPanel : MonoBehaviour
     // Track spawned rows
     private List<WorkerAssignRowUI> rows = new List<WorkerAssignRowUI>();
     private bool isVisible;
+    public bool IsVisible => isVisible;
 
     private void Start()
     {

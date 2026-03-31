@@ -240,4 +240,59 @@ public class WorkerManager : MonoBehaviour
         // Note: We don't remove workers if over capacity, they just can't train more
         Debug.Log($"[WorkerManager] {workerData.workerName} capacity decreased by {amount} to {workerCapacities[workerData]}");
     }
+
+    // ============================================================================
+    // SAVE/LOAD
+    // ============================================================================
+
+    public WorkerSaveData ExportState()
+    {
+        var available = new SerializableKeyValue[availableWorkers.Count];
+        var capacities = new SerializableKeyValue[workerCapacities.Count];
+
+        int i = 0;
+        foreach (var kvp in availableWorkers)
+        {
+            available[i] = new SerializableKeyValue(kvp.Key.workerName, kvp.Value);
+            i++;
+        }
+
+        i = 0;
+        foreach (var kvp in workerCapacities)
+        {
+            capacities[i] = new SerializableKeyValue(kvp.Key.workerName, kvp.Value);
+            i++;
+        }
+
+        return new WorkerSaveData { available = available, capacities = capacities };
+    }
+
+    public void ImportState(WorkerSaveData data)
+    {
+        if (data == null) return;
+
+        ResetAllWorkers();
+
+        // Register types and set capacities
+        foreach (var entry in data.capacities)
+        {
+            WorkerData wd = ScriptableObjectResolver.ResolveWorker(entry.key);
+            if (wd != null)
+            {
+                RegisterWorkerType(wd, 0);
+                // RegisterWorkerType sets capacity to baseCapacity, adjust to saved value
+                workerCapacities[wd] = entry.value;
+            }
+        }
+
+        // Set available counts
+        foreach (var entry in data.available)
+        {
+            WorkerData wd = ScriptableObjectResolver.ResolveWorker(entry.key);
+            if (wd != null)
+                SetWorkerCount(wd, entry.value);
+        }
+
+        Debug.Log($"[WorkerManager] State imported: {data.available.Length} worker types");
+    }
 }

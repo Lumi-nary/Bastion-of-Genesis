@@ -577,4 +577,152 @@ public class BuildingManager : MonoBehaviour
         }
         return total;
     }
+
+    // ============================================================================
+    // SAVE/LOAD
+    // ============================================================================
+
+    public BuildingSaveData ExportState()
+    {
+        var entries = new BuildingEntry[allBuildings.Count];
+        for (int i = 0; i < allBuildings.Count; i++)
+        {
+            Building b = allBuildings[i];
+            if (b == null) continue;
+
+            // Group assigned workers by type name
+            var workerCounts = new Dictionary<string, int>();
+            foreach (WorkerData wd in b.AssignedWorkers)
+            {
+                if (wd == null) continue;
+                if (workerCounts.ContainsKey(wd.workerName))
+                    workerCounts[wd.workerName]++;
+                else
+                    workerCounts[wd.workerName] = 1;
+            }
+
+            var assignments = new WorkerAssignment[workerCounts.Count];
+            int j = 0;
+            foreach (var kvp in workerCounts)
+            {
+                assignments[j] = new WorkerAssignment(kvp.Key, kvp.Value);
+                j++;
+            }
+
+            entries[i] = new BuildingEntry
+            {
+                buildingDataName = b.BuildingData.buildingName,
+                gridPosX = b.gridPosition.x,
+                gridPosY = b.gridPosition.y,
+                currentHealth = b.CurrentHealth,
+                assignedWorkers = assignments
+            };
+        }
+
+        // Export mission-unlocked buildings
+        var unlockedNames = new string[missionUnlockedBuildings.Count];
+        int k = 0;
+        foreach (var bd in missionUnlockedBuildings)
+        {
+            unlockedNames[k] = bd.buildingName;
+            k++;
+        }
+
+        return new BuildingSaveData
+        {
+            buildings = entries,
+            missionUnlockedBuildingNames = unlockedNames
+        };
+    }
+
+    public void ImportState(BuildingSaveData data)
+    {
+        if (data == null) return;
+
+        // Destroy all existing buildings
+        DestroyAllBuildings();
+
+        // Restore mission-unlocked buildings
+        missionUnlockedBuildings.Clear();
+        if (data.missionUnlockedBuildingNames != null)
+        {
+            foreach (string name in data.missionUnlockedBuildingNames)
+            {
+                BuildingData bd = ScriptableObjectResolver.ResolveBuilding(name);
+                if (bd != null) missionUnlockedBuildings.Add(bd);
+            }
+        }
+
+        // Place each saved building
+        foreach (var entry in data.buildings)
+        {
+            if (entry == null) continue;
+
+            BuildingData bd = ScriptableObjectResolver.ResolveBuilding(entry.buildingDataName);
+            if (bd == null)
+            {
+                Debug.LogWarning($"[BuildingManager] Could not resolve building: {entry.buildingDataName}");
+                continue;
+            }
+
+            // Convert bottom-left grid position to center world position
+            Vector2Int bottomLeft = new Vector2Int(entry.gridPosX, entry.gridPosY);
+            Vector2Int center = new Vector2Int(
+                bottomLeft.x + bd.width / 2,
+                bottomLeft.y + bd.height / 2
+            );
+            Vector3 worldPos = GridManager.Instance.GridToWorldPosition(center);
+
+            // Place without cost
+            PlaceBuilding(bd, worldPos, ignoreCost: true);
+
+            // Find the building we just placed (last in list)
+            if (allBuildings.Count > 0)
+            {
+                Building placed = allBuildings[allBuildings.Count - 1];
+
+                // Restore health
+                placed.SetHealth(entry.currentHealth);
+
+                // Restore worker assignments
+                if (entry.assignedWorkers != null && entry.assignedWorkers.Length > 0)
+                {
+                    var workers = new List<WorkerData>();
+                    foreach (var wa in entry.assignedWorkers)
+                    {
+                        WorkerData wd = ScriptableObjectResolver.ResolveWorker(wa.workerName);
+                        if (wd != null)
+                        {
+                            for (int i = 0; i < wa.count; i++)
+                                workers.Add(wd);
+                        }
+                    }
+                    placed.SetAssignedWorkers(workers);
+                }
+            }
+        }
+
+        Debug.Log($"[BuildingManager] State imported: {data.buildings.Length} buildings placed");
+    }
+
+    private void DestroyAllBuildings()
+    {
+        for (int i = allBuildings.Count - 1; i >= 0; i--)
+        {
+            Building b = allBuildings[i];
+            if (b != null && b.gameObject != null)
+            {
+                // Remove from grid
+                if (GridManager.Instance != null)
+                    GridManager.Instance.RemoveBuilding(b, b.gridPosition, b.width, b.height);
+
+                Destroy(b.gameObject);
+            }
+        }
+        allBuildings.Clear();
+        allFactories.Clear();
+        factoriesByWorkerType.Clear();
+        allConverters.Clear();
+        convertersByOutputType.Clear();
+    }
 }

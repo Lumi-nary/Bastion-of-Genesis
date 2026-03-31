@@ -629,4 +629,50 @@ public class GridManager : MonoBehaviour
     }
 
     #endregion
+
+    // ============================================================================
+    // SAVE/LOAD
+    // ============================================================================
+
+    public OreMoundSaveData ExportOreMoundState()
+    {
+        var entries = new OreMoundEntry[allMounds.Count];
+        for (int i = 0; i < allMounds.Count; i++)
+        {
+            var mound = allMounds[i];
+            Vector3 pos = mound.Position;
+            entries[i] = new OreMoundEntry
+            {
+                posX = pos.x,
+                posY = pos.y,
+                posZ = pos.z,
+                isDiscovered = mound.IsDiscovered
+            };
+        }
+
+        return new OreMoundSaveData { mounds = entries };
+    }
+
+    public void ImportOreMoundState(OreMoundSaveData data)
+    {
+        if (data == null || data.mounds == null) return;
+
+        int restored = 0;
+        foreach (var entry in data.mounds)
+        {
+            if (!entry.isDiscovered) continue;
+
+            // Find scene mound closest to saved position
+            Vector3 savedPos = new Vector3(entry.posX, entry.posY, entry.posZ);
+            OreMound match = GetMoundAtPosition(savedPos, 1.0f);
+
+            if (match != null && !match.IsDiscovered)
+            {
+                match.Discover();
+                restored++;
+            }
+        }
+
+        Debug.Log($"[GridManager] Ore mound state imported: {restored} mounds discovered");
+    }
 }

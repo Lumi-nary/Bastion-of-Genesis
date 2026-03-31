@@ -6,6 +6,7 @@ public class BuildingInfoPanel : MonoBehaviour
 {
     [Header("UI References")]
     [SerializeField] private GameObject panel;
+    public bool IsVisible => panel != null && panel.activeSelf;
     [SerializeField] private TextMeshProUGUI buildingNameText;
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private TextMeshProUGUI resourceGenerationText;

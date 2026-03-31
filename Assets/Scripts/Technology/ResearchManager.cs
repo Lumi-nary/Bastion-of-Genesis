@@ -588,4 +588,81 @@ public class ResearchManager : MonoBehaviour
     {
         return 1.0f + GetModifier(modifierType);
     }
+
+    // ============================================================================
+    // SAVE/LOAD
+    // ============================================================================
+
+    public ResearchSaveData ExportState()
+    {
+        var techNames = new string[researchedTechs.Count];
+        int i = 0;
+        foreach (var tech in researchedTechs)
+        {
+            techNames[i] = tech.techName;
+            i++;
+        }
+
+        return new ResearchSaveData
+        {
+            researchedTechNames = techNames,
+            currentResearchName = currentResearch != null ? currentResearch.techName : "",
+            currentResearchProgress = currentResearchProgress,
+            researchTimeElapsed = researchTimeElapsed,
+            resourcesConsumed = resourcesConsumed,
+            isResearching = isResearching
+        };
+    }
+
+    public void ImportState(ResearchSaveData data)
+    {
+        if (data == null) return;
+
+        ResetAllResearch();
+
+        // Resolve and restore completed techs (re-apply effects)
+        foreach (string techName in data.researchedTechNames)
+        {
+            TechnologyData tech = FindTechByName(techName);
+            if (tech != null)
+            {
+                researchedTechs.Add(tech);
+                tech.IsResearched = true;
+                ApplyTechnologyEffects(tech);
+            }
+            else
+            {
+                Debug.LogWarning($"[ResearchManager] Could not resolve tech: {techName}");
+            }
+        }
+
+        UpdateAvailableTechnologies();
+
+        // Restore in-progress research
+        if (!string.IsNullOrEmpty(data.currentResearchName) && data.isResearching)
+        {
+            TechnologyData currentTech = FindTechByName(data.currentResearchName);
+            if (currentTech != null)
+            {
+                currentResearch = currentTech;
+                currentResearchProgress = data.currentResearchProgress;
+                researchTimeElapsed = data.researchTimeElapsed;
+                resourcesConsumed = data.resourcesConsumed;
+                isResearching = true;
+            }
+        }
+
+        Debug.Log($"[ResearchManager] State imported: {data.researchedTechNames.Length} researched, " +
+                  $"current={data.currentResearchName}, progress={data.currentResearchProgress:F2}");
+    }
+
+    private TechnologyData FindTechByName(string techName)
+    {
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.techName == techName)
+                return tech;
+        }
+        return null;
+    }
 }

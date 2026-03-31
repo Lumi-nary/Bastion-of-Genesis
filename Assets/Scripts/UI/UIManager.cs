@@ -8,10 +8,16 @@ public class UIManager : MonoBehaviour
     [Header("UI Panels")]
     [SerializeField] private BuildingInfoPanel buildingInfoPanel;
     [SerializeField] private BuildingSelectionPanel buildingSelectionPanel;
+    [SerializeField] private ResearchPanel researchPanel;
+    [SerializeField] private WorkerAssemblyPanel workerAssemblyPanel;
+    [SerializeField] private WorkerAssignPanel workerAssignPanel;
 
     [Header("Pause Menu")]
     [SerializeField] private PauseMenuUI pauseMenuUI;
     [SerializeField] private float pausedMusicVolume = 0.3f;
+
+    [Header("Pause Input Block")]
+    [SerializeField] private CanvasGroup gameplayCanvasGroup;
 
     [Header("Tooltip Settings")]
     [SerializeField] private TooltipUI tooltipUI;
@@ -62,21 +68,92 @@ public class UIManager : MonoBehaviour
 
     private void HandleEscapeKey()
     {
-        // Block ESC during dialogue
+        // Layer 1: Block ESC during dialogue
         if (DialogueManager.Instance != null && DialogueManager.Instance.IsDialogueActive)
         {
-            Debug.Log("[UIManager] ESC blocked - dialogue is active");
             return;
         }
 
-        // Block ESC during modal dialog (modal handles its own ESC)
+        // Layer 2: Block ESC during modal dialog (modal handles its own ESC)
         if (ModalDialog.Instance != null && ModalDialog.Instance.IsModalActive())
         {
-            // Modal handles ESC itself, don't toggle pause
             return;
         }
 
-        TogglePause();
+        // Layer 3: If paused with Options sub-menu open, go back to pause menu
+        if (isPaused && pauseMenuUI != null && pauseMenuUI.IsOptionsVisible)
+        {
+            pauseMenuUI.ReturnFromOptions();
+            return;
+        }
+
+        // Layer 4: If paused, unpause
+        if (isPaused)
+        {
+            Unpause();
+            return;
+        }
+
+        // Layer 5: Close any open game panel
+        if (CloseTopmostPanel())
+        {
+            return;
+        }
+
+        // Layer 6: Nothing open — pause the game
+        Pause();
+    }
+
+    /// <summary>
+    /// Close the topmost open game panel. Returns true if a panel was closed.
+    /// </summary>
+    private bool CloseTopmostPanel()
+    {
+        // Close in reverse-priority order (most overlay-like first)
+        if (buildingInfoPanel != null && buildingInfoPanel.IsVisible)
+        {
+            buildingInfoPanel.HidePanel();
+            return true;
+        }
+        if (researchPanel != null && researchPanel.IsVisible)
+        {
+            researchPanel.HidePanel();
+            return true;
+        }
+        if (MissionPanel.Instance != null && MissionPanel.Instance.IsVisible)
+        {
+            MissionPanel.Instance.HidePanel();
+            return true;
+        }
+        if (workerAssemblyPanel != null && workerAssemblyPanel.IsVisible)
+        {
+            workerAssemblyPanel.HidePanel();
+            return true;
+        }
+        if (workerAssignPanel != null && workerAssignPanel.IsVisible)
+        {
+            workerAssignPanel.HidePanel();
+            return true;
+        }
+        if (buildingSelectionPanel != null && buildingSelectionPanel.IsVisible)
+        {
+            buildingSelectionPanel.HidePanel();
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Close all open game panels (called when pausing)
+    /// </summary>
+    private void CloseAllGamePanels()
+    {
+        if (buildingInfoPanel != null && buildingInfoPanel.IsVisible) buildingInfoPanel.HidePanel();
+        if (researchPanel != null && researchPanel.IsVisible) researchPanel.HidePanel();
+        if (MissionPanel.Instance != null && MissionPanel.Instance.IsVisible) MissionPanel.Instance.HidePanel();
+        if (workerAssemblyPanel != null && workerAssemblyPanel.IsVisible) workerAssemblyPanel.HidePanel();
+        if (workerAssignPanel != null && workerAssignPanel.IsVisible) workerAssignPanel.HidePanel();
+        if (buildingSelectionPanel != null && buildingSelectionPanel.IsVisible) buildingSelectionPanel.HidePanel();
     }
 
     /// <summary>
@@ -103,6 +180,9 @@ public class UIManager : MonoBehaviour
 
         isPaused = true;
 
+        // Close all game panels before showing pause menu
+        CloseAllGamePanels();
+
         // Only stop time in singleplayer (check GameMode, not IsOnline, since SP uses local host)
         bool isCoop = SaveManager.Instance != null && SaveManager.Instance.pendingMode == GameMode.COOP;
         if (!isCoop)
@@ -114,11 +194,14 @@ public class UIManager : MonoBehaviour
             Debug.Log("[UIManager] COOP active - Time.timeScale NOT set to 0");
         }
 
-        // Lower music volume (don't stop it)
+        // Lower music volume relative to user's saved setting
         if (AudioManager.Instance != null)
         {
-            // Store current volume and lower it
-            AudioManager.Instance.SetMusicVolume(pausedMusicVolume);
+            float userVolume = SettingsManager.Instance != null
+                ? SettingsManager.Instance.CurrentSettings.musicVolume
+                : 1f;
+            previousMusicVolume = userVolume;
+            AudioManager.Instance.SetMusicVolume(userVolume * pausedMusicVolume);
         }
 
         // Stop voice and ambience
@@ -126,6 +209,12 @@ public class UIManager : MonoBehaviour
         {
             AudioManager.Instance.StopVoice();
             AudioManager.Instance.StopAmbience();
+        }
+
+        // Block gameplay UI interaction
+        if (gameplayCanvasGroup != null)
+        {
+            gameplayCanvasGroup.interactable = false;
         }
 
         // Show pause menu
@@ -147,10 +236,16 @@ public class UIManager : MonoBehaviour
         isPaused = false;
         Time.timeScale = 1f;
 
-        // Restore music volume
-        if (AudioManager.Instance != null && SettingsManager.Instance != null)
+        // Restore music volume to user's saved setting
+        if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.SetMusicVolume(SettingsManager.Instance.CurrentSettings.musicVolume);
+            AudioManager.Instance.SetMusicVolume(previousMusicVolume);
+        }
+
+        // Restore gameplay UI interaction
+        if (gameplayCanvasGroup != null)
+        {
+            gameplayCanvasGroup.interactable = true;
         }
 
         // Hide pause menu

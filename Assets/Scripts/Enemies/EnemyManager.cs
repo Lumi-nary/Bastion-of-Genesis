@@ -671,4 +671,35 @@ public class EnemyManager : MonoBehaviour
         }
         return 1.0f;
     }
+
+    // ============================================================================
+    // SAVE/LOAD
+    // ============================================================================
+
+    public EnemySaveData ExportState()
+    {
+        return new EnemySaveData
+        {
+            currentWave = currentWave,
+            enemiesKilled = enemiesKilled
+        };
+    }
+
+    public void ImportState(EnemySaveData data)
+    {
+        if (data == null) return;
+
+        // Clear active enemies without saving them
+        foreach (var enemy in new List<Enemy>(activeEnemies))
+        {
+            if (enemy != null && enemy.gameObject != null)
+                Destroy(enemy.gameObject);
+        }
+        activeEnemies.Clear();
+
+        currentWave = data.currentWave;
+        enemiesKilled = data.enemiesKilled;
+
+        Debug.Log($"[EnemyManager] State imported: wave={currentWave}, killed={enemiesKilled}");
+    }
 }

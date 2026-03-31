@@ -16,7 +16,7 @@ public class SaveData
     /// <summary>
     /// Save format version for migration support (Epic 7+).
     /// </summary>
-    public string version = "1.0.0";
+    public string version = "2.0.0";
 
     /// <summary>
     /// User-visible base name (e.g., "Colony Alpha", "Genesis Outpost").
@@ -63,19 +63,17 @@ public class SaveData
     public bool[] missionCompletions = new bool[0];
 
     // ============================================================================
-    // WORLD STATE (Placeholder - Epic 7)
+    // WORLD STATE
     // ============================================================================
 
-    /// <summary>
-    /// Grid state: buildings, resources, workers (Epic 7).
-    /// Using string placeholder for MVP - will be proper GridState class later.
-    /// </summary>
-    public string gridState = "{}";
-
-    /// <summary>
-    /// Current pollution level (0.0 - 100.0).
-    /// </summary>
-    public float pollutionLevel = 0f;
+    public ResourceSaveData resources = new ResourceSaveData();
+    public WorkerSaveData workers = new WorkerSaveData();
+    public BuildingSaveData buildings = new BuildingSaveData();
+    public ResearchSaveData research = new ResearchSaveData();
+    public PollutionSaveData pollution = new PollutionSaveData();
+    public MissionSaveData mission = new MissionSaveData();
+    public OreMoundSaveData oreMounds = new OreMoundSaveData();
+    public EnemySaveData enemies = new EnemySaveData();
 
     // ============================================================================
     // COOP STATE (Placeholder - Epic 9)

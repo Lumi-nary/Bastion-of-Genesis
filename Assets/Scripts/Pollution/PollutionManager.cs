@@ -399,6 +399,37 @@ public class PollutionManager : MonoBehaviour
         Debug.Log($"[PollutionManager] Configured: maxPollution={maxPollution}, decayRate={pollutionDecayRate}");
     }
 
+    // ============================================================================
+    // SAVE/LOAD
+    // ============================================================================
+
+    public PollutionSaveData ExportState()
+    {
+        return new PollutionSaveData
+        {
+            currentPollution = currentPollution,
+            currentTier = (int)currentTier,
+            menuDifficulty = (int)menuDifficulty,
+            peakIntegrationRadius = peakIntegrationRadius
+        };
+    }
+
+    public void ImportState(PollutionSaveData data)
+    {
+        if (data == null) return;
+
+        currentPollution = data.currentPollution;
+        currentTier = (DifficultyTier)data.currentTier;
+        menuDifficulty = (Difficulty)data.menuDifficulty;
+        peakIntegrationRadius = data.peakIntegrationRadius;
+        lastIntegrationRadius = -1f; // Force recalculation
+
+        OnPollutionChanged?.Invoke(currentPollution, maxPollution);
+        OnDifficultyTierChanged?.Invoke(currentTier);
+
+        Debug.Log($"[PollutionManager] State imported: pollution={currentPollution}, tier={currentTier}, menuDifficulty={menuDifficulty}");
+    }
+
     /// <summary>
     /// Debug: Log current difficulty state
     /// </summary>

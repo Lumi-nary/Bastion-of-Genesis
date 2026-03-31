@@ -192,7 +192,7 @@ public class LoadGameUI : MonoBehaviour
             Debug.Log($"[LoadGameUI] Starting COOP server for save: {metadata.baseName}");
         }
 
-        // AC5.3: Call SaveManager.LoadGame()
+        // Call SaveManager.LoadGame() which deserializes and sets pending data
         bool loadSuccess = SaveManager.Instance.LoadGame(metadata.fileName);
 
         if (loadSuccess)
@@ -203,16 +203,24 @@ public class LoadGameUI : MonoBehaviour
                 NetworkGameManager.Instance.StartLocalHost();
             }
 
-            // AC5.4: Load GameWorld scene asynchronously
-            Debug.Log("[LoadGameUI] Save loaded successfully, transitioning to GameWorld scene");
-            SceneManager.LoadSceneAsync("GameWorld");
+            // Load chapter scene via MissionChapterManager (handles scene load + state restore)
+            int chapterIndex = metadata.currentChapter - 1; // Convert 1-based to 0-based
+            if (MissionChapterManager.Instance != null && SaveManager.Instance.HasPendingSaveData)
+            {
+                Debug.Log($"[LoadGameUI] Starting chapter {chapterIndex + 1} from save");
+                MissionChapterManager.Instance.StartChapterFromLoad(chapterIndex);
+            }
+            else
+            {
+                // Old save format or no pending data — just load scene directly
+                Debug.Log("[LoadGameUI] Save loaded (no world state), loading scene");
+                SceneManager.LoadSceneAsync("GameWorld");
+            }
         }
         else
         {
-            // AC5.4: Show error modal (Story 3.3)
             Debug.LogError($"[LoadGameUI] Failed to load save: {metadata.fileName}");
 
-            // Story 3.3: Show error modal for load failure
             if (ModalDialog.Instance != null)
             {
                 ModalDialog.Instance.ShowError("Save file corrupted. Unable to load.");

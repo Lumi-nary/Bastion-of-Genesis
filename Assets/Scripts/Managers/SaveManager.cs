@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// SaveManager handles all save file operations: create, load, delete, scan.
@@ -74,6 +75,9 @@ public class SaveManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
+        // Auto-stop gameplay tracking when returning to menu
+        SceneManager.sceneLoaded += OnSceneLoaded;
+
         // Ensure Saves directory exists
         if (!Directory.Exists(savesPath))
         {
@@ -84,13 +88,100 @@ public class SaveManager : MonoBehaviour
         Debug.Log($"[SaveManager] SaveManager singleton initialized. Saves directory: {savesPath}");
     }
 
+    // ============================================================================
+    // AUTOSAVE & GAMEPLAY STATE
+    // ============================================================================
+
+    private const float AUTOSAVE_INTERVAL = 300f; // 5 minutes
+    private const int AUTOSAVE_SLOT_COUNT = 3;
+    private float autosaveTimer = 0f;
+    private int nextAutosaveSlot = 1; // rotates 1→2→3→1
+    private bool isGameplayActive = false;
+    private float sessionPlaytime = 0f; // playtime accumulated this session
+    private float loadedPlaytime = 0f; // playtime from loaded save
+
+    /// <summary>
+    /// SaveData loaded from file, waiting to be applied after scene loads.
+    /// </summary>
+    private SaveData pendingSaveData;
+
+    /// <summary>
+    /// True if a save is being loaded and state needs to be restored after scene load.
+    /// </summary>
+    public bool HasPendingSaveData => pendingSaveData != null;
+
+    /// <summary>
+    /// Currently active save file name (for overwriting on manual save).
+    /// </summary>
+    public string CurrentSaveFileName { get; private set; }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Stop autosave when returning to menu scene
+        if (scene.name == "MenuScene" && isGameplayActive)
+        {
+            Debug.Log("[SaveManager] Menu scene loaded, stopping gameplay tracking");
+            StopGameplayTracking();
+        }
+    }
+
     private void OnDestroy()
     {
         if (Instance == this)
         {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+
+            // Unsubscribe from events
+            if (MissionChapterManager.Instance != null)
+                MissionChapterManager.Instance.OnMissionCompleted -= OnMissionCompleted;
+
             Debug.Log("[SaveManager] SaveManager singleton destroyed.");
             Instance = null;
         }
+    }
+
+    private void Update()
+    {
+        if (!isGameplayActive) return;
+
+        sessionPlaytime += Time.unscaledDeltaTime;
+
+        autosaveTimer += Time.unscaledDeltaTime;
+        if (autosaveTimer >= AUTOSAVE_INTERVAL)
+        {
+            autosaveTimer = 0f;
+            PerformAutosave();
+        }
+    }
+
+    /// <summary>
+    /// Call when gameplay begins (after scene loads and state is ready).
+    /// </summary>
+    public void StartGameplayTracking()
+    {
+        isGameplayActive = true;
+        autosaveTimer = 0f;
+
+        // Subscribe to mission complete for autosave
+        if (MissionChapterManager.Instance != null)
+            MissionChapterManager.Instance.OnMissionCompleted += OnMissionCompleted;
+    }
+
+    /// <summary>
+    /// Call when leaving gameplay (returning to menu, etc.).
+    /// </summary>
+    public void StopGameplayTracking()
+    {
+        isGameplayActive = false;
+
+        if (MissionChapterManager.Instance != null)
+            MissionChapterManager.Instance.OnMissionCompleted -= OnMissionCompleted;
+    }
+
+    private void OnMissionCompleted(MissionData mission)
+    {
+        Debug.Log($"[SaveManager] Mission completed, performing autosave");
+        PerformAutosave();
     }
 
     // ============================================================================
@@ -111,7 +202,7 @@ public class SaveManager : MonoBehaviour
             // Create SaveData instance
             SaveData saveData = new SaveData
             {
-                version = "1.0.0",
+                version = "2.0.0",
                 baseName = baseName,
                 difficulty = difficulty,
                 mode = mode,
@@ -120,8 +211,6 @@ public class SaveManager : MonoBehaviour
                 currentChapter = 1,
                 currentMission = 1,
                 missionCompletions = new bool[0], // Empty for new save
-                gridState = "{}", // Empty world state
-                pollutionLevel = 0f,
                 hostPlayerName = mode == GameMode.COOP ? baseName : "",
                 connectedPlayers = new string[0]
             };
@@ -278,70 +367,229 @@ public class SaveManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Load save game from file and restore game state (Epic 3 - LoadGameUI).
-    /// Deserializes SaveData JSON and applies state to game managers.
+    /// Load save game from file. Deserializes and stores pendingSaveData
+    /// for restoration after the chapter scene loads.
+    /// Sets pending metadata for scene handoff.
     /// </summary>
-    /// <param name="fileName">File name to load (e.g., "Colony Alpha.json", "autosave_1.json")</param>
-    /// <returns>True if load successful, false if corrupted or missing</returns>
+    /// <param name="fileName">File name to load</param>
+    /// <returns>True if file read and deserialized successfully</returns>
     public bool LoadGame(string fileName)
     {
         try
         {
             string filePath = GetSaveFilePath(fileName);
 
-            // Check if file exists
             if (!File.Exists(filePath))
             {
                 Debug.LogWarning($"[SaveManager] Save file not found: {fileName}");
                 return false;
             }
 
-            // Read and deserialize JSON
             string json = File.ReadAllText(filePath);
             SaveData saveData = JsonUtility.FromJson<SaveData>(json);
 
-            // COOP detection logging (AC4)
-            if (saveData.mode == GameMode.COOP)
+            // Set pending metadata for scene handoff
+            pendingBaseName = saveData.baseName;
+            pendingDifficulty = saveData.difficulty;
+            pendingMode = saveData.mode;
+            pendingChapter = saveData.currentChapter;
+            CurrentSaveFileName = fileName;
+            loadedPlaytime = saveData.totalPlaytime;
+            sessionPlaytime = 0f;
+
+            // Store for post-scene-load restoration
+            if (saveData.version == "1.0.0" || saveData.resources == null)
             {
-                Debug.Log($"[SaveManager] COOP save loaded: {saveData.baseName}");
+                // Old format: no manager state, treat as new game at this chapter
+                pendingSaveData = null;
+                Debug.Log($"[SaveManager] v1.0.0 save loaded (no world state): {saveData.baseName}");
             }
             else
             {
-                Debug.Log($"[SaveManager] Save loaded successfully: {saveData.baseName}");
+                pendingSaveData = saveData;
+                Debug.Log($"[SaveManager] Save loaded: {saveData.baseName}, pending restore after scene load");
             }
-
-            // TODO: Apply state to ISaveable managers (Epic 7+)
-            // For MVP, store loaded data in SaveManager for later use
-            // Future: FindObjectsOfType<ISaveable>() and call LoadSaveData()
 
             return true;
         }
         catch (Exception ex)
         {
-            // Corrupted save handling (AC6)
             Debug.LogError($"[SaveManager] Corrupted save file: {fileName} - {ex.Message}");
             return false;
         }
     }
 
+    // ============================================================================
+    // SAVE GAME (CORE)
+    // ============================================================================
+
     /// <summary>
-    /// Autosave during gameplay (Epic 7 - stub for now).
-    /// Will be called by gameplay managers every 60 seconds + mission/chapter completion.
+    /// Save current game state to file. Collects state from all managers.
+    /// Only host can save in multiplayer.
     /// </summary>
-    public void AutoSave()
+    public bool SaveGame(string fileName)
     {
-        // TODO: Epic 7 - Implement autosave rotation (autosave_1/2/3.json)
-        Debug.LogWarning("[SaveManager] AutoSave() not yet implemented (Epic 7).");
+        // Multiplayer guard: only host/server can save
+        if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsOnline
+            && !NetworkGameManager.Instance.IsServer)
+        {
+            Debug.LogWarning("[SaveManager] Only the host can save the game.");
+            return false;
+        }
+
+        try
+        {
+            SaveData saveData = new SaveData
+            {
+                version = "2.0.0",
+                baseName = pendingBaseName ?? "Unnamed",
+                difficulty = pendingDifficulty,
+                mode = pendingMode,
+                timestamp = DateTime.UtcNow.ToString("o"),
+                totalPlaytime = loadedPlaytime + sessionPlaytime,
+                hostPlayerName = pendingMode == GameMode.COOP ? (pendingBaseName ?? "") : "",
+                connectedPlayers = new string[0]
+            };
+
+            // Export state from each manager
+            if (ResourceManager.Instance != null)
+                saveData.resources = ResourceManager.Instance.ExportState();
+            if (WorkerManager.Instance != null)
+                saveData.workers = WorkerManager.Instance.ExportState();
+            if (BuildingManager.Instance != null)
+                saveData.buildings = BuildingManager.Instance.ExportState();
+            if (ResearchManager.Instance != null)
+                saveData.research = ResearchManager.Instance.ExportState();
+            if (PollutionManager.Instance != null)
+                saveData.pollution = PollutionManager.Instance.ExportState();
+            if (MissionChapterManager.Instance != null)
+                saveData.mission = MissionChapterManager.Instance.ExportState();
+            if (GridManager.Instance != null)
+                saveData.oreMounds = GridManager.Instance.ExportOreMoundState();
+            if (EnemyManager.Instance != null)
+                saveData.enemies = EnemyManager.Instance.ExportState();
+
+            // Set metadata from mission export for UI display
+            if (saveData.mission != null)
+            {
+                saveData.currentChapter = saveData.mission.currentChapterIndex + 1;
+                saveData.currentMission = saveData.mission.currentMissionIndex + 1;
+            }
+
+            // Atomic write
+            string savePath = GetSaveFilePath(fileName);
+            string tempPath = savePath + ".tmp";
+            string json = JsonUtility.ToJson(saveData, true);
+            File.WriteAllText(tempPath, json);
+
+            if (File.Exists(savePath))
+                File.Delete(savePath);
+            File.Move(tempPath, savePath);
+
+            CurrentSaveFileName = fileName;
+            Debug.Log($"[SaveManager] Game saved: {fileName}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[SaveManager] Failed to save: {ex.Message}");
+            return false;
+        }
     }
 
     /// <summary>
-    /// Get next autosave file name with rotation (Epic 7 - stub).
+    /// Manual save from pause menu. Uses base name as filename.
     /// </summary>
-    /// <returns>Next autosave file name</returns>
-    public string GetNextAutosaveName()
+    public bool ManualSave()
     {
-        // TODO: Epic 7 - Implement rotation logic
-        return "autosave_1.json";
+        string safeName = SanitizeFileName(pendingBaseName ?? "manual_save");
+        string fileName = $"{safeName}.json";
+        return SaveGame(fileName);
+    }
+
+    /// <summary>
+    /// Perform autosave with 3-slot rotation.
+    /// </summary>
+    public void PerformAutosave()
+    {
+        string fileName = $"autosave_{nextAutosaveSlot}.json";
+        if (SaveGame(fileName))
+        {
+            nextAutosaveSlot = (nextAutosaveSlot % AUTOSAVE_SLOT_COUNT) + 1;
+            Debug.Log($"[SaveManager] Autosave complete: {fileName}, next slot: {nextAutosaveSlot}");
+        }
+    }
+
+    /// <summary>
+    /// Alias for PerformAutosave (backwards compatibility with PauseMenuUI).
+    /// </summary>
+    public void AutoSave()
+    {
+        PerformAutosave();
+    }
+
+    // ============================================================================
+    // RESTORE STATE (CALLED AFTER SCENE LOAD)
+    // ============================================================================
+
+    /// <summary>
+    /// Restore game state from pending save data.
+    /// Called by MissionChapterManager after the chapter scene loads.
+    /// Import order matters for dependencies.
+    /// </summary>
+    public void RestoreStateFromSave()
+    {
+        if (pendingSaveData == null)
+        {
+            Debug.LogWarning("[SaveManager] No pending save data to restore.");
+            return;
+        }
+
+        SaveData data = pendingSaveData;
+        pendingSaveData = null;
+
+        Debug.Log("[SaveManager] Restoring game state from save...");
+
+        // 1. Resources (must be first — capacities needed by workers and buildings)
+        if (ResourceManager.Instance != null && data.resources != null)
+            ResourceManager.Instance.ImportState(data.resources);
+
+        // 2. Workers (must be before buildings for worker pool)
+        if (WorkerManager.Instance != null && data.workers != null)
+            WorkerManager.Instance.ImportState(data.workers);
+
+        // 3. Research (effects modify capacities and unlock buildings)
+        if (ResearchManager.Instance != null && data.research != null)
+            ResearchManager.Instance.ImportState(data.research);
+
+        // 4. Buildings (depends on resources, workers, research)
+        if (BuildingManager.Instance != null && data.buildings != null)
+            BuildingManager.Instance.ImportState(data.buildings);
+
+        // 5. Pollution
+        if (PollutionManager.Instance != null && data.pollution != null)
+            PollutionManager.Instance.ImportState(data.pollution);
+
+        // 6. Mission state (restore objective progress)
+        if (MissionChapterManager.Instance != null && data.mission != null)
+            MissionChapterManager.Instance.ImportState(data.mission);
+
+        // 7. Ore mounds (scene objects matched by position)
+        if (GridManager.Instance != null && data.oreMounds != null)
+            GridManager.Instance.ImportOreMoundState(data.oreMounds);
+
+        // 8. Enemy counters
+        if (EnemyManager.Instance != null && data.enemies != null)
+            EnemyManager.Instance.ImportState(data.enemies);
+
+        // 9. Energy recalculates from building state (never saved)
+        if (EnergyManager.Instance != null)
+            EnergyManager.Instance.ForceUpdate();
+
+        // Start tracking gameplay
+        StartGameplayTracking();
+
+        Debug.Log("[SaveManager] Game state restored successfully.");
     }
 
     /// <summary>
@@ -360,6 +608,23 @@ public class SaveManager : MonoBehaviour
         {
             return false;
         }
+    }
+
+    // ============================================================================
+    // HELPERS
+    // ============================================================================
+
+    private string SanitizeFileName(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return "save";
+
+        // Replace spaces and invalid chars
+        char[] invalid = Path.GetInvalidFileNameChars();
+        string sanitized = name;
+        foreach (char c in invalid)
+            sanitized = sanitized.Replace(c, '_');
+        sanitized = sanitized.Replace(' ', '_');
+        return sanitized;
     }
 
     // ============================================================================

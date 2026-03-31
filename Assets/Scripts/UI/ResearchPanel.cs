@@ -47,6 +47,7 @@ public class ResearchPanel : MonoBehaviour
     private List<TechNodeUI> spawnedNodes = new List<TechNodeUI>();
     private TechnologyData selectedTech = null;
     private bool isVisible;
+    public bool IsVisible => isVisible;
 
     // Tab button references for easy iteration
     private Dictionary<TechCategory, Button> categoryButtons;

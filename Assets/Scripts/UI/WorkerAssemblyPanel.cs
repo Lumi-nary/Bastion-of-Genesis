@@ -22,6 +22,7 @@ public class WorkerAssemblyPanel : MonoBehaviour
     private Dictionary<WorkerData, FactoryRowUI> factoryRows = new Dictionary<WorkerData, FactoryRowUI>();
     private Dictionary<ResourceType, ConverterRowUI> converterRows = new Dictionary<ResourceType, ConverterRowUI>();
     private bool isVisible;
+    public bool IsVisible => isVisible;
 
     private void Start()
     {
