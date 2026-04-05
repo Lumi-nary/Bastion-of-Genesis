@@ -16,13 +16,21 @@ public class TooltipUI : MonoBehaviour
     [SerializeField] private float maxHeight = 300f;
 
     private RectTransform rectTransform;
-    private Canvas parentCanvas;
+    private Canvas rootCanvas;
+    private RectTransform canvasRect;
     private CanvasGroup canvasGroup;
 
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
-        parentCanvas = GetComponentInParent<Canvas>();
+
+        // Must use the root canvas for coordinate conversion
+        Canvas c = GetComponentInParent<Canvas>();
+        rootCanvas = c != null ? c.rootCanvas : c;
+        canvasRect = rootCanvas != null ? rootCanvas.transform as RectTransform : null;
+
+        // Tooltip pivot must be top-left for positioning to work correctly
+        rectTransform.pivot = new Vector2(0, 1);
 
         // Get or add CanvasGroup to prevent tooltip from blocking raycasts
         canvasGroup = GetComponent<CanvasGroup>();
@@ -46,31 +54,22 @@ public class TooltipUI : MonoBehaviour
         headerText.text = header;
         descriptionText.text = description;
 
-        // Update layout element with max constraints
+        // Let layout calculate natural size, only constrain max width
         if (layoutElement != null)
         {
-            layoutElement.enabled = true;
-            layoutElement.preferredWidth = maxWidth;
-            layoutElement.preferredHeight = -1; // Let height expand
+            // Measure natural text width to avoid stretching short tooltips
+            float headerWidth = headerText.GetPreferredValues(header).x;
+            float descWidth = descriptionText.GetPreferredValues(description).x;
+            float contentWidth = Mathf.Max(headerWidth, descWidth) + 20f; // padding
 
-            // Set maximum size constraints
-            if (layoutElement.preferredWidth > maxWidth)
-            {
-                layoutElement.preferredWidth = maxWidth;
-            }
+            layoutElement.enabled = contentWidth > maxWidth;
+            layoutElement.preferredWidth = maxWidth;
+            layoutElement.preferredHeight = -1;
         }
 
         // Force layout rebuild
         Canvas.ForceUpdateCanvases();
         LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
-
-        // Clamp size to maximum after layout calculation
-        Vector2 tooltipSize = rectTransform.rect.size;
-        if (tooltipSize.x > maxWidth || tooltipSize.y > maxHeight)
-        {
-            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Mathf.Min(tooltipSize.x, maxWidth));
-            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Min(tooltipSize.y, maxHeight));
-        }
     }
 
     public void Hide()
@@ -80,68 +79,40 @@ public class TooltipUI : MonoBehaviour
 
     public void UpdatePosition(Vector2 mousePosition)
     {
-        if (parentCanvas == null) return;
+        if (rootCanvas == null || canvasRect == null) return;
 
-        // Convert mouse position to canvas space
-        Vector2 position;
+        Camera cam = rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : rootCanvas.worldCamera;
 
-        if (parentCanvas.renderMode == RenderMode.ScreenSpaceCamera ||
-            parentCanvas.renderMode == RenderMode.WorldSpace)
-        {
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                parentCanvas.transform as RectTransform,
-                mousePosition,
-                parentCanvas.worldCamera,
-                out position
-            );
-        }
-        else
-        {
-            // Screen Space - Overlay
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                parentCanvas.transform as RectTransform,
-                mousePosition,
-                null,
-                out position
-            );
-        }
+        // Convert screen mouse position to the tooltip's parent local space
+        RectTransform parentRect = rectTransform.parent as RectTransform;
+        Vector2 localPoint;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, mousePosition, cam, out localPoint);
 
-        // Apply offset
-        position += offset;
-
-        // Get canvas and tooltip dimensions
-        RectTransform canvasRect = parentCanvas.transform as RectTransform;
-        Vector2 canvasSize = canvasRect.rect.size;
         Vector2 tooltipSize = rectTransform.rect.size;
+        Vector2 parentSize = parentRect.rect.size;
 
-        // Calculate bounds in local space (canvas is centered at origin)
-        float halfCanvasWidth = canvasSize.x / 2f;
-        float halfCanvasHeight = canvasSize.y / 2f;
+        // Parent rect bounds (assuming pivot at center)
+        float minX = parentRect.rect.xMin;
+        float maxX = parentRect.rect.xMax;
+        float minY = parentRect.rect.yMin;
+        float maxY = parentRect.rect.yMax;
 
-        // Check right edge - if tooltip would go off right side, flip to left of cursor
-        if (position.x + tooltipSize.x > halfCanvasWidth)
-        {
-            position.x -= (tooltipSize.x + offset.x * 2); // Flip to left side
-        }
+        // Default: tooltip to the right and below cursor (pivot is top-left)
+        float x = localPoint.x + offset.x;
+        float y = localPoint.y + offset.y;
 
-        // Check left edge
-        if (position.x < -halfCanvasWidth)
-        {
-            position.x = -halfCanvasWidth;
-        }
+        // Flip left if it would go off the right edge
+        if (x + tooltipSize.x > maxX)
+            x = localPoint.x - offset.x - tooltipSize.x;
 
-        // Check bottom edge - if tooltip would go off bottom, flip to top of cursor
-        if (position.y - tooltipSize.y < -halfCanvasHeight)
-        {
-            position.y += (tooltipSize.y - offset.y * 2); // Flip to top side
-        }
+        // Flip up if it would go off the bottom edge
+        if (y - tooltipSize.y < minY)
+            y = localPoint.y - offset.y + tooltipSize.y;
 
-        // Check top edge
-        if (position.y > halfCanvasHeight)
-        {
-            position.y = halfCanvasHeight;
-        }
+        // Clamp to parent bounds
+        x = Mathf.Clamp(x, minX, maxX - tooltipSize.x);
+        y = Mathf.Clamp(y, minY + tooltipSize.y, maxY);
 
-        rectTransform.localPosition = position;
+        rectTransform.localPosition = new Vector3(x, y, 0);
     }
 }

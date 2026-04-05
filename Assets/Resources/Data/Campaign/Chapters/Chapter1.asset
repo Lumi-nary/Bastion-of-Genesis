@@ -13,10 +13,28 @@ MonoBehaviour:
   m_Name: Chapter1
   m_EditorClassIdentifier: Assembly-CSharp::ChapterData
   chapterNumber: 1
-  chapterName: Chapter 1
-  chapterDescription: Welcome to new world
-  chapterIntroText: Chapter1 - Intro
-  chapterOutroText: Chapter1 - Outro
+  chapterName: Landfall
+  chapterDescription: "The Null-Vector has crash-landed on an uncharted world. Kyra-Dominia
+    must establish the colony's foothold, harvest alien resources, and begin the
+    Supreme Habitation Protocol. But the planet's indigenous defenders \u2014 the
+    Lumina \u2014 will not watch their world be reformatted in silence."
+  chapterIntroText: "The descent was never meant to end like this. A fatal miscalculation
+    buried the Null-Vector nose-deep in the continent's mud, scattering cargo pods
+    across the valley. As monsoon rains hammer the alien jungle, Kyra-Dominia surveys
+    what remains \u2014 a functioning Command Center, a handful of task-bots, and
+    an endless wilderness of crystalline rocks and hostile flora.\n\nMineral scans
+    show iron deposits nearby. The reactor still hums. The Supreme Habitation Protocol
+    can proceed.\n\nBut the ground trembles with something alive. The Lumina are
+    watching. And every factory built, every tree overwritten, every plume of pollution
+    that rises \u2014 it all draws them closer.\n\nEstablish the bastion. Harvest
+    what you can. Build what you must. Genesis begins now."
+  chapterOutroText: "The Warden collapses, its massive frame crashing into scorched
+    earth with a tremor felt across the valley. For the first time since landfall,
+    the jungle is silent.\n\nKyra-Dominia stands amid the wreckage of her first true
+    battle. The colony holds. The Protocol continues. But as long-range sensors flicker
+    to life, the readings beyond the mountains reveal something unexpected \u2014
+    vast energy signatures, structures that predate even the Lumina by millennia.\n\nThis
+    world has deeper secrets than its custodians. And now, it knows she is here."
   introDialogue: {fileID: 11400000, guid: 5414e7b715861ff479244f4f31951b27, type: 2}
   startingResources:
   - resourceType: {fileID: 11400000, guid: bb2aea2cb49421c46aabf3bfd3252158, type: 2}

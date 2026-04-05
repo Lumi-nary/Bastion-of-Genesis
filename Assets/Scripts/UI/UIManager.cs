@@ -330,10 +330,24 @@ public class UIManager : MonoBehaviour
 
     public void ShowTooltip(string header, string description)
     {
+        // If content changed while tooltip is already visible, update immediately
+        bool contentChanged = header != pendingTooltipHeader || description != pendingTooltipDescription;
+
         pendingTooltipHeader = header;
         pendingTooltipDescription = description;
         isTooltipHovering = true;
-        tooltipHoverTimer = 0f;
+        isTooltipPendingHide = false;
+
+        if (contentChanged && tooltipUI != null && tooltipUI.gameObject.activeSelf)
+        {
+            // Already showing — update content and position instantly
+            ShowTooltipImmediate();
+        }
+        else if (!tooltipUI.gameObject.activeSelf)
+        {
+            // Not showing yet — reset delay timer
+            tooltipHoverTimer = 0f;
+        }
     }
 
     private void ShowTooltipImmediate()
