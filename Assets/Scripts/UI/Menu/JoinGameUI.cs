@@ -360,7 +360,7 @@ public class JoinGameUI : MonoBehaviour
         connectionSucceeded = true;
         isConnecting = false;
 
-        UpdateStatus("Connected! Joining lobby...");
+        UpdateStatus("Connected! Joining game...");
 
         // Stop listening for servers
         if (LANDiscovery.Instance != null)
@@ -368,13 +368,11 @@ public class JoinGameUI : MonoBehaviour
             LANDiscovery.Instance.StopListening();
         }
 
-        // Set pending mode to COOP so lobby knows this is multiplayer
-        // Also set the base name from the server we joined (client doesn't have this otherwise)
+        // Set pending mode to COOP and store the server name
         if (SaveManager.Instance != null)
         {
             SaveManager.Instance.pendingMode = GameMode.COOP;
 
-            // Use the server name we stored when clicking join
             if (!string.IsNullOrEmpty(lastJoinedServerName))
             {
                 SaveManager.Instance.pendingBaseName = lastJoinedServerName;
@@ -384,24 +382,10 @@ public class JoinGameUI : MonoBehaviour
             Debug.Log("[JoinGameUI] Set pendingMode to COOP");
         }
 
-        // Transition to lobby immediately (don't use coroutine - it can be interrupted)
-        TransitionToLobby();
-    }
-
-    private void TransitionToLobby()
-    {
-        Debug.Log("[JoinGameUI] TransitionToLobby called");
-
-        // Transition to multiplayer lobby
-        if (MenuManager.Instance != null)
-        {
-            Debug.Log("[JoinGameUI] Switching to multiplayer canvas...");
-            MenuManager.Instance.ShowMultiplayerCanvas();
-        }
-        else
-        {
-            Debug.LogError("[JoinGameUI] MenuManager.Instance is null!");
-        }
+        // FishNet will automatically load the client into the host's game scene
+        // (the host registered it as a global scene when opening LAN).
+        // No need to load CutsceneScene or Chapter1Map manually.
+        Debug.Log("[JoinGameUI] Connected — FishNet will sync client to host's scene automatically");
     }
 
     private void OnDisconnected()

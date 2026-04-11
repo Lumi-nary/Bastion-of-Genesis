@@ -3,8 +3,8 @@ using UnityEngine.SceneManagement;
 
 /// <summary>
 /// CreateBaseButton triggers the New Base creation flow.
-/// For Singleplayer: Sets SaveManager pending data and loads CutsceneScene.
-/// For COOP: Sets pending data and opens MultiplayerCanvas lobby.
+/// Sets SaveManager pending data and loads CutsceneScene.
+/// Multiplayer is enabled in-game via "Open to LAN" in the pause menu.
 /// </summary>
 public class CreateBaseButton : MonoBehaviour
 {
@@ -13,8 +13,7 @@ public class CreateBaseButton : MonoBehaviour
 
     /// <summary>
     /// Handle Create Base button click.
-    /// For SP: Load CutsceneScene immediately.
-    /// For COOP: Open multiplayer lobby to wait for players.
+    /// Always starts as singleplayer. LAN can be opened in-game.
     /// </summary>
     public void OnClick()
     {
@@ -33,9 +32,8 @@ public class CreateBaseButton : MonoBehaviour
         // Get form values
         string baseName = newBaseUI.GetBaseName();
         Difficulty difficulty = newBaseUI.GetDifficulty();
-        GameMode mode = newBaseUI.GetMode();
 
-        Debug.Log($"[CreateBaseButton] Creating new base: {baseName}, {difficulty}, {mode}");
+        Debug.Log($"[CreateBaseButton] Creating new base: {baseName}, {difficulty}");
 
         // Set SaveManager pending data
         if (SaveManager.Instance == null)
@@ -46,35 +44,10 @@ public class CreateBaseButton : MonoBehaviour
 
         SaveManager.Instance.pendingBaseName = baseName;
         SaveManager.Instance.pendingDifficulty = difficulty;
-        SaveManager.Instance.pendingMode = mode;
+        SaveManager.Instance.pendingMode = GameMode.Singleplayer;
         SaveManager.Instance.pendingChapter = 1;
 
-        Debug.Log($"[CreateBaseButton] SaveManager pending data set");
-
-        if (mode == GameMode.Singleplayer)
-        {
-            // Singleplayer: Start local FishNet host so NetworkBehaviour code works
-            if (NetworkGameManager.Instance != null)
-            {
-                NetworkGameManager.Instance.StartLocalHost();
-            }
-
-            Debug.Log("[CreateBaseButton] Singleplayer - Loading CutsceneScene");
-            SceneManager.LoadSceneAsync("CutsceneScene");
-        }
-        else
-        {
-            // COOP: Open multiplayer lobby
-            Debug.Log("[CreateBaseButton] COOP - Opening multiplayer lobby as host");
-
-            if (MenuManager.Instance != null)
-            {
-                MenuManager.Instance.ShowMultiplayerCanvas();
-            }
-            else
-            {
-                Debug.LogError("[CreateBaseButton] MenuManager not found!");
-            }
-        }
+        Debug.Log("[CreateBaseButton] Loading CutsceneScene");
+        SceneManager.LoadSceneAsync("CutsceneScene");
     }
 }

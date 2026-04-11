@@ -320,7 +320,7 @@ public class NetworkedWorkerManager : NetworkBehaviour
     /// Server broadcasts full worker state to all clients via RPC.
     /// </summary>
     [Server]
-    private void BroadcastFullStateToClients()
+    public void BroadcastFullStateToClients()
     {
         List<int> indices = new List<int>();
         List<int> amounts = new List<int>();
@@ -374,6 +374,8 @@ public class NetworkedWorkerManager : NetworkBehaviour
                 Debug.Log($"[NetworkedWorkerManager] CLIENT synced {type.workerName}: {amounts[i]}/{capacities[i]}");
             }
         }
+
+        Debug.Log($"[SYNC SUCCESS] Workers synced: {indices.Length} worker types from host. Players are in sync.");
     }
 
     // ============================================================================

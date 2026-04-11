@@ -4,8 +4,8 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Building selection panel with category tabs.
-/// Shows category buttons at top, building buttons below based on selected category.
+/// Building selection with accordion categories in the ActionPanel
+/// and a flyout building list panel to the right.
 /// </summary>
 public class BuildingSelectionPanel : MonoBehaviour
 {
@@ -15,25 +15,27 @@ public class BuildingSelectionPanel : MonoBehaviour
     [SerializeField] private GameObject categoryButtonPrefab;
 
     [Header("UI References")]
-    [SerializeField] private GameObject panel;
-    public bool IsVisible => panel != null && panel.activeSelf;
     [SerializeField] private Transform categoryContainer;
     [SerializeField] private Transform buildingContainer;
+    [SerializeField] private GameObject buildingListPanel;
 
     [Header("Category Settings")]
     [SerializeField] private Color selectedCategoryColor = new Color(0.3f, 0.6f, 1f, 1f);
-    [SerializeField] private Color normalCategoryColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+    [SerializeField] private Color normalCategoryColor = new Color(0.25f, 0.25f, 0.3f, 1f);
 
     // Track spawned buttons
     private List<GameObject> categoryButtons = new List<GameObject>();
     private List<GameObject> buildingButtons = new List<GameObject>();
 
     // Current state
-    private BuildingCategory currentCategory = BuildingCategory.Command;
+    private BuildingCategory currentCategory;
     private Button selectedCategoryButton;
+    private bool categoriesVisible;
 
-    // Cache buildings by category
+    // Cache
     private Dictionary<BuildingCategory, List<BuildingData>> buildingsByCategory = new Dictionary<BuildingCategory, List<BuildingData>>();
+
+    public bool IsVisible => categoriesVisible;
 
     private void Awake()
     {
@@ -44,7 +46,6 @@ public class BuildingSelectionPanel : MonoBehaviour
         }
 
         CacheBuildingsByCategory();
-        CreateCategoryButtons();
     }
 
     private void Start()
@@ -52,49 +53,59 @@ public class BuildingSelectionPanel : MonoBehaviour
         HidePanel();
     }
 
-    /// <summary>
-    /// Cache buildings grouped by category for quick lookup.
-    /// </summary>
     private void CacheBuildingsByCategory()
     {
-        // Initialize all categories
         foreach (BuildingCategory category in System.Enum.GetValues(typeof(BuildingCategory)))
-        {
             buildingsByCategory[category] = new List<BuildingData>();
-        }
 
-        // Sort buildings into categories (only player-buildable ones)
         foreach (BuildingData building in buildingDatabase.availableBuildings)
         {
             if (building != null && building.isPlayerBuildable)
-            {
                 buildingsByCategory[building.category].Add(building);
-            }
         }
     }
 
     /// <summary>
-    /// Create category tab buttons.
+    /// Toggle categories. Called when BUILDING action button is clicked.
     /// </summary>
+    public void TogglePanel()
+    {
+        if (categoriesVisible)
+            HidePanel();
+        else
+            ShowPanel();
+    }
+
+    public void ShowPanel()
+    {
+        categoriesVisible = true;
+        CreateCategoryButtons();
+
+        if (categoryContainer != null)
+            categoryContainer.gameObject.SetActive(true);
+    }
+
+    public void HidePanel()
+    {
+        categoriesVisible = false;
+
+        if (categoryContainer != null)
+            categoryContainer.gameObject.SetActive(false);
+
+        HideBuildingList();
+        ClearCategoryButtons();
+    }
+
     private void CreateCategoryButtons()
     {
-        if (categoryContainer == null || categoryButtonPrefab == null)
-        {
-            Debug.LogError("[BuildingSelectionPanel] Category container or prefab not assigned!");
-            return;
-        }
+        ClearCategoryButtons();
 
-        // Clear existing
-        foreach (Transform child in categoryContainer)
-        {
-            Destroy(child.gameObject);
-        }
-        categoryButtons.Clear();
+        if (categoryContainer == null || categoryButtonPrefab == null) return;
 
-        // Create button for each category
+        selectedCategoryButton = null;
+
         foreach (BuildingCategory category in System.Enum.GetValues(typeof(BuildingCategory)))
         {
-            // Skip categories with no unlocked buildings
             if (CountUnlockedInCategory(category) == 0) continue;
 
             GameObject buttonGO = Instantiate(categoryButtonPrefab, categoryContainer);
@@ -104,183 +115,134 @@ public class BuildingSelectionPanel : MonoBehaviour
             Button button = buttonGO.GetComponent<Button>();
             if (button != null)
             {
-                BuildingCategory capturedCategory = category;
-                button.onClick.AddListener(() => SelectCategory(capturedCategory, button));
+                BuildingCategory captured = category;
+                button.onClick.AddListener(() => SelectCategory(captured, button));
 
-                // Set button text
-                TextMeshProUGUI buttonText = buttonGO.GetComponentInChildren<TextMeshProUGUI>();
-                if (buttonText != null)
-                {
-                    buttonText.text = GetCategoryDisplayName(category);
-                }
+                TextMeshProUGUI text = buttonGO.GetComponentInChildren<TextMeshProUGUI>();
+                if (text != null)
+                    text.text = GetCategoryDisplayName(category);
 
-                // Select first category by default
-                if (selectedCategoryButton == null)
-                {
-                    SelectCategory(category, button);
-                }
+                SetButtonColor(button, normalCategoryColor);
             }
         }
     }
 
-    /// <summary>
-    /// Get display name for category.
-    /// </summary>
+    private void ClearCategoryButtons()
+    {
+        foreach (GameObject btn in categoryButtons)
+            Destroy(btn);
+        categoryButtons.Clear();
+    }
+
+    private void SelectCategory(BuildingCategory category, Button button)
+    {
+        // Deselect previous
+        if (selectedCategoryButton != null)
+            SetButtonColor(selectedCategoryButton, normalCategoryColor);
+
+        // If clicking the same category, toggle the building list off
+        if (selectedCategoryButton == button && buildingListPanel != null && buildingListPanel.activeSelf)
+        {
+            HideBuildingList();
+            selectedCategoryButton = null;
+            return;
+        }
+
+        currentCategory = category;
+        selectedCategoryButton = button;
+        SetButtonColor(button, selectedCategoryColor);
+
+        ShowBuildingsForCategory(category);
+    }
+
+    private void ShowBuildingsForCategory(BuildingCategory category)
+    {
+        if (buildingContainer == null || buildingButtonPrefab == null) return;
+
+        // Clear existing
+        foreach (GameObject btn in buildingButtons)
+            Destroy(btn);
+        buildingButtons.Clear();
+
+        // Create building buttons
+        List<BuildingData> buildings = buildingsByCategory[category];
+        foreach (BuildingData data in buildings)
+        {
+            if (!IsBuildingUnlocked(data)) continue;
+
+            GameObject buttonGO = Instantiate(buildingButtonPrefab, buildingContainer);
+            buttonGO.name = data.buildingName + "_Button";
+            buildingButtons.Add(buttonGO);
+
+            BuildingButton buildingButton = buttonGO.GetComponent<BuildingButton>();
+            if (buildingButton != null)
+            {
+                buildingButton.Configure(data);
+                Button btn = buildingButton.GetButton();
+                if (btn != null)
+                    btn.onClick.AddListener(() => OnBuildingSelected(data));
+            }
+        }
+
+        // Show the flyout panel
+        if (buildingListPanel != null)
+            buildingListPanel.SetActive(true);
+    }
+
+    private void HideBuildingList()
+    {
+        if (buildingListPanel != null)
+            buildingListPanel.SetActive(false);
+
+        foreach (GameObject btn in buildingButtons)
+            Destroy(btn);
+        buildingButtons.Clear();
+    }
+
+    private void OnBuildingSelected(BuildingData data)
+    {
+        if (data != null && PlacementSystem.Instance != null)
+        {
+            PlacementSystem.Instance.EnterBuildMode(data);
+            HidePanel();
+        }
+    }
+
+    private bool IsBuildingUnlocked(BuildingData data)
+    {
+        if (data == null) return false;
+        if (data.requiredTech == null) return true;
+
+        bool byResearch = ResearchManager.Instance != null && ResearchManager.Instance.IsTechResearched(data.requiredTech);
+        bool byMission = BuildingManager.Instance != null && BuildingManager.Instance.IsBuildingUnlockedByMission(data);
+        return byResearch || byMission;
+    }
+
+    private int CountUnlockedInCategory(BuildingCategory category)
+    {
+        int count = 0;
+        foreach (BuildingData b in buildingsByCategory[category])
+            if (IsBuildingUnlocked(b)) count++;
+        return count;
+    }
+
+    private void SetButtonColor(Button button, Color color)
+    {
+        Image img = button.GetComponent<Image>();
+        if (img != null) img.color = color;
+    }
+
     private string GetCategoryDisplayName(BuildingCategory category)
     {
         switch (category)
         {
             case BuildingCategory.Command: return "Command";
             case BuildingCategory.Energy: return "Energy";
-            case BuildingCategory.Extraction: return "Extract";
+            case BuildingCategory.Extraction: return "Extraction";
             case BuildingCategory.Production: return "Production";
             case BuildingCategory.Defense: return "Defense";
             case BuildingCategory.Research: return "Research";
             default: return category.ToString();
-        }
-    }
-
-    /// <summary>
-    /// Select a category and show its buildings.
-    /// </summary>
-    private void SelectCategory(BuildingCategory category, Button button)
-    {
-        currentCategory = category;
-
-        // Update button visuals
-        if (selectedCategoryButton != null)
-        {
-            SetButtonColor(selectedCategoryButton, normalCategoryColor);
-        }
-        selectedCategoryButton = button;
-        SetButtonColor(selectedCategoryButton, selectedCategoryColor);
-
-        // Show buildings for this category
-        ShowBuildingsForCategory(category);
-    }
-
-    /// <summary>
-    /// Set button background color.
-    /// </summary>
-    private void SetButtonColor(Button button, Color color)
-    {
-        Image image = button.GetComponent<Image>();
-        if (image != null)
-        {
-            image.color = color;
-        }
-    }
-
-    /// <summary>
-    /// Show building buttons for selected category.
-    /// </summary>
-    private void ShowBuildingsForCategory(BuildingCategory category)
-    {
-        if (buildingContainer == null || buildingButtonPrefab == null) return;
-
-        // Clear existing building buttons
-        foreach (GameObject btn in buildingButtons)
-        {
-            Destroy(btn);
-        }
-        buildingButtons.Clear();
-
-        // Create buttons for buildings in this category
-        List<BuildingData> buildings = buildingsByCategory[category];
-        foreach (BuildingData buildingData in buildings)
-        {
-            if (!IsBuildingUnlocked(buildingData)) continue;
-
-            GameObject buttonGO = Instantiate(buildingButtonPrefab, buildingContainer);
-            buttonGO.name = buildingData.buildingName + "_Button";
-            buildingButtons.Add(buttonGO);
-
-            BuildingButton buildingButton = buttonGO.GetComponent<BuildingButton>();
-            if (buildingButton != null)
-            {
-                buildingButton.Configure(buildingData);
-                buildingButton.GetButton().onClick.AddListener(() => OnBuildingSelected(buildingData));
-            }
-        }
-    }
-
-    /// <summary>
-    /// Called when a building button is clicked.
-    /// </summary>
-    private void OnBuildingSelected(BuildingData buildingData)
-    {
-        if (buildingData != null && PlacementSystem.Instance != null)
-        {
-            PlacementSystem.Instance.EnterBuildMode(buildingData);
-            HidePanel();
-        }
-    }
-
-    /// <summary>
-    /// Check if a building is currently unlocked (no tech requirement, or tech researched, or mission unlocked).
-    /// </summary>
-    private bool IsBuildingUnlocked(BuildingData buildingData)
-    {
-        if (buildingData == null) return false;
-        if (buildingData.requiredTech == null) return true;
-
-        bool unlockedByResearch = ResearchManager.Instance != null && ResearchManager.Instance.IsTechResearched(buildingData.requiredTech);
-        bool unlockedByMission = BuildingManager.Instance != null && BuildingManager.Instance.IsBuildingUnlockedByMission(buildingData);
-        return unlockedByResearch || unlockedByMission;
-    }
-
-    /// <summary>
-    /// Count how many buildings in a category are currently unlocked.
-    /// </summary>
-    private int CountUnlockedInCategory(BuildingCategory category)
-    {
-        int count = 0;
-        foreach (BuildingData building in buildingsByCategory[category])
-        {
-            if (IsBuildingUnlocked(building)) count++;
-        }
-        return count;
-    }
-
-    /// <summary>
-    /// Show the building selection panel.
-    /// </summary>
-    public void ShowPanel()
-    {
-        if (panel != null)
-        {
-            panel.SetActive(true);
-            // Rebuild category tabs and buildings in case tech was unlocked
-            CreateCategoryButtons();
-        }
-    }
-
-    /// <summary>
-    /// Hide the building selection panel.
-    /// </summary>
-    public void HidePanel()
-    {
-        if (panel != null)
-        {
-            panel.SetActive(false);
-        }
-    }
-
-    /// <summary>
-    /// Toggle panel visibility.
-    /// </summary>
-    public void TogglePanel()
-    {
-        if (panel != null)
-        {
-            if (panel.activeSelf)
-            {
-                HidePanel();
-            }
-            else
-            {
-                ShowPanel();
-            }
         }
     }
 }

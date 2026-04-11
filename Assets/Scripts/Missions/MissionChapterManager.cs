@@ -86,6 +86,21 @@ public class MissionChapterManager : MonoBehaviour
     /// </summary>
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        // COOP Client: FishNet loads the game scene directly (StartChapter is never called),
+        // so awaitingSceneValidation is never set. Detect this and trigger validation anyway.
+        bool isCoopClient = SaveManager.Instance != null
+            && SaveManager.Instance.pendingMode == GameMode.COOP
+            && NetworkGameManager.Instance != null
+            && NetworkGameManager.Instance.IsClient
+            && !NetworkGameManager.Instance.IsHost;
+
+        if (!awaitingSceneValidation && isCoopClient && scene.name != "MenuScene" && scene.name != "CutsceneScene")
+        {
+            Debug.Log($"[MissionChapterManager] COOP Client scene loaded by FishNet: {scene.name}, triggering validation...");
+            StartCoroutine(ValidateSceneAfterDelay());
+            return;
+        }
+
         if (!awaitingSceneValidation) return;
 
         awaitingSceneValidation = false;
@@ -101,83 +116,61 @@ public class MissionChapterManager : MonoBehaviour
         yield return null;
         yield return null; // Extra frame for safety
 
-        // If networked, wait for managers to be spawned and ready
-        if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsOnline)
+        // If networked, wait for mission manager to have valid data
+        bool isCoopClient = NetworkGameManager.Instance != null
+            && NetworkGameManager.Instance.IsClient
+            && !NetworkGameManager.Instance.IsServer;
+
+        if (isCoopClient)
         {
-            Debug.Log("[MissionChapterManager] Online mode detected, waiting for Network Managers...");
-            float timeout = 10.0f; 
+            Debug.Log("[MissionChapterManager] COOP Client - waiting for mission data from host...");
+
+            // Wait for NetworkedMissionManager to exist and have a valid chapter index
+            float timeout = 10.0f;
             while (timeout > 0)
             {
-                bool resourcesReady = NetworkedResourceManager.Instance != null && NetworkedResourceManager.Instance.IsSpawned;
-                bool missionsReady = NetworkedMissionManager.Instance != null && NetworkedMissionManager.Instance.IsSpawned;
-                
-                // On Client, also wait for the chapter index to be synced (must be > 0)
-                bool stateSynced = true;
-                if (!NetworkGameManager.Instance.IsServer && missionsReady)
-                {
-                    stateSynced = NetworkedMissionManager.Instance.CurrentChapterIndex > 0;
-                }
-
-                if (resourcesReady && missionsReady && stateSynced)
+                if (NetworkedMissionManager.Instance != null && NetworkedMissionManager.Instance.CurrentChapterIndex > 0)
                     break;
-                
-                timeout -= Time.deltaTime;
+
+                timeout -= Time.unscaledDeltaTime;
                 yield return null;
             }
-            
-            if (timeout <= 0)
+
+            if (NetworkedMissionManager.Instance != null && NetworkedMissionManager.Instance.CurrentChapterIndex > 0)
             {
-                Debug.LogWarning($"[MissionChapterManager] Network sync timeout. Resources: {NetworkedResourceManager.Instance?.IsSpawned}, Missions: {NetworkedMissionManager.Instance?.IsSpawned}, ChapterIndex: {NetworkedMissionManager.Instance?.CurrentChapterIndex}");
+                int netChapterNum = NetworkedMissionManager.Instance.CurrentChapterIndex;
+                int netIndex = netChapterNum - 1;
+
+                if (netIndex >= 0 && netIndex < chapters.Count)
+                {
+                    currentChapterIndex = netIndex;
+                    currentChapter = chapters[netIndex];
+
+                    int netMissionNum = NetworkedMissionManager.Instance.CurrentMissionIndex;
+                    currentMissionIndex = Mathf.Max(0, netMissionNum - 1);
+
+                    Debug.Log($"[SYNC SUCCESS] Client synced chapter/mission from host - Chapter: {currentChapter.chapterName}, Mission Index: {currentMissionIndex}");
+                }
+                else
+                {
+                    Debug.LogError($"[MissionChapterManager] Client received invalid chapter number: {netChapterNum}");
+                }
             }
             else
             {
-                Debug.Log("[MissionChapterManager] Network Managers and state are ready.");
-                
-                // If we are a client, we need to know which chapter and mission we are in!
-                if (!NetworkGameManager.Instance.IsServer && NetworkedMissionManager.Instance != null)
+                Debug.LogWarning($"[MissionChapterManager] COOP Client mission sync timeout. Using chapter 0 as fallback.");
+                if (chapters.Count > 0)
                 {
-                    int netChapterNum = NetworkedMissionManager.Instance.CurrentChapterIndex;
-                    int netIndex = netChapterNum - 1; 
-
-                    if (netIndex >= 0 && netIndex < chapters.Count)
-                    {
-                        ChapterData targetChapter = chapters[netIndex];
-                        string currentSceneName = SceneManager.GetActiveScene().name;
-
-                        // CRITICAL: Only sync if we are in the correct scene!
-                        // This prevents premature initialization in WorldMap/Menu while waiting for load
-                        if (!string.IsNullOrEmpty(targetChapter.sceneName) && currentSceneName != targetChapter.sceneName)
-                        {
-                            Debug.Log($"[MissionChapterManager] Client detected Chapter {netIndex+1} active, but current scene '{currentSceneName}' != target '{targetChapter.sceneName}'. Waiting for scene load...");
-                        }
-                        else
-                        {
-                            currentChapterIndex = netIndex;
-                            currentChapter = targetChapter;
-                            
-                            // Also sync mission index
-                            int netMissionNum = NetworkedMissionManager.Instance.CurrentMissionIndex;
-                            currentMissionIndex = Mathf.Max(0, netMissionNum - 1);
-                            
-                            Debug.Log($"[MissionChapterManager] Client synced from network - Chapter: {currentChapter.chapterName} ({currentChapterIndex}), Mission Index: {currentMissionIndex}");
-                            
-                            // Also request resources and workers immediately
-                            if (NetworkedResourceManager.Instance != null)
-                            {
-                                NetworkedResourceManager.Instance.RequestFullSyncServerRpc();
-                            }
-                            if (NetworkedWorkerManager.Instance != null)
-                            {
-                                NetworkedWorkerManager.Instance.RequestFullSyncServerRpc();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogError($"[MissionChapterManager] Client received invalid chapter number: {netChapterNum}");
-                    }
+                    currentChapterIndex = 0;
+                    currentChapter = chapters[0];
                 }
             }
+        }
+        else if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsOnline)
+        {
+            // Host: wait for network managers briefly then continue
+            yield return null;
+            yield return null;
         }
 
         if (ValidateChapterScene())
@@ -286,10 +279,20 @@ public class MissionChapterManager : MonoBehaviour
         }
 
         // Reset pollution and configure from chapter settings
+        // Clients skip reset to preserve synced values from host
         if (PollutionManager.Instance != null)
         {
-            PollutionManager.Instance.ResetPollution();
-            PollutionManager.Instance.ConfigureFromChapter(currentChapter.maxPollution, currentChapter.pollutionDecayRate);
+            if (!isClientOnly)
+            {
+                PollutionManager.Instance.ResetPollution();
+                PollutionManager.Instance.ConfigureFromChapter(currentChapter.maxPollution, currentChapter.pollutionDecayRate);
+            }
+            else
+            {
+                Debug.Log("[MissionChapterManager] Client: Skipping pollution reset to preserve networked state.");
+                // Still configure limits so UI displays correctly
+                PollutionManager.Instance.ConfigureFromChapter(currentChapter.maxPollution, currentChapter.pollutionDecayRate);
+            }
         }
 
         // Set starting integration radius
@@ -299,8 +302,9 @@ public class MissionChapterManager : MonoBehaviour
             Debug.Log($"[MissionChapterManager] Integration radius set to: {currentChapter.startingIntegrationRadius}");
         }
 
-        // Subscribe to building events for objectives
-        if (BuildingManager.Instance != null)
+        // Subscribe to building events for objectives (host/singleplayer only)
+        // Clients receive objective progress from the host via NetworkedMissionManager
+        if (!isClientOnly && BuildingManager.Instance != null)
         {
             BuildingManager.Instance.OnBuildingPlaced += OnBuildingPlaced;
         }
@@ -327,12 +331,44 @@ public class MissionChapterManager : MonoBehaviour
 
         Debug.Log("[MissionChapterManager] Chapter state initialization complete");
 
-        // Start tracking gameplay for new games
-        if (SaveManager.Instance != null)
-            SaveManager.Instance.StartGameplayTracking();
+        if (!isClientOnly)
+        {
+            // Host/Singleplayer: Start tracking and begin missions
+            if (SaveManager.Instance != null)
+                SaveManager.Instance.StartGameplayTracking();
 
-        // Play chapter intro dialogue (if set), then start first mission
-        StartCoroutine(PlayChapterIntroAndStartMission());
+            // Play chapter intro dialogue (if set), then start first mission
+            StartCoroutine(PlayChapterIntroAndStartMission());
+        }
+        else
+        {
+            // Client: Activate the current mission locally for UI display.
+            // The mission index was already synced from the host in ValidateSceneAfterDelay.
+            if (currentChapter != null && currentMissionIndex < currentChapter.missions.Count)
+            {
+                currentMission = currentChapter.missions[currentMissionIndex];
+
+                // Reset objectives to clean state first
+                foreach (var objective in currentMission.objectives)
+                {
+                    objective.isCompleted = false;
+                    objective.currentAmount = 0;
+                    objective.currentTime = 0f;
+                }
+
+                // Sync objective progress from host via NetworkedMissionManager
+                if (NetworkedMissionManager.Instance != null)
+                {
+                    NetworkedMissionManager.Instance.SyncObjectivesToLocal(currentMission);
+                }
+
+                missionActive = true;
+                OnMissionStarted?.Invoke(currentMission);
+                Debug.Log($"[SYNC] Client activated mission for UI: {currentMission.missionName}");
+            }
+
+            Debug.Log("[SYNC] Client chapter state initialization complete.");
+        }
     }
 
     /// <summary>
@@ -480,15 +516,16 @@ public class MissionChapterManager : MonoBehaviour
 
             if (isCoop && isHost)
             {
-                // COOP: Host loads scene for all players via FishNet
-                Debug.Log($"[MissionChapterManager] COOP mode - Host loading {chapter.sceneName} for all players");
+                // COOP Host: Load scene for all players via FishNet
+                Debug.Log($"[MissionChapterManager] COOP Host - Loading {chapter.sceneName} via FishNet for all players");
                 NetworkGameManager.Instance.LoadNetworkedScene(chapter.sceneName);
             }
             else if (isCoop && !isHost)
             {
-                // COOP: Client waits for host (scene loading synced by FishNet)
-                Debug.Log("[MissionChapterManager] COOP mode - Client waiting for host to load scene");
-                awaitingSceneValidation = true; // Client also needs to validate scene once loaded!
+                // COOP Client: FishNet handles scene loading automatically.
+                // The host registered the game scene as a global scene when opening LAN.
+                // Do NOT load the scene locally — FishNet will load it.
+                Debug.Log($"[MissionChapterManager] COOP Client - Scene will be loaded by FishNet (not locally)");
             }
             else
             {
@@ -895,6 +932,16 @@ public class MissionChapterManager : MonoBehaviour
                 continue;
 
             objective.currentAmount += amount;
+
+            // Sync progress to network so clients see it
+            if (NetworkedMissionManager.Instance != null && NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsServer)
+            {
+                int objIndex = currentMission.objectives.IndexOf(objective);
+                if (objIndex >= 0)
+                {
+                    NetworkedMissionManager.Instance.ServerUpdateObjectiveProgress(objIndex, objective.currentAmount);
+                }
+            }
 
             if (objective.currentAmount >= objective.targetAmount)
             {

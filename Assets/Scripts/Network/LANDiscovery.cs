@@ -112,10 +112,13 @@ public class LANDiscovery : MonoBehaviour
     {
         lastUpdateTime = Time.realtimeSinceStartup;
 
+        // Use unscaledDeltaTime so broadcasting/listening works while game is paused
+        float dt = Time.unscaledDeltaTime;
+
         // Handle broadcasting
         if (isBroadcasting)
         {
-            broadcastTimer += Time.deltaTime;
+            broadcastTimer += dt;
             if (broadcastTimer >= broadcastInterval)
             {
                 broadcastTimer = 0f;
@@ -126,7 +129,7 @@ public class LANDiscovery : MonoBehaviour
         // Handle localhost polling (like Minecraft/Factorio - actively check localhost)
         if (isListening)
         {
-            localhostPollTimer += Time.deltaTime;
+            localhostPollTimer += dt;
             if (localhostPollTimer >= LOCALHOST_POLL_INTERVAL)
             {
                 localhostPollTimer = 0f;

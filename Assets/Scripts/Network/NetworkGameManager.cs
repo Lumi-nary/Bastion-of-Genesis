@@ -141,7 +141,7 @@ public class NetworkGameManager : MonoBehaviour
 
         if (foundManager == null)
         {
-            Debug.LogError("[NetworkGameManager] NetworkManager not found! Make sure FishNet NetworkManager is in the scene.");
+            // Not an error in singleplayer — FishNet is only needed when Open to LAN is enabled
             return;
         }
 
@@ -157,6 +157,14 @@ public class NetworkGameManager : MonoBehaviour
             }
 
             networkManager = foundManager;
+
+            // Guard: FishNet may have failed to initialize (prefab registry errors)
+            if (networkManager.ServerManager == null || networkManager.ClientManager == null)
+            {
+                Debug.LogWarning($"[NetworkGameManager] NetworkManager found but not fully initialized. ServerManager: {networkManager.ServerManager != null}, ClientManager: {networkManager.ClientManager != null}. Will retry later.");
+                // Don't null out - keep the reference so we can retry
+                return;
+            }
 
             // Subscribe to new
             networkManager.ServerManager.OnServerConnectionState += OnServerConnectionStateChanged;
@@ -198,7 +206,13 @@ public class NetworkGameManager : MonoBehaviour
     {
         if (networkManager == null)
         {
-            Debug.LogError("[NetworkGameManager] Cannot start host - NetworkManager not found");
+            Debug.LogWarning("[NetworkGameManager] NetworkManager null at StartHost, retrying initialization...");
+            InitializeNetworkManager();
+        }
+
+        if (networkManager == null)
+        {
+            Debug.LogError("[NetworkGameManager] Cannot start host - NetworkManager not found even after retry");
             return;
         }
 
@@ -215,10 +229,12 @@ public class NetworkGameManager : MonoBehaviour
         hostIP = GetLocalIPAddress();
 
         // Start server
-        networkManager.ServerManager.StartConnection(port);
+        bool serverStarted = networkManager.ServerManager.StartConnection(port);
+        Debug.Log($"[NetworkGameManager] ServerManager.StartConnection result: {serverStarted}");
 
         // Start local client (connects to localhost)
-        networkManager.ClientManager.StartConnection("localhost", port);
+        bool clientStarted = networkManager.ClientManager.StartConnection("localhost", port);
+        Debug.Log($"[NetworkGameManager] ClientManager.StartConnection result: {clientStarted}");
     }
 
     /// <summary>
@@ -284,9 +300,16 @@ public class NetworkGameManager : MonoBehaviour
     /// </summary>
     public void JoinGame(string ipAddress)
     {
+        // Retry finding NetworkManager if reference was lost
         if (networkManager == null)
         {
-            Debug.LogError("[NetworkGameManager] Cannot join - NetworkManager not found");
+            Debug.LogWarning("[NetworkGameManager] NetworkManager null at JoinGame, retrying initialization...");
+            InitializeNetworkManager();
+        }
+
+        if (networkManager == null)
+        {
+            Debug.LogError("[NetworkGameManager] Cannot join - NetworkManager not found even after retry");
             return;
         }
 
@@ -344,7 +367,7 @@ public class NetworkGameManager : MonoBehaviour
         {
             case LocalConnectionState.Started:
                 Debug.Log($"[NetworkGameManager] Server started on {LocalIP}:{port}");
-                
+
                 // Spawn Global Managers (Resources, Workers, etc.)
                 SpawnGlobalManagers();
 
@@ -528,12 +551,25 @@ public class NetworkGameManager : MonoBehaviour
 
             // If we couldn't confirm it's local (e.g. race condition), add it for now.
             // We will filter it out later when the local ID becomes available.
-            Debug.Log($"[NetworkGameManager] Remote player joined: {conn.ClientId}");
             connectedPlayers.Add(conn);
+            Debug.Log($"[SYNC] Remote player joined: ClientId {conn.ClientId}. PlayerCount: {PlayerCount}/{MaxPlayers}");
             OnPlayerJoined?.Invoke(conn);
+
+            // Update LAN broadcast with new player count
+            if (LANDiscovery.Instance != null && LANDiscovery.Instance.IsBroadcasting)
+            {
+                LANDiscovery.Instance.UpdatePlayerCount(PlayerCount, MaxPlayers);
+            }
 
             // Spawn player object for Remote Client
             SpawnPlayerForConnection(conn);
+
+            // Load the host's current game scene on the connecting client.
+            // This uses LoadConnectionScenes so only the CLIENT loads the scene — host is unaffected.
+            LoadSceneForClient(conn);
+
+            // Push full game state to the new client so they sync immediately
+            StartCoroutine(BroadcastFullStateToNewClient());
 
             // Check if over max players
             // Dynamic Limit Logic:
@@ -559,6 +595,58 @@ public class NetworkGameManager : MonoBehaviour
             Debug.Log($"[NetworkGameManager] Remote player left: {conn.ClientId}");
             connectedPlayers.Remove(conn);
             OnPlayerLeft?.Invoke(conn);
+
+            // Update LAN broadcast with new player count
+            if (LANDiscovery.Instance != null && LANDiscovery.Instance.IsBroadcasting)
+            {
+                LANDiscovery.Instance.UpdatePlayerCount(PlayerCount, MaxPlayers);
+                Debug.Log($"[NetworkGameManager] Updated LAN broadcast: {PlayerCount}/{MaxPlayers}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Load the host's current game scene on a specific connecting client.
+    /// Uses LoadConnectionScenes so ONLY the client loads the scene — host is unaffected.
+    /// ReplaceOption.All ensures the client's MenuScene is replaced.
+    /// </summary>
+    private void LoadSceneForClient(NetworkConnection conn)
+    {
+        if (networkManager == null || networkManager.SceneManager == null) return;
+
+        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (currentSceneName == menuSceneName) return;
+
+        Debug.Log($"[NetworkGameManager] Loading '{currentSceneName}' on client {conn.ClientId}");
+        SceneLoadData sld = new SceneLoadData(currentSceneName);
+        sld.ReplaceScenes = ReplaceOption.All;
+        networkManager.SceneManager.LoadConnectionScenes(conn, sld);
+    }
+
+    /// <summary>
+    /// Broadcast full game state to all clients after a short delay.
+    /// Called when a new remote player joins so they receive current state.
+    /// The delay allows the client's NetworkBehaviours to initialize first.
+    /// </summary>
+    private System.Collections.IEnumerator BroadcastFullStateToNewClient()
+    {
+        // Wait for the client to load through CutsceneScene and into the game scene.
+        // The client also requests sync via RequestFullSyncServerRpc() on their own,
+        // but this server-side push ensures they get data even if their request is missed.
+        yield return new WaitForSecondsRealtime(5f);
+
+        Debug.Log("[SYNC] Broadcasting full game state to new client (server push)...");
+
+        if (NetworkedResourceManager.Instance != null && NetworkedResourceManager.Instance.IsSpawned)
+        {
+            NetworkedResourceManager.Instance.BroadcastFullStateToClients();
+            Debug.Log("[SYNC] Resource state broadcast sent.");
+        }
+
+        if (NetworkedWorkerManager.Instance != null && NetworkedWorkerManager.Instance.IsSpawned)
+        {
+            NetworkedWorkerManager.Instance.BroadcastFullStateToClients();
+            Debug.Log("[SYNC] Worker state broadcast sent.");
         }
     }
 
@@ -573,14 +661,38 @@ public class NetworkGameManager : MonoBehaviour
     {
         try
         {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
+            // Prefer real LAN/Wi-Fi adapters over VPN adapters
+            string fallback = null;
+            foreach (var ni in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
             {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                if (ni.OperationalStatus != System.Net.NetworkInformation.OperationalStatus.Up)
+                    continue;
+
+                // Skip virtual/VPN adapters by description
+                string desc = ni.Description.ToLower();
+                bool isVirtual = desc.Contains("virtual") || desc.Contains("vpn") || desc.Contains("radmin")
+                    || desc.Contains("zerotier") || desc.Contains("hamachi") || desc.Contains("vethernet")
+                    || ni.NetworkInterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Loopback;
+
+                var props = ni.GetIPProperties();
+                foreach (var addr in props.UnicastAddresses)
                 {
-                    return ip.ToString();
+                    if (addr.Address.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        string ip = addr.Address.ToString();
+                        if (ip.StartsWith("127.")) continue;
+
+                        if (!isVirtual)
+                            return ip; // Preferred: real adapter
+
+                        if (fallback == null)
+                            fallback = ip; // Fallback: VPN adapter
+                    }
                 }
             }
+
+            if (fallback != null)
+                return fallback;
         }
         catch (Exception ex)
         {

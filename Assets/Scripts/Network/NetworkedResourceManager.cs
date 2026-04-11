@@ -260,14 +260,15 @@ public class NetworkedResourceManager : NetworkBehaviour
             return;
         }
 
-        Debug.Log($"[NetworkedResourceManager] Initializing server state from {ResourceManager.Instance.ResourceAmounts.Count} local resources.");
+        Debug.Log($"[SYNC] Host capturing {ResourceManager.Instance.ResourceAmounts.Count} local resources into network state...");
 
+        int capturedCount = 0;
         // Only sync resources that are currently registered in the local manager
         foreach (var entry in ResourceManager.Instance.ResourceAmounts)
         {
             ResourceType type = entry.Key;
             int index = GetResourceIndex(type);
-            
+
             if (index >= 0)
             {
                 int localAmount = entry.Value;
@@ -278,10 +279,12 @@ public class NetworkedResourceManager : NetworkBehaviour
 
                 if (!syncedCapacities.ContainsKey(index)) syncedCapacities.Add(index, localCap);
                 else syncedCapacities[index] = localCap;
-                
-                Debug.Log($"[NetworkedResourceManager] Initial Sync: {type.ResourceName} = {localAmount}/{localCap}");
+
+                capturedCount++;
             }
         }
+
+        Debug.Log($"[SYNC SUCCESS] Host captured {capturedCount} resources into network sync state.");
     }
 
     private void OnLocalResourceChanged(ResourceType type, int amount)
@@ -536,9 +539,10 @@ public class NetworkedResourceManager : NetworkBehaviour
 
     /// <summary>
     /// Server broadcasts full resource state to all clients via RPC.
+    /// Can be called directly from server code or via RequestFullSyncServerRpc from clients.
     /// </summary>
     [Server]
-    private void BroadcastFullStateToClients()
+    public void BroadcastFullStateToClients()
     {
         List<int> indices = new List<int>();
         List<int> amounts = new List<int>();
@@ -563,8 +567,9 @@ public class NetworkedResourceManager : NetworkBehaviour
         // Server already has correct state
         if (IsServerStarted) return;
 
-        Debug.Log($"[NetworkedResourceManager] CLIENT received full state RPC with {indices.Length} resources");
+        Debug.Log($"[SYNC] CLIENT received full resource state from host ({indices.Length} resources)");
 
+        int syncedCount = 0;
         for (int i = 0; i < indices.Length; i++)
         {
             int index = indices[i];
@@ -580,10 +585,11 @@ public class NetworkedResourceManager : NetworkBehaviour
 
                 OnCapacityChanged?.Invoke(type, capacities[i]);
                 OnResourceChanged?.Invoke(type, amounts[i]);
-
-                Debug.Log($"[NetworkedResourceManager] CLIENT synced {type.ResourceName}: {amounts[i]}/{capacities[i]}");
+                syncedCount++;
             }
         }
+
+        Debug.Log($"[SYNC SUCCESS] Resources synced: {syncedCount}/{indices.Length} resources from host. Players are in sync.");
     }
 
     // ============================================================================

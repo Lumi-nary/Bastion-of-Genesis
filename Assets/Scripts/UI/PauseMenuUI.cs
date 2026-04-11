@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using FishNet.Connection;
+using TMPro;
 
 /// <summary>
 /// Pause menu UI panel with buttons for resume, save, load, options, main menu, and quit.
@@ -15,6 +17,7 @@ public class PauseMenuUI : MonoBehaviour
     [SerializeField] private Button resumeButton;
     [SerializeField] private Button saveGameButton;
     [SerializeField] private Button loadGameButton;
+    [SerializeField] private Button openLanButton;
     [SerializeField] private Button optionsButton;
     [SerializeField] private Button mainMenuButton;
     [SerializeField] private Button quitButton;
@@ -48,6 +51,9 @@ public class PauseMenuUI : MonoBehaviour
         if (loadGameButton != null)
             loadGameButton.onClick.AddListener(OnLoadGameClicked);
 
+        if (openLanButton != null)
+            openLanButton.onClick.AddListener(OnOpenLanClicked);
+
         if (optionsButton != null)
             optionsButton.onClick.AddListener(OnOptionsClicked);
 
@@ -69,6 +75,9 @@ public class PauseMenuUI : MonoBehaviour
         if (loadGameButton != null)
             loadGameButton.onClick.RemoveListener(OnLoadGameClicked);
 
+        if (openLanButton != null)
+            openLanButton.onClick.RemoveListener(OnOpenLanClicked);
+
         if (optionsButton != null)
             optionsButton.onClick.RemoveListener(OnOptionsClicked);
 
@@ -87,6 +96,8 @@ public class PauseMenuUI : MonoBehaviour
         // Hide options canvas when showing pause menu
         if (optionsCanvas != null)
             optionsCanvas.gameObject.SetActive(false);
+
+        UpdateLanButtonText();
     }
 
     public void Hide()
@@ -194,6 +205,130 @@ public class PauseMenuUI : MonoBehaviour
             pausePanel.SetActive(true);
     }
 
+    private void OnOpenLanClicked()
+    {
+        if (NetworkGameManager.Instance == null)
+        {
+            if (ModalDialog.Instance != null)
+                ModalDialog.Instance.ShowError("Network system not available.");
+            return;
+        }
+
+        bool isLanOpen = NetworkGameManager.Instance.IsOnline;
+
+        if (isLanOpen)
+        {
+            // Close LAN
+            if (ModalDialog.Instance != null)
+            {
+                ModalDialog.Instance.ShowConfirmation(
+                    "This will disconnect all players. Close LAN?",
+                    () =>
+                    {
+                        // Unsubscribe from player events
+                        NetworkGameManager.Instance.OnPlayerJoined -= OnLanPlayerJoined;
+                        NetworkGameManager.Instance.OnPlayerLeft -= OnLanPlayerLeft;
+
+                        // Stop LAN broadcasting
+                        if (LANDiscovery.Instance != null)
+                        {
+                            LANDiscovery.Instance.StopBroadcasting();
+                        }
+
+                        NetworkGameManager.Instance.StopHost();
+
+                        // Revert to singleplayer mode
+                        if (SaveManager.Instance != null)
+                        {
+                            SaveManager.Instance.pendingMode = GameMode.Singleplayer;
+                        }
+
+                        UpdateLanButtonText();
+                        Debug.Log("[PauseMenuUI] LAN closed");
+
+                        if (ModalDialog.Instance != null)
+                            ModalDialog.Instance.ShowInfo("LAN Closed", "Multiplayer disabled.");
+                    },
+                    null
+                );
+            }
+        }
+        else
+        {
+            // Open LAN — start FishNet host and LAN broadcasting
+            NetworkGameManager.Instance.StartHost();
+
+            // Start LAN broadcasting so clients can discover this server
+            // Pass 1 for player count because server hasn't fully started yet
+            // (PlayerCount would return 0 since IsServer is still false)
+            if (LANDiscovery.Instance != null)
+            {
+                string serverName = SaveManager.Instance?.pendingBaseName ?? "Planetfall Server";
+                LANDiscovery.Instance.StartBroadcasting(
+                    serverName,
+                    NetworkGameManager.Instance.Port,
+                    1, // Host counts as 1 player
+                    NetworkGameManager.Instance.MaxPlayers
+                );
+            }
+
+            // Subscribe to player events to keep broadcast count updated
+            NetworkGameManager.Instance.OnPlayerJoined -= OnLanPlayerJoined;
+            NetworkGameManager.Instance.OnPlayerLeft -= OnLanPlayerLeft;
+            NetworkGameManager.Instance.OnPlayerJoined += OnLanPlayerJoined;
+            NetworkGameManager.Instance.OnPlayerLeft += OnLanPlayerLeft;
+
+            // Set mode to COOP now that LAN is open
+            if (SaveManager.Instance != null)
+            {
+                SaveManager.Instance.pendingMode = GameMode.COOP;
+            }
+
+            // Force button text immediately (don't wait for async server start)
+            var tmp = openLanButton?.GetComponentInChildren<TextMeshProUGUI>();
+            if (tmp != null) tmp.text = "Close LAN";
+
+            Debug.Log($"[PauseMenuUI] LAN opened on {NetworkGameManager.Instance.LocalIP}:{NetworkGameManager.Instance.Port}");
+
+            if (ModalDialog.Instance != null)
+                ModalDialog.Instance.ShowInfo("Open to LAN",
+                    $"Players can join at:\n{NetworkGameManager.Instance.LocalIP}:{NetworkGameManager.Instance.Port}");
+        }
+    }
+
+    private void OnLanPlayerJoined(NetworkConnection conn)
+    {
+        if (LANDiscovery.Instance != null && NetworkGameManager.Instance != null)
+        {
+            LANDiscovery.Instance.UpdatePlayerCount(
+                NetworkGameManager.Instance.PlayerCount,
+                NetworkGameManager.Instance.MaxPlayers
+            );
+        }
+    }
+
+    private void OnLanPlayerLeft(NetworkConnection conn)
+    {
+        if (LANDiscovery.Instance != null && NetworkGameManager.Instance != null)
+        {
+            LANDiscovery.Instance.UpdatePlayerCount(
+                NetworkGameManager.Instance.PlayerCount,
+                NetworkGameManager.Instance.MaxPlayers
+            );
+        }
+    }
+
+    private void UpdateLanButtonText()
+    {
+        if (openLanButton == null) return;
+
+        var tmp = openLanButton.GetComponentInChildren<TextMeshProUGUI>();
+        if (tmp == null) return;
+
+        bool isLanOpen = NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsOnline;
+        tmp.text = isLanOpen ? "Close LAN" : "Open to LAN";
+    }
+
     private void OnMainMenuClicked()
     {
         if (ModalDialog.Instance != null)
@@ -205,10 +340,21 @@ public class PauseMenuUI : MonoBehaviour
                     // Unpause before loading scene
                     Time.timeScale = 1f;
 
-                    // Stop FishNet host/client before leaving gameplay
+                    // Stop LAN broadcasting and FishNet host/client before leaving gameplay
                     if (NetworkGameManager.Instance != null)
                     {
-                        NetworkGameManager.Instance.StopHost();
+                        NetworkGameManager.Instance.OnPlayerJoined -= OnLanPlayerJoined;
+                        NetworkGameManager.Instance.OnPlayerLeft -= OnLanPlayerLeft;
+                    }
+
+                    if (LANDiscovery.Instance != null)
+                    {
+                        LANDiscovery.Instance.StopBroadcasting();
+                    }
+
+                    if (NetworkGameManager.Instance != null)
+                    {
+                        NetworkGameManager.Instance.Disconnect(); // Works for both host and client
                     }
 
                     // Restore audio

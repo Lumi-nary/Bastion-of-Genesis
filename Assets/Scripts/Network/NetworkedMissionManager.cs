@@ -102,6 +102,8 @@ public class NetworkedMissionManager : NetworkBehaviour
                     _missionActive.Value = MissionChapterManager.Instance.IsMissionActive;
                     _missionTimer.Value = MissionChapterManager.Instance.MissionTimer;
                 }
+
+                Debug.Log($"[SYNC SUCCESS] Host captured mission state: Chapter '{_currentChapterName.Value}', Mission '{_currentMissionName.Value}', Active: {_missionActive.Value}");
             }
         }
 
@@ -222,6 +224,35 @@ public class NetworkedMissionManager : NetworkBehaviour
                 objectiveCompleted[index] = true;
             }
         }
+    }
+
+    // ============================================================================
+    // CLIENT METHODS
+    // ============================================================================
+
+    /// <summary>
+    /// Apply synced objective progress/completion to a local MissionData.
+    /// Called by MissionChapterManager on the client after activating the mission.
+    /// </summary>
+    public void SyncObjectivesToLocal(MissionData mission)
+    {
+        if (mission == null) return;
+
+        int synced = 0;
+        for (int i = 0; i < mission.objectives.Count; i++)
+        {
+            if (objectiveProgress.ContainsKey(i))
+            {
+                mission.objectives[i].currentAmount = objectiveProgress[i];
+            }
+            if (objectiveCompleted.ContainsKey(i))
+            {
+                mission.objectives[i].isCompleted = objectiveCompleted[i];
+            }
+            synced++;
+        }
+
+        Debug.Log($"[SYNC SUCCESS] Client synced {synced} objective states from host.");
     }
 
     // ============================================================================

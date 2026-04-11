@@ -4,7 +4,8 @@ using TMPro;
 
 /// <summary>
 /// NewBaseUI controls the New Base configuration form.
-/// Handles auto-generated base names, difficulty selection, and SP/COOP mode toggle.
+/// Handles auto-generated base names and difficulty selection.
+/// Multiplayer is enabled in-game via "Open to LAN" in the pause menu.
 /// Pattern 7: All canvas switching via MenuManager, no direct canvas manipulation.
 /// ADR-7: Sets SaveManager pending data before scene transition.
 /// </summary>
@@ -17,10 +18,6 @@ public class NewBaseUI : MonoBehaviour
     [Header("Form Elements")]
     [SerializeField] private TMP_InputField baseNameInputField;
     [SerializeField] private TMP_Dropdown difficultyDropdown; // Currently unused - defaults to Medium
-    [SerializeField] private Toggle modeToggle;
-
-    [Header("COOP Panel")]
-    [SerializeField] private GameObject coopServerPanel;
 
     // ============================================================================
     // PRIVATE FIELDS
@@ -45,11 +42,9 @@ public class NewBaseUI : MonoBehaviour
     };
 
     private string currentBaseName;
-    private GameMode currentMode = GameMode.Singleplayer;
 
     // Form state tracking
     private string initialBaseName;
-    private GameMode initialMode = GameMode.Singleplayer;
     private bool isFormDirty = false;
     private bool hasInitialized = false;
 
@@ -86,10 +81,6 @@ public class NewBaseUI : MonoBehaviour
         {
             baseNameInputField.onValueChanged.RemoveListener(OnBaseNameChanged);
         }
-        if (modeToggle != null)
-        {
-            modeToggle.onValueChanged.RemoveListener(OnModeToggle);
-        }
     }
 
     /// <summary>
@@ -118,24 +109,6 @@ public class NewBaseUI : MonoBehaviour
             difficultyDropdown.interactable = false; // Disable selection
         }
         Debug.Log("[NewBaseUI] Difficulty defaulted to Medium");
-
-        // Set mode toggle to Singleplayer (false = SP, true = COOP)
-        currentMode = GameMode.Singleplayer;
-        initialMode = GameMode.Singleplayer;
-
-        if (modeToggle != null)
-        {
-            modeToggle.isOn = false; // Singleplayer
-            modeToggle.onValueChanged.RemoveListener(OnModeToggle); // Prevent duplicates
-            modeToggle.onValueChanged.AddListener(OnModeToggle);
-        }
-        Debug.Log($"[NewBaseUI] Mode initialized: {currentMode}");
-
-        // Hide COOP panel initially (only visible when mode = COOP)
-        if (coopServerPanel != null)
-        {
-            coopServerPanel.SetActive(false);
-        }
 
         // Reset dirty flag
         isFormDirty = false;
@@ -171,14 +144,6 @@ public class NewBaseUI : MonoBehaviour
         return Difficulty.Medium;
     }
 
-    /// <summary>
-    /// Get current game mode (called by CreateBaseButton).
-    /// </summary>
-    public GameMode GetMode()
-    {
-        return currentMode;
-    }
-
     // ============================================================================
     // UI EVENT HANDLERS
     // ============================================================================
@@ -195,61 +160,12 @@ public class NewBaseUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when mode toggle value changes.
-    /// Shows/hides COOP server panel based on mode selection.
-    /// ADR-7: Mode will be stored in SaveManager.pendingMode by CreateBaseButton.
-    /// </summary>
-    /// <param name="isCoop">True if COOP mode selected, false for Singleplayer</param>
-    private void OnModeToggle(bool isCoop)
-    {
-        currentMode = isCoop ? GameMode.COOP : GameMode.Singleplayer;
-        CheckFormDirty();
-        Debug.Log($"[NewBaseUI] Mode selected: {currentMode}");
-
-        // Show/hide COOP server panel
-        if (coopServerPanel != null)
-        {
-            coopServerPanel.SetActive(isCoop);
-
-            if (isCoop)
-            {
-                Debug.Log("[NewBaseUI] COOP server panel displayed");
-            }
-            else
-            {
-                // Switching back to Singleplayer - stop any active server/broadcast
-                StopCOOPServer();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Stop COOP server and broadcasting when switching back to Singleplayer.
-    /// </summary>
-    private void StopCOOPServer()
-    {
-        // Stop LAN broadcasting
-        if (LANDiscovery.Instance != null)
-        {
-            LANDiscovery.Instance.StopBroadcasting();
-        }
-
-        // Stop network hosting
-        if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsHost)
-        {
-            NetworkGameManager.Instance.StopHost();
-            Debug.Log("[NewBaseUI] Stopped COOP server (switched to Singleplayer)");
-        }
-    }
-
-    /// <summary>
     /// Check if current form values differ from initial values.
     /// Sets isFormDirty flag when any field changes.
     /// </summary>
     private void CheckFormDirty()
     {
-        isFormDirty = currentBaseName != initialBaseName ||
-                      currentMode != initialMode;
+        isFormDirty = currentBaseName != initialBaseName;
 
         if (isFormDirty)
         {

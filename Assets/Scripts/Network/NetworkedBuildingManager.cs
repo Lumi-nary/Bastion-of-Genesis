@@ -96,11 +96,132 @@ public class NetworkedBuildingManager : NetworkBehaviour
         syncedAssignments.OnChange += OnSyncedAssignmentsChanged;
     }
 
+    public override void OnStartServer()
+    {
+        base.OnStartServer();
+        Debug.Log("[NetworkedBuildingManager] Server started - capturing existing buildings");
+
+        // Capture existing buildings AND subscribe to future placements
+        StartCoroutine(ServerCaptureAndSubscribe());
+    }
+
+    public override void OnStopServer()
+    {
+        base.OnStopServer();
+        if (BuildingManager.Instance != null)
+        {
+            BuildingManager.Instance.OnBuildingPlaced -= OnLocalBuildingPlaced;
+        }
+    }
+
+    /// <summary>
+    /// Called on the server when the host places a building through normal singleplayer code.
+    /// Captures it into the SyncDictionary so clients receive it.
+    /// </summary>
+    private void OnLocalBuildingPlaced(Building building)
+    {
+        if (!IsServerStarted) return;
+        if (building == null || building.BuildingData == null) return;
+
+        // Check if already in syncedBuildings (avoid duplicates from ServerPlaceBuilding path)
+        foreach (var kvp in syncedBuildings)
+        {
+            if (Vector3.Distance(kvp.Value.position, building.transform.position) < 0.1f)
+                return; // Already synced
+        }
+
+        int typeIndex = GetBuildingIndex(building.BuildingData);
+        if (typeIndex >= 0)
+        {
+            int nextId = syncedBuildings.Count;
+            while (syncedBuildings.ContainsKey(nextId)) nextId++;
+            syncedBuildings.Add(nextId, new BuildingPlacementData
+            {
+                typeIndex = typeIndex,
+                position = building.transform.position
+            });
+            Debug.Log($"[SYNC] Host building placed and synced: {building.BuildingData.buildingName} at {building.transform.position}");
+        }
+    }
+
+    private int GetBuildingIndex(BuildingData data)
+    {
+        int idx = availableBuildings.IndexOf(data);
+        if (idx >= 0) return idx;
+        // Fallback: match by name
+        for (int i = 0; i < availableBuildings.Count; i++)
+        {
+            if (availableBuildings[i].name == data.name)
+                return i;
+        }
+        return -1;
+    }
+
+    private System.Collections.IEnumerator ServerCaptureAndSubscribe()
+    {
+        // Wait for BuildingManager to be available
+        while (BuildingManager.Instance == null)
+        {
+            yield return null;
+        }
+
+        var existingBuildings = BuildingManager.Instance.AllBuildings;
+        if (existingBuildings == null || existingBuildings.Count == 0)
+        {
+            Debug.Log("[NetworkedBuildingManager] No existing buildings to capture");
+            yield break;
+        }
+
+        Debug.Log($"[NetworkedBuildingManager] Capturing {existingBuildings.Count} existing buildings into sync state");
+
+        foreach (var building in existingBuildings)
+        {
+            if (building == null || building.BuildingData == null) continue;
+
+            int typeIndex = availableBuildings.IndexOf(building.BuildingData);
+            if (typeIndex < 0)
+            {
+                // Try matching by name (in case ScriptableObject references differ)
+                for (int i = 0; i < availableBuildings.Count; i++)
+                {
+                    if (availableBuildings[i].name == building.BuildingData.name)
+                    {
+                        typeIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            if (typeIndex >= 0)
+            {
+                int nextId = syncedBuildings.Count;
+                while (syncedBuildings.ContainsKey(nextId)) nextId++;
+                syncedBuildings.Add(nextId, new BuildingPlacementData
+                {
+                    typeIndex = typeIndex,
+                    position = building.transform.position
+                });
+                Debug.Log($"[NetworkedBuildingManager] Captured: {building.BuildingData.buildingName} at {building.transform.position}");
+            }
+            else
+            {
+                Debug.LogWarning($"[NetworkedBuildingManager] Could not find index for building: {building.BuildingData.buildingName}");
+            }
+        }
+
+        Debug.Log($"[SYNC SUCCESS] Host captured {syncedBuildings.Count} buildings into network sync state.");
+
+        // Subscribe to future building placements so they sync to clients
+        BuildingManager.Instance.OnBuildingPlaced -= OnLocalBuildingPlaced; // Prevent double-sub
+        BuildingManager.Instance.OnBuildingPlaced += OnLocalBuildingPlaced;
+        Debug.Log("[NetworkedBuildingManager] Subscribed to BuildingManager.OnBuildingPlaced for live sync");
+    }
+
     public override void OnStartClient()
     {
         base.OnStartClient();
         Debug.Log("[NetworkedBuildingManager] Client started - processing existing buildings");
-        
+
         // Try to sync immediately (in case late join where scene is already loaded)
         StartCoroutine(ClientSyncBuildings());
     }
@@ -126,6 +247,8 @@ public class NetworkedBuildingManager : NetworkBehaviour
         {
             ApplyAssignmentLocally(kvp.Key, kvp.Value);
         }
+
+        Debug.Log($"[SYNC SUCCESS] Client synced {syncedBuildings.Count} buildings and {syncedAssignments.Count} worker assignments from host.");
     }
 
     private void OnSyncedBuildingsChanged(SyncDictionaryOperation op, int key, BuildingPlacementData value, bool asServer)
@@ -213,6 +336,7 @@ public class NetworkedBuildingManager : NetworkBehaviour
 
     private void PlaceBuildingLocally(int index, Vector3 position)
     {
+        if (BuildingManager.Instance == null) return; // Scene not loaded yet
         if (index < 0 || index >= availableBuildings.Count) return;
         if (IsBuildingAtPosition(position)) return;
 

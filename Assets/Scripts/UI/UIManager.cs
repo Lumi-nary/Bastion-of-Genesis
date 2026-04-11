@@ -265,14 +265,7 @@ public class UIManager : MonoBehaviour
     {
         if (buildingSelectionPanel != null)
         {
-            if (buildingSelectionPanel.gameObject.activeSelf)
-            {
-                buildingSelectionPanel.HidePanel();
-            }
-            else
-            {
-                buildingSelectionPanel.ShowPanel();
-            }
+            buildingSelectionPanel.TogglePanel();
         }
     }
 

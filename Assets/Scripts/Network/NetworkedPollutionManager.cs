@@ -60,12 +60,23 @@ public class NetworkedPollutionManager : NetworkBehaviour
     {
         base.OnStartServer();
 
-        _maxPollution.Value = defaultMaxPollution;
-        _pollutionDecayRate.Value = defaultDecayRate;
-        _currentPollution.Value = 0f;
-        _currentDifficultyTier.Value = 1;
-
-        Debug.Log("[NetworkedPollutionManager] Server initialized");
+        // Capture current pollution state from local PollutionManager (if game is already running)
+        if (PollutionManager.Instance != null)
+        {
+            _currentPollution.Value = PollutionManager.Instance.CurrentPollution;
+            _maxPollution.Value = PollutionManager.Instance.MaxPollution;
+            _currentDifficultyTier.Value = (int)PollutionManager.Instance.CurrentTier;
+            _pollutionDecayRate.Value = defaultDecayRate;
+            Debug.Log($"[SYNC SUCCESS] Host captured pollution state: {_currentPollution.Value}/{_maxPollution.Value}, Tier {_currentDifficultyTier.Value}");
+        }
+        else
+        {
+            _maxPollution.Value = defaultMaxPollution;
+            _pollutionDecayRate.Value = defaultDecayRate;
+            _currentPollution.Value = 0f;
+            _currentDifficultyTier.Value = 1;
+            Debug.Log("[NetworkedPollutionManager] Server initialized with defaults (no PollutionManager found)");
+        }
     }
 
     public override void OnStartClient()

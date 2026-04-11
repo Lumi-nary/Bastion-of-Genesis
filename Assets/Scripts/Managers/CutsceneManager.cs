@@ -150,7 +150,7 @@ public class CutsceneManager : MonoBehaviour
         if (director == null)
         {
             Debug.LogError("[CutsceneManager] Cannot play cutscene: PlayableDirector not assigned");
-            LoadWorldMapScene(); // Fallback to WorldMapScene
+            LoadGameplayScene(); // Fallback to WorldMapScene
             return;
         }
 
@@ -170,8 +170,8 @@ public class CutsceneManager : MonoBehaviour
         else
         {
             // AC7: Missing Asset Fallback
-            Debug.LogWarning($"[CutsceneManager] Cutscene asset not found for Chapter {chapterNumber}, skipping to WorldMapScene");
-            LoadWorldMapScene();
+            Debug.LogWarning($"[CutsceneManager] Cutscene asset not found for Chapter {chapterNumber}, skipping to gameplay");
+            LoadGameplayScene();
         }
     }
 
@@ -187,6 +187,11 @@ public class CutsceneManager : MonoBehaviour
             return; // Cutscene not active, ignore skip request
         }
 
+        // CRITICAL: Set cutsceneActive to false BEFORE director.Stop()
+        // because Stop() fires OnTimelineStopped synchronously, which would
+        // call LoadGameplayScene() a second time if cutsceneActive is still true.
+        cutsceneActive = false;
+
         // AC5: Immediate PlayableDirector stop (no fade-out)
         if (director != null && director.state == PlayState.Playing)
         {
@@ -195,14 +200,12 @@ public class CutsceneManager : MonoBehaviour
             Debug.Log($"[CutsceneManager] Cutscene skipped via skip button at time {skipTime:F2}s");
         }
 
-        cutsceneActive = false;
-
         // Fire OnCutsceneSkipped event (for future analytics)
         OnCutsceneSkipped?.Invoke();
 
         // AC5: Load WorldMapScene (no transition animation, <100ms response time)
-        Debug.Log("[CutsceneManager] Cutscene skipped, loading WorldMapScene");
-        LoadWorldMapScene();
+        Debug.Log("[CutsceneManager] Cutscene skipped, loading gameplay scene");
+        LoadGameplayScene();
     }
 
     // ============================================================================
@@ -242,38 +245,35 @@ public class CutsceneManager : MonoBehaviour
         OnCutsceneCompleted?.Invoke();
 
         // AC6: Load WorldMapScene when cutscene completes naturally
-        Debug.Log("[CutsceneManager] Cutscene completed, loading WorldMapScene");
-        LoadWorldMapScene();
+        Debug.Log("[CutsceneManager] Cutscene completed, loading gameplay scene");
+        LoadGameplayScene();
     }
 
     /// <summary>
-    /// Load WorldMapScene asynchronously.
-    /// ADR-6: Scene Flow - CutsceneScene → WorldMapScene.
-    /// NFR-1: Scene transition completes within <1 second.
+    /// Load gameplay scene after cutscene.
+    /// Scene Flow: CutsceneScene → Chapter1Map (skips WorldMapScene).
     /// For COOP mode, uses NetworkGameManager to sync scene loading.
     /// </summary>
-    private void LoadWorldMapScene()
+    private void LoadGameplayScene()
     {
-        // Check if we're in COOP mode and host should control scene loading
+        int chapterIndex = SaveManager.Instance != null ? SaveManager.Instance.pendingChapter - 1 : 0;
         bool isCoop = SaveManager.Instance != null && SaveManager.Instance.pendingMode == GameMode.COOP;
         bool isHost = NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsHost;
+        bool isClient = NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsClient;
 
-        if (isCoop && isHost)
+        Debug.Log($"[CutsceneManager] LoadGameplayScene - chapterIndex: {chapterIndex}, isCoop: {isCoop}, isHost: {isHost}, isClient: {isClient}");
+        Debug.Log($"[CutsceneManager] NetworkGameManager: {(NetworkGameManager.Instance != null ? "exists" : "NULL")}, MissionChapterManager: {(MissionChapterManager.Instance != null ? "exists" : "NULL")}");
+
+        if (MissionChapterManager.Instance != null)
         {
-            // COOP: Host loads scene for all players
-            Debug.Log("[CutsceneManager] COOP mode - Host loading WorldMapScene for all players");
-            NetworkGameManager.Instance.LoadNetworkedScene("WorldMapScene");
-        }
-        else if (isCoop && !isHost)
-        {
-            // COOP: Client waits for host to load scene (do nothing)
-            Debug.Log("[CutsceneManager] COOP mode - Client waiting for host to load scene");
+            Debug.Log($"[CutsceneManager] Starting chapter {chapterIndex + 1} via MissionChapterManager");
+            MissionChapterManager.Instance.StartChapter(chapterIndex);
         }
         else
         {
-            // Singleplayer: Load scene directly
-            Debug.Log("[CutsceneManager] Singleplayer mode - Loading WorldMapScene");
-            SceneManager.LoadSceneAsync("WorldMapScene");
+            string sceneName = $"Chapter{chapterIndex + 1}Map";
+            Debug.LogWarning($"[CutsceneManager] MissionChapterManager not found, loading {sceneName} directly");
+            SceneManager.LoadSceneAsync(sceneName);
         }
     }
 }

@@ -62,5 +62,10 @@ public class BuildingButton : MonoBehaviour
         }
     }
 
-    public Button GetButton() => button;
+    public Button GetButton()
+    {
+        if (button == null)
+            button = GetComponent<Button>();
+        return button;
+    }
 }

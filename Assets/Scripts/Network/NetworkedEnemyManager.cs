@@ -68,12 +68,23 @@ public class NetworkedEnemyManager : NetworkBehaviour
     {
         base.OnStartServer();
 
-        _currentWave.Value = 0;
-        _totalEnemiesKilled.Value = 0;
-        _activeEnemyCount.Value = 0;
-        _spawningEnabled.Value = false;
-
-        Debug.Log("[NetworkedEnemyManager] Server initialized");
+        // Capture current enemy state from local EnemyManager (if game is already running)
+        if (EnemyManager.Instance != null)
+        {
+            _currentWave.Value = EnemyManager.Instance.CurrentWave;
+            _totalEnemiesKilled.Value = EnemyManager.Instance.EnemiesKilled;
+            _activeEnemyCount.Value = EnemyManager.Instance.ActiveEnemyCount;
+            _spawningEnabled.Value = false;
+            Debug.Log($"[SYNC SUCCESS] Host captured enemy state: Wave {_currentWave.Value}, Killed {_totalEnemiesKilled.Value}, Active {_activeEnemyCount.Value}");
+        }
+        else
+        {
+            _currentWave.Value = 0;
+            _totalEnemiesKilled.Value = 0;
+            _activeEnemyCount.Value = 0;
+            _spawningEnabled.Value = false;
+            Debug.Log("[NetworkedEnemyManager] Server initialized with defaults");
+        }
     }
 
     private void Update()

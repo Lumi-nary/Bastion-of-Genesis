@@ -197,12 +197,7 @@ public class LoadGameUI : MonoBehaviour
 
         if (loadSuccess)
         {
-            // Start local FishNet host for singleplayer saves so NetworkBehaviour code works
-            if (metadata.mode == GameMode.Singleplayer && NetworkGameManager.Instance != null)
-            {
-                NetworkGameManager.Instance.StartLocalHost();
-            }
-
+            // Singleplayer: No FishNet needed — managers work standalone
             // Load chapter scene via MissionChapterManager (handles scene load + state restore)
             int chapterIndex = metadata.currentChapter - 1; // Convert 1-based to 0-based
             if (MissionChapterManager.Instance != null && SaveManager.Instance.HasPendingSaveData)
