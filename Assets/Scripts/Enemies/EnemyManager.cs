@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using FishNet;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -181,31 +180,6 @@ public class EnemyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Register a networked enemy spawned by FishNet
-    /// </summary>
-    public void RegisterNetworkedEnemy(Enemy enemy)
-    {
-        if (!activeEnemies.Contains(enemy))
-        {
-            activeEnemies.Add(enemy);
-            OnEnemySpawned?.Invoke(enemy);
-            Debug.Log($"[EnemyManager] Networked enemy registered: {enemy.name}");
-        }
-    }
-
-    /// <summary>
-    /// Unregister a networked enemy
-    /// </summary>
-    public void UnregisterNetworkedEnemy(Enemy enemy)
-    {
-        if (activeEnemies.Contains(enemy))
-        {
-            activeEnemies.Remove(enemy);
-            Debug.Log($"[EnemyManager] Networked enemy unregistered: {enemy.name}");
-        }
-    }
-
-    /// <summary>
     /// Spawn a single enemy of the specified type
     /// </summary>
     public Enemy SpawnEnemy(EnemyData enemyData, Vector3 spawnPosition)
@@ -224,16 +198,6 @@ public class EnemyManager : MonoBehaviour
             Debug.LogError($"[EnemyManager] Enemy prefab {enemyData.prefab.name} is missing Enemy component!");
             Destroy(enemyGO);
             return null;
-        }
-
-        // Network-spawn the enemy so FishNet's NetworkBehaviour properties activate
-        if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsServer)
-        {
-            var nob = enemyGO.GetComponent<FishNet.Object.NetworkObject>();
-            if (nob != null)
-            {
-                InstanceFinder.ServerManager.Spawn(nob);
-            }
         }
 
         // Calculate difficulty and pollution multipliers
@@ -261,7 +225,7 @@ public class EnemyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Select an enemy type for the current wave/pollution (Public for NetworkedEnemyManager)
+    /// Select an enemy type for the current wave/pollution
     /// </summary>
     public EnemyData SelectEnemyForWave(int waveNumber, float pollutionNormalized)
     {

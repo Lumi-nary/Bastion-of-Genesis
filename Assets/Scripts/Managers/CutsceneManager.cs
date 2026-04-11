@@ -252,17 +252,12 @@ public class CutsceneManager : MonoBehaviour
     /// <summary>
     /// Load gameplay scene after cutscene.
     /// Scene Flow: CutsceneScene → Chapter1Map (skips WorldMapScene).
-    /// For COOP mode, uses NetworkGameManager to sync scene loading.
     /// </summary>
     private void LoadGameplayScene()
     {
         int chapterIndex = SaveManager.Instance != null ? SaveManager.Instance.pendingChapter - 1 : 0;
-        bool isCoop = SaveManager.Instance != null && SaveManager.Instance.pendingMode == GameMode.COOP;
-        bool isHost = NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsHost;
-        bool isClient = NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsClient;
 
-        Debug.Log($"[CutsceneManager] LoadGameplayScene - chapterIndex: {chapterIndex}, isCoop: {isCoop}, isHost: {isHost}, isClient: {isClient}");
-        Debug.Log($"[CutsceneManager] NetworkGameManager: {(NetworkGameManager.Instance != null ? "exists" : "NULL")}, MissionChapterManager: {(MissionChapterManager.Instance != null ? "exists" : "NULL")}");
+        Debug.Log($"[CutsceneManager] LoadGameplayScene - chapterIndex: {chapterIndex}");
 
         if (MissionChapterManager.Instance != null)
         {

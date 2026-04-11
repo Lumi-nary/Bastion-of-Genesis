@@ -5,7 +5,6 @@ using TMPro;
 /// <summary>
 /// NewBaseUI controls the New Base configuration form.
 /// Handles auto-generated base names and difficulty selection.
-/// Multiplayer is enabled in-game via "Open to LAN" in the pause menu.
 /// Pattern 7: All canvas switching via MenuManager, no direct canvas manipulation.
 /// ADR-7: Sets SaveManager pending data before scene transition.
 /// </summary>

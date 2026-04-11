@@ -4,7 +4,6 @@ using UnityEngine.SceneManagement;
 /// <summary>
 /// CreateBaseButton triggers the New Base creation flow.
 /// Sets SaveManager pending data and loads CutsceneScene.
-/// Multiplayer is enabled in-game via "Open to LAN" in the pause menu.
 /// </summary>
 public class CreateBaseButton : MonoBehaviour
 {

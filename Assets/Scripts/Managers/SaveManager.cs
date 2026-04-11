@@ -425,17 +425,9 @@ public class SaveManager : MonoBehaviour
 
     /// <summary>
     /// Save current game state to file. Collects state from all managers.
-    /// Only host can save in multiplayer.
     /// </summary>
     public bool SaveGame(string fileName)
     {
-        // Multiplayer guard: only host/server can save
-        if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsOnline
-            && !NetworkGameManager.Instance.IsServer)
-        {
-            Debug.LogWarning("[SaveManager] Only the host can save the game.");
-            return false;
-        }
 
         try
         {

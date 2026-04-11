@@ -93,13 +93,6 @@ public class PollutionManager : MonoBehaviour
 
     private void Update()
     {
-        // In multiplayer, only the Host (Server) calculates pollution decay
-        bool isClientOnly = NetworkGameManager.Instance != null &&
-                           NetworkGameManager.Instance.IsOnline &&
-                           !NetworkGameManager.Instance.IsServer;
-
-        if (isClientOnly) return;
-
         if (enableNaturalDecay && currentPollution > 0)
         {
             RemovePollution(pollutionDecayRate * Time.deltaTime);
@@ -119,16 +112,6 @@ public class PollutionManager : MonoBehaviour
     {
         if (amount <= 0) return;
 
-        // Multiplayer routing
-        if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsOnline)
-        {
-            if (NetworkGameManager.Instance.IsServer && NetworkedPollutionManager.Instance != null)
-            {
-                NetworkedPollutionManager.Instance.ServerAddPollution(amount);
-            }
-            return;
-        }
-
         currentPollution = Mathf.Clamp(currentPollution + amount, 0, maxPollution);
         OnPollutionChanged?.Invoke(currentPollution, maxPollution);
 
@@ -140,16 +123,6 @@ public class PollutionManager : MonoBehaviour
     {
         if (amount <= 0) return;
 
-        // Multiplayer routing
-        if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsOnline)
-        {
-            if (NetworkGameManager.Instance.IsServer && NetworkedPollutionManager.Instance != null)
-            {
-                NetworkedPollutionManager.Instance.ServerRemovePollution(amount);
-            }
-            return;
-        }
-
         currentPollution = Mathf.Max(0, currentPollution - amount);
         OnPollutionChanged?.Invoke(currentPollution, maxPollution);
 
@@ -159,16 +132,6 @@ public class PollutionManager : MonoBehaviour
 
     public void SetPollution(float amount)
     {
-        // Multiplayer routing
-        if (NetworkGameManager.Instance != null && NetworkGameManager.Instance.IsOnline)
-        {
-            if (NetworkGameManager.Instance.IsServer && NetworkedPollutionManager.Instance != null)
-            {
-                NetworkedPollutionManager.Instance.ServerSetPollution(amount);
-            }
-            return;
-        }
-
         currentPollution = Mathf.Clamp(amount, 0, maxPollution);
         OnPollutionChanged?.Invoke(currentPollution, maxPollution);
 

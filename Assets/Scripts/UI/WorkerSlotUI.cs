@@ -53,14 +53,7 @@ public class WorkerSlotUI : MonoBehaviour
     {
         if (currentBuilding != null && workerData != null)
         {
-            if (NetworkedBuildingManager.Instance != null && NetworkedBuildingManager.Instance.IsClientStarted)
-            {
-                NetworkedBuildingManager.Instance.RequestAssignWorker(currentBuilding, workerData);
-            }
-            else
-            {
-                currentBuilding.AssignWorker(workerData);
-            }
+            currentBuilding.AssignWorker(workerData);
         }
     }
 
@@ -68,14 +61,7 @@ public class WorkerSlotUI : MonoBehaviour
     {
         if (currentBuilding != null && workerData != null)
         {
-            if (NetworkedBuildingManager.Instance != null && NetworkedBuildingManager.Instance.IsClientStarted)
-            {
-                NetworkedBuildingManager.Instance.RequestRemoveWorker(currentBuilding, workerData);
-            }
-            else
-            {
-                currentBuilding.RemoveWorker(workerData);
-            }
+            currentBuilding.RemoveWorker(workerData);
         }
     }
 
