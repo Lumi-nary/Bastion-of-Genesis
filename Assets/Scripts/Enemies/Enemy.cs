@@ -55,6 +55,9 @@ public class Enemy : MonoBehaviour
     public Building CurrentTarget => currentTarget;
     public EnemyRace Race => enemyData != null ? enemyData.race : EnemyRace.Human;
 
+    // Network tracking ID (assigned by CoopManager)
+    public int NetworkId { get; set; }
+
     // Events
     public delegate void EnemyDeathEvent(Enemy enemy);
     public event EnemyDeathEvent OnEnemyDeath;
@@ -111,10 +114,33 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Force-set position from network sync (client-side).
+    /// </summary>
+    public void ForceSetPosition(Vector3 pos)
+    {
+        transform.position = pos;
+    }
+
+    /// <summary>
+    /// Force-set health from network sync (client-side).
+    /// </summary>
+    public void ForceSetHealth(float health)
+    {
+        float prev = currentHealth;
+        currentHealth = health;
+        if (health < prev)
+            OnEnemyDamaged?.Invoke(this, prev - health, health);
+        if (health <= 0 && !isDead)
+            Die();
+    }
+
     protected virtual void Update()
     {
         if (isDead) return;
-        // If this is a Client, RETURN.
+
+        // Clients don't run AI — positions are synced from host
+        if (CoopManager.Instance != null && CoopManager.Instance.IsClientOnly) return;
 
         // Detect if enemy was manually moved (e.g., in editor) and re-sync position
         SyncCellPosition();

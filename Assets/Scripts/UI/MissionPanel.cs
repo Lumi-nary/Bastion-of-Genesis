@@ -29,6 +29,13 @@ public class MissionPanel : MonoBehaviour
     [Header("Chapter Info")]
     [SerializeField] private TextMeshProUGUI chapterInfoText;
 
+    [Header("Behavior")]
+    [Tooltip("When true, clicking outside the panel hides it (legacy modal behavior). Leave false for drawer use.")]
+    [SerializeField] private bool closeOnClickOutside = false;
+
+    [Tooltip("Optional: if set, visibility is driven by sliding this toggle instead of GameObject.SetActive. Used for the right-edge drawer.")]
+    [SerializeField] private ActionPanelToggle drawerToggle;
+
     private Dictionary<MissionObjective, MissionObjectiveSlotUI> objectiveSlots = new Dictionary<MissionObjective, MissionObjectiveSlotUI>();
     private bool isVisible;
 
@@ -57,14 +64,14 @@ public class MissionPanel : MonoBehaviour
             MissionChapterManager.Instance.OnChapterStarted += OnChapterStarted;
         }
 
-        // Hide panel initially
-        HidePanel();
+        // Hide panel initially — snap to hidden instantly so the drawer doesn't flash on-screen at scene load.
+        HidePanelInstant();
     }
 
     private void Update()
     {
-        // Click outside to close
-        if (isVisible && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        // Click outside to close (only when configured as a modal, not a drawer)
+        if (closeOnClickOutside && isVisible && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
             if (!IsPointerOverPanel())
             {
@@ -93,14 +100,22 @@ public class MissionPanel : MonoBehaviour
     }
 
     /// <summary>
-    /// Show the mission panel
+    /// Show the mission panel. If drawerToggle is set, slides in; otherwise activates the GameObject.
     /// </summary>
     public void ShowPanel()
     {
-        if (panelRoot != null)
+        if (drawerToggle != null)
+        {
+            drawerToggle.Show();
+        }
+        else if (panelRoot != null)
+        {
             panelRoot.SetActive(true);
+        }
         else
+        {
             gameObject.SetActive(true);
+        }
 
         isVisible = true;
 
@@ -112,16 +127,40 @@ public class MissionPanel : MonoBehaviour
     }
 
     /// <summary>
-    /// Hide the mission panel
+    /// Hide the mission panel. If drawerToggle is set, slides out; otherwise deactivates the GameObject.
     /// </summary>
     public void HidePanel()
     {
-        if (panelRoot != null)
+        if (drawerToggle != null)
+        {
+            drawerToggle.Hide();
+        }
+        else if (panelRoot != null)
+        {
             panelRoot.SetActive(false);
+        }
         else
+        {
             gameObject.SetActive(false);
+        }
 
         isVisible = false;
+    }
+
+    /// <summary>
+    /// Snap the drawer to its hidden position without animation (used for initial state).
+    /// </summary>
+    private void HidePanelInstant()
+    {
+        if (drawerToggle != null)
+        {
+            drawerToggle.HideInstant();
+            isVisible = false;
+        }
+        else
+        {
+            HidePanel();
+        }
     }
 
     /// <summary>

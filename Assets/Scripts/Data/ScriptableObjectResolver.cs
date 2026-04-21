@@ -11,6 +11,8 @@ public static class ScriptableObjectResolver
     private static Dictionary<string, ResourceType> resourceCache;
     private static Dictionary<string, WorkerData> workerCache;
     private static Dictionary<string, BuildingData> buildingCache;
+    private static Dictionary<string, EnemyData> enemyCache;
+    private static Dictionary<string, TechnologyData> technologyCache;
 
     /// <summary>
     /// Resolve a ResourceType by its ResourceName.
@@ -91,6 +93,58 @@ public static class ScriptableObjectResolver
     }
 
     /// <summary>
+    /// Resolve an EnemyData by its enemyName.
+    /// </summary>
+    public static EnemyData ResolveEnemy(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return null;
+
+        if (enemyCache == null)
+        {
+            enemyCache = new Dictionary<string, EnemyData>();
+            var loaded = Resources.LoadAll<EnemyData>("Data/Enemies");
+            foreach (var ed in loaded)
+            {
+                if (!enemyCache.ContainsKey(ed.enemyName))
+                    enemyCache[ed.enemyName] = ed;
+            }
+            Debug.Log($"[ScriptableObjectResolver] Cached {enemyCache.Count} EnemyData");
+        }
+
+        if (enemyCache.TryGetValue(name, out EnemyData result))
+            return result;
+
+        Debug.LogWarning($"[ScriptableObjectResolver] EnemyData not found: {name}");
+        return null;
+    }
+
+    /// <summary>
+    /// Resolve a TechnologyData by its techName.
+    /// </summary>
+    public static TechnologyData ResolveTechnology(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return null;
+
+        if (technologyCache == null)
+        {
+            technologyCache = new Dictionary<string, TechnologyData>();
+            var loaded = Resources.LoadAll<TechnologyData>("Data/Research");
+            foreach (var td in loaded)
+            {
+                if (!technologyCache.ContainsKey(td.techName))
+                    technologyCache[td.techName] = td;
+            }
+            Debug.Log($"[ScriptableObjectResolver] Cached {technologyCache.Count} TechnologyData");
+        }
+
+        if (technologyCache.TryGetValue(name, out TechnologyData result))
+            return result;
+
+        Debug.LogWarning($"[ScriptableObjectResolver] TechnologyData not found: {name}");
+        return null;
+    }
+
+    /// <summary>
     /// Clear all caches. Call on scene unload to prevent stale references.
     /// </summary>
     public static void ClearCaches()
@@ -98,5 +152,7 @@ public static class ScriptableObjectResolver
         resourceCache = null;
         workerCache = null;
         buildingCache = null;
+        enemyCache = null;
+        technologyCache = null;
     }
 }

@@ -20,6 +20,9 @@ public class PauseMenuUI : MonoBehaviour
     [SerializeField] private Button mainMenuButton;
     [SerializeField] private Button quitButton;
 
+    [Header("Multiplayer")]
+    [SerializeField] private HostLANUI hostLANUI;
+
     [Header("Sub Canvases")]
     [SerializeField] private Canvas optionsCanvas;
 
@@ -197,6 +200,12 @@ public class PauseMenuUI : MonoBehaviour
                 {
                     // Unpause before loading scene
                     Time.timeScale = 1f;
+
+                    // Clean up networking before leaving gameplay
+                    if (hostLANUI != null)
+                        hostLANUI.CleanupOnSceneExit();
+                    else if (CoopBootstrap.Instance != null)
+                        CoopBootstrap.Instance.Disconnect();
 
                     // Restore audio
                     if (AudioManager.Instance != null)

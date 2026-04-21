@@ -344,6 +344,32 @@ public class ResearchManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Force-complete a technology (used by network sync on clients).
+    /// Marks as researched, applies effects, updates available techs.
+    /// </summary>
+    public void ForceCompleteTech(TechnologyData tech)
+    {
+        if (tech == null || researchedTechs.Contains(tech)) return;
+
+        researchedTechs.Add(tech);
+        tech.IsResearched = true;
+        ApplyTechnologyEffects(tech);
+        UpdateAvailableTechnologies();
+
+        // Clear current research if this was it
+        if (currentResearch == tech)
+        {
+            currentResearch = null;
+            currentResearchProgress = 0f;
+            researchTimeElapsed = 0f;
+            resourcesConsumed = 0f;
+            isResearching = false;
+        }
+
+        Debug.Log($"[ResearchManager] Force-completed tech (network sync): {tech.techName}");
+    }
+
+    /// <summary>
     /// Apply effects of researched technology
     /// </summary>
     private void ApplyTechnologyEffects(TechnologyData tech)

@@ -196,6 +196,43 @@ public class TileStateManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Re-resolve the Command Center reference and recompute tiles.
+    /// Call after buildings are destroyed/recreated (e.g. full state sync on clients).
+    /// </summary>
+    public void RefreshPollutionCenter()
+    {
+        GameObject cc = null;
+
+        // Preferred: find by BuildingData name among active buildings
+        if (BuildingManager.Instance != null)
+        {
+            foreach (var b in BuildingManager.Instance.AllBuildings)
+            {
+                if (b != null && b.BuildingData != null && b.BuildingData.buildingName == "CommandCenter")
+                {
+                    cc = b.gameObject;
+                    break;
+                }
+            }
+        }
+
+        // Fallback: GameObject.Find (handles scene-placed and instantiated variants)
+        if (cc == null) cc = GameObject.Find("CommandCenter");
+        if (cc == null) cc = GameObject.Find("CommandCenter(Clone)");
+
+        if (cc != null)
+        {
+            pollutionCenter = cc.transform;
+            UpdateAllTileStates();
+            Debug.Log($"[TileStateManager] pollutionCenter refreshed to '{cc.name}' at {cc.transform.position}");
+        }
+        else
+        {
+            Debug.LogWarning("[TileStateManager] RefreshPollutionCenter: No CommandCenter found");
+        }
+    }
+
     private void SubscribeToBuildingEvents()
     {
         if (isSubscribedToBuildingEvents) return;

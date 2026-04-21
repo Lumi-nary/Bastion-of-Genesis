@@ -45,6 +45,19 @@ public class PlacementSystem : MonoBehaviour
 
         inputActions = new InputSystem_Actions();
         mainCamera = Camera.main;
+
+        // Fallback to singleton if scene reference wasn't wired (e.g. client side)
+        if (gridManager == null)
+            gridManager = GridManager.Instance;
+    }
+
+    private void Start()
+    {
+        // Retry resolving references after all Awakes complete (ensures singleton is set)
+        if (gridManager == null)
+            gridManager = GridManager.Instance;
+        if (mainCamera == null)
+            mainCamera = Camera.main;
     }
 
     private void OnEnable()
@@ -196,7 +209,11 @@ public class PlacementSystem : MonoBehaviour
             // Calculate placement position at center (for center-pivoted sprites)
             Vector3 worldPos = gridManager.GridToWorldPosition(gridPos);
 
-            BuildingManager.Instance.PlaceBuilding(buildingToPlace, worldPos);
+            // Route through network if client, otherwise place directly
+            if (CoopManager.Instance != null && CoopManager.Instance.IsClientOnly)
+                CoopManager.Instance.CmdPlaceBuilding(buildingToPlace.buildingName, worldPos);
+            else
+                BuildingManager.Instance.PlaceBuilding(buildingToPlace, worldPos);
 
             // After placing, we exit build mode. The click has been consumed by this action,
             // so the SelectBuilding() logic in Update() won't run in the same frame.
@@ -509,7 +526,10 @@ public class PlacementSystem : MonoBehaviour
             {
                 Vector3 worldPos = gridManager.GridToWorldPosition(pos);
 
-                BuildingManager.Instance.PlaceBuilding(buildingToPlace, worldPos);
+                if (CoopManager.Instance != null && CoopManager.Instance.IsClientOnly)
+                    CoopManager.Instance.CmdPlaceBuilding(buildingToPlace.buildingName, worldPos);
+                else
+                    BuildingManager.Instance.PlaceBuilding(buildingToPlace, worldPos);
             }
             else
             {
@@ -521,8 +541,17 @@ public class PlacementSystem : MonoBehaviour
 
     private Vector3 GetMouseWorldPosition()
     {
+        // Refresh camera reference if lost (can happen after scene transitions on clients)
+        if (mainCamera == null)
+            mainCamera = Camera.main;
+        if (mainCamera == null)
+        {
+            Debug.LogWarning("[PlacementSystem] No main camera found");
+            return Vector3.zero;
+        }
+
         Vector3 mousePos = Mouse.current.position.ReadValue();
-        mousePos.z = mainCamera.nearClipPlane; // Ensure z-depth is correct for ScreenToWorldPoint
+        mousePos.z = mainCamera.nearClipPlane;
         return mainCamera.ScreenToWorldPoint(mousePos);
     }
 

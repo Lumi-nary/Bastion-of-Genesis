@@ -9,14 +9,18 @@ using TMPro;
 /// </summary>
 public class ActionPanelToggle : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
+    public enum SlideDirection { Left, Right }
+
     [Header("References")]
     [SerializeField] private RectTransform panelRect;
     [SerializeField] private Button toggleButton;
     [SerializeField] private TextMeshProUGUI arrowText;
 
     [Header("Settings")]
+    [SerializeField] private SlideDirection slideDirection = SlideDirection.Left;
     [SerializeField] private float slideDuration = 0.25f;
     [SerializeField] private float autoHideDelay = 5f;
+    [SerializeField] private bool autoHide = true;
 
     private bool isHidden;
     private Vector2 shownPosition;
@@ -33,20 +37,54 @@ public class ActionPanelToggle : MonoBehaviour, IPointerEnterHandler, IPointerEx
     private bool isHovering;
     private bool manuallyHidden; // user clicked arrow to hide
 
+    private bool initialized;
+
+    /// <summary>
+    /// When true, the auto-hide countdown is paused (e.g., while the building list flyout is open).
+    /// </summary>
+    public bool SuppressAutoHide { get; set; }
+
+    private void Awake()
+    {
+        InitializePositions();
+    }
+
     private void Start()
     {
-        if (panelRect == null)
-            panelRect = GetComponent<RectTransform>();
-
-        shownPosition = panelRect.anchoredPosition;
-
-        float panelWidth = panelRect.rect.width;
-        hiddenPosition = new Vector2(shownPosition.x - panelWidth, shownPosition.y);
+        // Safety: ensure positions are cached even if Awake was skipped (prefabbed instantiation).
+        if (!initialized) InitializePositions();
 
         if (toggleButton != null)
             toggleButton.onClick.AddListener(Toggle);
 
         idleTimer = 0f;
+        UpdateArrow();
+    }
+
+    private void InitializePositions()
+    {
+        if (panelRect == null)
+            panelRect = GetComponent<RectTransform>();
+        if (panelRect == null) return;
+
+        shownPosition = panelRect.anchoredPosition;
+
+        float panelWidth = panelRect.rect.width;
+        float offset = slideDirection == SlideDirection.Left ? -panelWidth : panelWidth;
+        hiddenPosition = new Vector2(shownPosition.x + offset, shownPosition.y);
+
+        initialized = true;
+    }
+
+    /// <summary>
+    /// Snap to the hidden position instantly (no slide animation). Use for initial state setup.
+    /// </summary>
+    public void HideInstant()
+    {
+        if (!initialized) InitializePositions();
+        isHidden = true;
+        isAnimating = false;
+        if (panelRect != null) panelRect.anchoredPosition = hiddenPosition;
         UpdateArrow();
     }
 
@@ -70,7 +108,11 @@ public class ActionPanelToggle : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
         // Auto-hide countdown (only when shown, not hovering, not manually hidden, not paused)
         bool isPaused = UIManager.Instance != null && UIManager.Instance.IsPaused;
-        if (!isHidden && !isHovering && !isAnimating && !isPaused)
+        if (SuppressAutoHide)
+        {
+            idleTimer = 0f;
+        }
+        else if (autoHide && !isHidden && !isHovering && !isAnimating && !isPaused)
         {
             idleTimer += Time.unscaledDeltaTime;
             if (idleTimer >= autoHideDelay)
@@ -144,7 +186,13 @@ public class ActionPanelToggle : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
     private void UpdateArrow()
     {
-        if (arrowText != null)
+        if (arrowText == null) return;
+        // Arrow always points toward the direction the panel will move when clicked.
+        // Left-slide panel: hidden → points right ">", shown → points left "<".
+        // Right-slide panel: hidden → points left "<", shown → points right ">".
+        if (slideDirection == SlideDirection.Left)
             arrowText.text = isHidden ? ">" : "<";
+        else
+            arrowText.text = isHidden ? "<" : ">";
     }
 }

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BuildingData
   buildingName: Laboratory
   description: Research facility where Researchers unlock new technologies.
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 7ed2a64fa1dd86d4283f83aba2cb6f26, type: 3}
   category: 5
   prefab: {fileID: 6600000000000000, guid: 2dc9e56176c24c42b9c65785062a747c, type: 3}
   isPlayerBuildable: 1
@@ -35,5 +35,7 @@ MonoBehaviour:
     requiredCount: 1
   features:
   - {fileID: 11400000, guid: 891354040210ced42bae8e529aef0a13, type: 2}
+  maxPlacementCount: 0
   width: 3
   height: 3
+  spreadsIntegration: 1

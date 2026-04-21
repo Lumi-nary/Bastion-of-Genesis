@@ -10,11 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7063798548833751891}
   - component: {fileID: 2817904568164736938}
-  - component: {fileID: 255190096730224739}
-  - component: {fileID: 2335301401023752158}
-  - component: {fileID: -2311398583954996117}
-  - component: {fileID: 8651321041373020183}
-  - component: {fileID: -4803097963463645902}
+  - component: {fileID: 8894328426879322141}
   m_Layer: 0
   m_Name: GlobalManagers
   m_TagString: Untagged
@@ -56,10 +52,7 @@ MonoBehaviour:
   <PredictedSpawn>k__BackingField: {fileID: 0}
   <PredictedOwner>k__BackingField: {fileID: 0}
   NetworkBehaviours:
-  - {fileID: 255190096730224739}
-  - {fileID: 2335301401023752158}
-  - {fileID: -2311398583954996117}
-  - {fileID: 8651321041373020183}
+  - {fileID: 8894328426879322141}
   InitializedParentNetworkBehaviour: {fileID: 0}
   InitializedNestedNetworkObjects: []
   RuntimeParentNetworkBehaviour: {fileID: 0}
@@ -70,7 +63,7 @@ MonoBehaviour:
   _initializeOrder: 0
   _preventDespawnOnDisconnect: 0
   _defaultDespawnType: 0
-  _initializedTimestamp: -8584353158118194158
+  _initializedTimestamp: -8584254650154020804
   NetworkObserver: {fileID: 0}
   _enablePrediction: 0
   _predictionType: 0
@@ -85,7 +78,7 @@ MonoBehaviour:
   _spectatorInterpolation: 2
   _enableTeleport: 0
   _teleportThreshold: 1
-  <PrefabId>k__BackingField: 10
+  <PrefabId>k__BackingField: 9
   <SpawnableCollectionId>k__BackingField: 0
   <AssetPathHash>k__BackingField: 14217731824055184424
   SceneId: 0
@@ -94,7 +87,7 @@ MonoBehaviour:
     Rotation: {x: 0, y: 0, z: 0, w: 1}
     Scale: {x: 1, y: 1, z: 1}
     IsValid: 1
---- !u!114 &255190096730224739
+--- !u!114 &8894328426879322141
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -103,76 +96,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 8562083621127565033}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 455bbc0446951604ab286f756c75100b, type: 3}
+  m_Script: {fileID: 11500000, guid: 8a6a39c46bf52104ba8efe3100bce3f7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NetworkedResourceManager
+  m_EditorClassIdentifier: FishNet.Runtime::FishNet.Object.EmptyNetworkBehaviour
   _componentIndexCache: 0
   _addedNetworkObject: {fileID: 2817904568164736938}
   _networkObjectCache: {fileID: 2817904568164736938}
-  resourceTypes: []
---- !u!114 &2335301401023752158
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8562083621127565033}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5b58a1a07141d3c4b9fdcd2f2c6e2c8d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NetworkedMissionManager
-  _componentIndexCache: 1
-  _addedNetworkObject: {fileID: 2817904568164736938}
-  _networkObjectCache: {fileID: 2817904568164736938}
---- !u!114 &-2311398583954996117
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8562083621127565033}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66eab07b8ac0a314da01fe6610b32b21, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NetworkedWorkerManager
-  _componentIndexCache: 2
-  _addedNetworkObject: {fileID: 2817904568164736938}
-  _networkObjectCache: {fileID: 2817904568164736938}
-  workerTypes: []
---- !u!114 &8651321041373020183
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8562083621127565033}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 697aaf15b6cfd9d4796a92547be98969, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NetworkedBuildingManager
-  _componentIndexCache: 3
-  _addedNetworkObject: {fileID: 2817904568164736938}
-  _networkObjectCache: {fileID: 2817904568164736938}
-  availableBuildings: []
-  networkedBuildingPrefab: {fileID: 0}
---- !u!114 &-4803097963463645902
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8562083621127565033}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bc414e7875f5f4845b647b46f361a3c2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NetworkedEnemyManager
-  _componentIndexCache: 255
-  _addedNetworkObject: {fileID: 2817904568164736938}
-  _networkObjectCache: {fileID: 0}
-  enemyPrefabs: []
-  baseSpawnInterval: 60
-  baseWaveSize: 5

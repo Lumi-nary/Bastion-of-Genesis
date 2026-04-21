@@ -18,4 +18,4 @@ MonoBehaviour:
   cost:
   - resourceType: {fileID: 11400000, guid: 0505f28487f172248a00b967bda2d6d4, type: 2}
     amount: 3
-  baseCapacity: 5
+  baseCapacity: 10

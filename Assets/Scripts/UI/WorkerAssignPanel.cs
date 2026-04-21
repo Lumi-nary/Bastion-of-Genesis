@@ -17,6 +17,13 @@ public class WorkerAssignPanel : MonoBehaviour
     [SerializeField] private GameObject assignRowPrefab;
     [SerializeField] private Toggle combineToggle;
 
+    [Header("Anchor to trigger button")]
+    [Tooltip("Horizontal gap between the trigger button and the left edge of the panel.")]
+    [SerializeField] private float anchorGapX = 8f;
+
+    [Header("Slide Animation")]
+    [SerializeField] private FlyoutPanelSlider slider;
+
     [Header("Settings")]
     [SerializeField] private bool combineBuildings = false;
 
@@ -24,6 +31,12 @@ public class WorkerAssignPanel : MonoBehaviour
     private List<WorkerAssignRowUI> rows = new List<WorkerAssignRowUI>();
     private bool isVisible;
     public bool IsVisible => isVisible;
+
+    private void Awake()
+    {
+        if (slider == null && panel != null) slider = panel.GetComponent<FlyoutPanelSlider>();
+        if (slider == null) slider = GetComponent<FlyoutPanelSlider>();
+    }
 
     private void Start()
     {
@@ -173,21 +186,33 @@ public class WorkerAssignPanel : MonoBehaviour
 
     public void ShowPanel()
     {
-        if (panel != null)
-        {
-            panel.SetActive(true);
-            isVisible = true;
-            RefreshPanel();
-        }
+        ShowPanel(null);
+    }
+
+    public void ShowPanel(RectTransform anchorButton)
+    {
+        if (panel == null) return;
+        if (anchorButton != null && panelRect != null)
+            PanelPositioner.PositionBeside(panelRect, anchorButton, anchorGapX);
+        panel.SetActive(true);
+        isVisible = true;
+        RefreshPanel();
+        if (slider != null) slider.PlayIn();
     }
 
     public void HidePanel()
     {
-        if (panel != null)
+        if (panel == null) return;
+        if (!isVisible)
         {
             panel.SetActive(false);
-            isVisible = false;
+            return;
         }
+        isVisible = false;
+        if (slider != null && panel.activeSelf)
+            slider.PlayOut(() => panel.SetActive(false));
+        else
+            panel.SetActive(false);
     }
 
     public void TogglePanel()

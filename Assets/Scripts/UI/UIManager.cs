@@ -3,6 +3,8 @@ using UnityEngine.InputSystem;
 
 public class UIManager : MonoBehaviour
 {
+    public enum PanelKind { None, BuildingSelection, WorkerAssembly, WorkerAssign, Research, Mission }
+
     public static UIManager Instance { get; private set; }
 
     [Header("UI Panels")]
@@ -38,6 +40,13 @@ public class UIManager : MonoBehaviour
 
     // Properties
     public bool IsPaused => isPaused;
+    public PanelKind ActivePanel { get; private set; } = PanelKind.None;
+
+    /// <summary>
+    /// Fires whenever the active nav panel changes (open, close, switch).
+    /// NavButtons subscribe to update their highlight state.
+    /// </summary>
+    public event System.Action<PanelKind> OnActivePanelChanged;
 
     private void Awake()
     {
@@ -118,26 +127,31 @@ public class UIManager : MonoBehaviour
         if (researchPanel != null && researchPanel.IsVisible)
         {
             researchPanel.HidePanel();
+            SetActivePanel(PanelKind.None);
             return true;
         }
         if (MissionPanel.Instance != null && MissionPanel.Instance.IsVisible)
         {
             MissionPanel.Instance.HidePanel();
+            SetActivePanel(PanelKind.None);
             return true;
         }
         if (workerAssemblyPanel != null && workerAssemblyPanel.IsVisible)
         {
             workerAssemblyPanel.HidePanel();
+            SetActivePanel(PanelKind.None);
             return true;
         }
         if (workerAssignPanel != null && workerAssignPanel.IsVisible)
         {
             workerAssignPanel.HidePanel();
+            SetActivePanel(PanelKind.None);
             return true;
         }
         if (buildingSelectionPanel != null && buildingSelectionPanel.IsVisible)
         {
             buildingSelectionPanel.HidePanel();
+            SetActivePanel(PanelKind.None);
             return true;
         }
         return false;
@@ -154,6 +168,7 @@ public class UIManager : MonoBehaviour
         if (workerAssemblyPanel != null && workerAssemblyPanel.IsVisible) workerAssemblyPanel.HidePanel();
         if (workerAssignPanel != null && workerAssignPanel.IsVisible) workerAssignPanel.HidePanel();
         if (buildingSelectionPanel != null && buildingSelectionPanel.IsVisible) buildingSelectionPanel.HidePanel();
+        SetActivePanel(PanelKind.None);
     }
 
     /// <summary>
@@ -259,14 +274,119 @@ public class UIManager : MonoBehaviour
 
     #endregion
 
-    #region Building Panels
+    #region Nav Panels
+
+    /// <summary>
+    /// Open a nav panel, closing any other nav panel that is currently open.
+    /// </summary>
+    public void ShowPanel(PanelKind kind) { ShowPanel(kind, null); }
+
+    public void ShowPanel(PanelKind kind, RectTransform anchor)
+    {
+        if (kind == PanelKind.None) return;
+
+        CloseOtherNavPanels(kind);
+
+        switch (kind)
+        {
+            case PanelKind.BuildingSelection:
+                if (buildingSelectionPanel != null && !buildingSelectionPanel.IsVisible)
+                    buildingSelectionPanel.ShowPanel();
+                break;
+            case PanelKind.WorkerAssembly:
+                if (workerAssemblyPanel != null && !workerAssemblyPanel.IsVisible)
+                    workerAssemblyPanel.ShowPanel(anchor);
+                break;
+            case PanelKind.WorkerAssign:
+                if (workerAssignPanel != null && !workerAssignPanel.IsVisible)
+                    workerAssignPanel.ShowPanel(anchor);
+                break;
+            case PanelKind.Research:
+                if (researchPanel != null && !researchPanel.IsVisible)
+                    researchPanel.ShowPanel();
+                break;
+            case PanelKind.Mission:
+                if (MissionPanel.Instance != null && !MissionPanel.Instance.IsVisible)
+                    MissionPanel.Instance.ShowPanel();
+                break;
+        }
+
+        SetActivePanel(kind);
+    }
+
+    /// <summary>
+    /// Toggle a nav panel. If target is already open, closes it; otherwise opens it (closing any other nav panel).
+    /// </summary>
+    public void TogglePanel(PanelKind kind) { TogglePanel(kind, null); }
+
+    public void TogglePanel(PanelKind kind, RectTransform anchor)
+    {
+        if (kind == PanelKind.None) return;
+
+        if (ActivePanel == kind)
+        {
+            HideNavPanel(kind);
+            SetActivePanel(PanelKind.None);
+        }
+        else
+        {
+            ShowPanel(kind, anchor);
+        }
+    }
+
+    /// <summary>
+    /// Close every nav panel except the one we're about to open.
+    /// </summary>
+    private void CloseOtherNavPanels(PanelKind keepOpen)
+    {
+        if (keepOpen != PanelKind.BuildingSelection && buildingSelectionPanel != null && buildingSelectionPanel.IsVisible)
+            buildingSelectionPanel.HidePanel();
+        if (keepOpen != PanelKind.WorkerAssembly && workerAssemblyPanel != null && workerAssemblyPanel.IsVisible)
+            workerAssemblyPanel.HidePanel();
+        if (keepOpen != PanelKind.WorkerAssign && workerAssignPanel != null && workerAssignPanel.IsVisible)
+            workerAssignPanel.HidePanel();
+        if (keepOpen != PanelKind.Research && researchPanel != null && researchPanel.IsVisible)
+            researchPanel.HidePanel();
+        if (keepOpen != PanelKind.Mission && MissionPanel.Instance != null && MissionPanel.Instance.IsVisible)
+            MissionPanel.Instance.HidePanel();
+    }
+
+    private void HideNavPanel(PanelKind kind)
+    {
+        switch (kind)
+        {
+            case PanelKind.BuildingSelection:
+                if (buildingSelectionPanel != null) buildingSelectionPanel.HidePanel();
+                break;
+            case PanelKind.WorkerAssembly:
+                if (workerAssemblyPanel != null) workerAssemblyPanel.HidePanel();
+                break;
+            case PanelKind.WorkerAssign:
+                if (workerAssignPanel != null) workerAssignPanel.HidePanel();
+                break;
+            case PanelKind.Research:
+                if (researchPanel != null) researchPanel.HidePanel();
+                break;
+            case PanelKind.Mission:
+                if (MissionPanel.Instance != null) MissionPanel.Instance.HidePanel();
+                break;
+        }
+    }
+
+    private void SetActivePanel(PanelKind kind)
+    {
+        if (ActivePanel == kind) return;
+        ActivePanel = kind;
+        OnActivePanelChanged?.Invoke(kind);
+    }
+
+    #endregion
+
+    #region Building Panels (legacy wrappers)
 
     public void ToggleBuildingSelectionPanel()
     {
-        if (buildingSelectionPanel != null)
-        {
-            buildingSelectionPanel.TogglePanel();
-        }
+        TogglePanel(PanelKind.BuildingSelection);
     }
 
     public void ShowBuildingInfoPanel(Building building)

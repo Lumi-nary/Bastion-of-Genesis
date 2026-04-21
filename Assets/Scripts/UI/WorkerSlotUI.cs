@@ -53,7 +53,15 @@ public class WorkerSlotUI : MonoBehaviour
     {
         if (currentBuilding != null && workerData != null)
         {
-            currentBuilding.AssignWorker(workerData);
+            if (CoopManager.Instance != null && CoopManager.Instance.IsClientOnly)
+            {
+                Vector3 gridPos = new Vector3(currentBuilding.gridPosition.x, currentBuilding.gridPosition.y, 0);
+                CoopManager.Instance.CmdAssignWorker(gridPos, workerData.workerName);
+            }
+            else
+            {
+                currentBuilding.AssignWorker(workerData);
+            }
         }
     }
 
@@ -61,7 +69,15 @@ public class WorkerSlotUI : MonoBehaviour
     {
         if (currentBuilding != null && workerData != null)
         {
-            currentBuilding.RemoveWorker(workerData);
+            if (CoopManager.Instance != null && CoopManager.Instance.IsClientOnly)
+            {
+                Vector3 gridPos = new Vector3(currentBuilding.gridPosition.x, currentBuilding.gridPosition.y, 0);
+                CoopManager.Instance.CmdRemoveWorker(gridPos, workerData.workerName);
+            }
+            else
+            {
+                currentBuilding.RemoveWorker(workerData);
+            }
         }
     }
 

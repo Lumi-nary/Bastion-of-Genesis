@@ -899,4 +899,15 @@ public class MissionChapterManager : MonoBehaviour
 
         Debug.Log($"[MissionChapterManager] State imported: chapter={currentChapterIndex}, mission={currentMissionIndex}, timer={missionTimer:F1}");
     }
+
+    /// <summary>
+    /// Force-fire mission/chapter events so UI refreshes after network state sync.
+    /// </summary>
+    public void NotifyUIRefresh()
+    {
+        if (currentChapter != null)
+            OnChapterStarted?.Invoke(currentChapter);
+        if (currentMission != null)
+            OnMissionStarted?.Invoke(currentMission);
+    }
 }

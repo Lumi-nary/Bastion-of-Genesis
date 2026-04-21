@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 204de392f14d53c49a625a581e2da133
+guid: 9e58751c3c000004b85779fd66c882ae
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8094338925701247264
-    second: CommandCenter_0
+      213: 1835579413298134689
+    second: pause_final_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -96,17 +96,30 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: CommandCenter_0
+      name: pause_final_0
       rect:
         serializedVersion: 2
-        x: 7
-        y: 13
-        width: 215
-        height: 191
+        x: 0
+        y: 0
+        width: 1113
+        height: 478
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0213a060e5ed45070800000000000000
-      internalID: 8094338925701247264
+      spriteID: 1aeb7a640c9497910800000000000000
+      internalID: 1835579413298134689
       vertices: []
       indices: 
       edges: []
@@ -135,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      CommandCenter_0: 8094338925701247264
+      pause_final_0: 1835579413298134689
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

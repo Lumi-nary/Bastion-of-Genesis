@@ -18,11 +18,24 @@ public class WorkerAssemblyPanel : MonoBehaviour
     [SerializeField] private GameObject factoryRowPrefab;
     [SerializeField] private GameObject converterRowPrefab;
 
+    [Header("Anchor to trigger button")]
+    [Tooltip("Horizontal gap between the trigger button and the left edge of the panel.")]
+    [SerializeField] private float anchorGapX = 8f;
+
+    [Header("Slide Animation")]
+    [SerializeField] private FlyoutPanelSlider slider;
+
     // Track spawned rows
     private Dictionary<WorkerData, FactoryRowUI> factoryRows = new Dictionary<WorkerData, FactoryRowUI>();
     private Dictionary<ResourceType, ConverterRowUI> converterRows = new Dictionary<ResourceType, ConverterRowUI>();
     private bool isVisible;
     public bool IsVisible => isVisible;
+
+    private void Awake()
+    {
+        if (slider == null && panel != null) slider = panel.GetComponent<FlyoutPanelSlider>();
+        if (slider == null) slider = GetComponent<FlyoutPanelSlider>();
+    }
 
     private void Start()
     {
@@ -174,12 +187,21 @@ public class WorkerAssemblyPanel : MonoBehaviour
     /// </summary>
     public void ShowPanel()
     {
-        if (panel != null)
-        {
-            panel.SetActive(true);
-            isVisible = true;
-            RefreshPanel();
-        }
+        ShowPanel(null);
+    }
+
+    /// <summary>
+    /// Show the assembly panel anchored next to the button that triggered it.
+    /// </summary>
+    public void ShowPanel(RectTransform anchorButton)
+    {
+        if (panel == null) return;
+        if (anchorButton != null && panelRect != null)
+            PanelPositioner.PositionBeside(panelRect, anchorButton, anchorGapX);
+        panel.SetActive(true);
+        isVisible = true;
+        RefreshPanel();
+        if (slider != null) slider.PlayIn();
     }
 
     /// <summary>
@@ -187,11 +209,17 @@ public class WorkerAssemblyPanel : MonoBehaviour
     /// </summary>
     public void HidePanel()
     {
-        if (panel != null)
+        if (panel == null) return;
+        if (!isVisible)
         {
             panel.SetActive(false);
-            isVisible = false;
+            return;
         }
+        isVisible = false;
+        if (slider != null && panel.activeSelf)
+            slider.PlayOut(() => panel.SetActive(false));
+        else
+            panel.SetActive(false);
     }
 
     /// <summary>
