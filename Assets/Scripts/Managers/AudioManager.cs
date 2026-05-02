@@ -46,6 +46,8 @@ public class AudioManager : MonoBehaviour
     private const string SFX_VOLUME = "SFXVolume";
     private const string VOICE_VOLUME = "VoiceVolume";
     private const string AMBIENCE_VOLUME = "AmbienceVolume";
+    private const float MUSIC_BASELINE_DB = -6f;
+    private const float VOICE_BASELINE_DB = 3f;
 
     // Music state
     private AudioSource activeMusicSource;
@@ -60,7 +62,19 @@ public class AudioManager : MonoBehaviour
     // State
     private bool isInBattle = false;
     private AudioClip normalMusicClip;
+    private readonly List<AudioClip> normalMusicPlaylist = new List<AudioClip>();
+    private int normalMusicIndex = 0;
     private AudioClip battleMusicClip;
+
+    private void Update()
+    {
+        if (isInBattle || normalMusicPlaylist.Count <= 1 || activeMusicSource == null || activeMusicSource.isPlaying)
+        {
+            return;
+        }
+
+        PlayNextNormalMusicTrack();
+    }
 
     private void Awake()
     {
@@ -207,10 +221,44 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     public void SetNormalMusic(AudioClip clip)
     {
+        normalMusicPlaylist.Clear();
+        normalMusicIndex = 0;
+
+        if (clip != null)
+        {
+            normalMusicPlaylist.Add(clip);
+        }
+
         normalMusicClip = clip;
         if (!isInBattle && clip != null)
         {
             PlayMusic(clip);
+        }
+    }
+
+    /// <summary>
+    /// Set the normal (non-battle) music playlist
+    /// </summary>
+    public void SetNormalMusic(IList<AudioClip> clips)
+    {
+        normalMusicPlaylist.Clear();
+        normalMusicIndex = 0;
+
+        if (clips != null)
+        {
+            for (int i = 0; i < clips.Count; i++)
+            {
+                if (clips[i] != null && !normalMusicPlaylist.Contains(clips[i]))
+                {
+                    normalMusicPlaylist.Add(clips[i]);
+                }
+            }
+        }
+
+        normalMusicClip = normalMusicPlaylist.Count > 0 ? normalMusicPlaylist[0] : null;
+        if (!isInBattle && normalMusicClip != null)
+        {
+            PlayMusic(normalMusicClip, true, normalMusicPlaylist.Count <= 1);
         }
     }
 
@@ -225,20 +273,25 @@ public class AudioManager : MonoBehaviour
     /// <summary>
     /// Play music with optional crossfade from current track
     /// </summary>
-    public void PlayMusic(AudioClip clip, bool crossfade = true)
+    public void PlayMusic(AudioClip clip, bool crossfade = true, bool loop = true)
     {
         if (clip == null) return;
-        if (currentMusicClip == clip && activeMusicSource.isPlaying) return;
+        if (currentMusicClip == clip && activeMusicSource.isPlaying)
+        {
+            activeMusicSource.loop = loop;
+            return;
+        }
 
         currentMusicClip = clip;
 
         if (crossfade && activeMusicSource.isPlaying)
         {
-            CrossfadeToMusic(clip);
+            CrossfadeToMusic(clip, loop);
         }
         else
         {
             activeMusicSource.clip = clip;
+            activeMusicSource.loop = loop;
             activeMusicSource.volume = 1f;
             activeMusicSource.Play();
         }
@@ -247,21 +300,22 @@ public class AudioManager : MonoBehaviour
     /// <summary>
     /// Crossfade to new music track
     /// </summary>
-    private void CrossfadeToMusic(AudioClip newClip)
+    private void CrossfadeToMusic(AudioClip newClip, bool loop)
     {
         if (crossfadeCoroutine != null)
         {
             StopCoroutine(crossfadeCoroutine);
         }
-        crossfadeCoroutine = StartCoroutine(CrossfadeCoroutine(newClip));
+        crossfadeCoroutine = StartCoroutine(CrossfadeCoroutine(newClip, loop));
     }
 
-    private IEnumerator CrossfadeCoroutine(AudioClip newClip)
+    private IEnumerator CrossfadeCoroutine(AudioClip newClip, bool loop)
     {
         AudioSource fadeOutSource = activeMusicSource;
         AudioSource fadeInSource = isMusicSourceA ? musicSourceB : musicSourceA;
 
         fadeInSource.clip = newClip;
+        fadeInSource.loop = loop;
         fadeInSource.volume = 0f;
         fadeInSource.Play();
 
@@ -297,7 +351,7 @@ public class AudioManager : MonoBehaviour
 
         if (battleMusicClip != null)
         {
-            PlayMusic(battleMusicClip);
+            PlayMusic(battleMusicClip, true, true);
         }
         Debug.Log("[AudioManager] Battle music started");
     }
@@ -312,9 +366,21 @@ public class AudioManager : MonoBehaviour
 
         if (normalMusicClip != null)
         {
-            PlayMusic(normalMusicClip);
+            PlayMusic(normalMusicClip, true, normalMusicPlaylist.Count <= 1);
         }
         Debug.Log("[AudioManager] Battle music ended");
+    }
+
+    private void PlayNextNormalMusicTrack()
+    {
+        if (normalMusicPlaylist.Count == 0)
+        {
+            return;
+        }
+
+        normalMusicIndex = (normalMusicIndex + 1) % normalMusicPlaylist.Count;
+        normalMusicClip = normalMusicPlaylist[normalMusicIndex];
+        PlayMusic(normalMusicClip, true, false);
     }
 
     /// <summary>
@@ -325,6 +391,11 @@ public class AudioManager : MonoBehaviour
         musicSourceA.Stop();
         musicSourceB.Stop();
         currentMusicClip = null;
+        normalMusicClip = null;
+        normalMusicPlaylist.Clear();
+        normalMusicIndex = 0;
+        battleMusicClip = null;
+        isInBattle = false;
     }
 
     // ============================================================================
@@ -518,9 +589,23 @@ public class AudioManager : MonoBehaviour
     {
         if (audioMixer == null) return;
 
-        // Convert linear (0-1) to decibels (-80 to 0)
-        float dB = linearVolume > 0.0001f ? Mathf.Log10(linearVolume) * 20f : -80f;
+        float dB = linearVolume > 0.0001f
+            ? Mathf.Log10(linearVolume) * 20f + GetMixerBaselineDb(parameter)
+            : -80f;
         audioMixer.SetFloat(parameter, dB);
+    }
+
+    private float GetMixerBaselineDb(string parameter)
+    {
+        switch (parameter)
+        {
+            case MUSIC_VOLUME:
+                return MUSIC_BASELINE_DB;
+            case VOICE_VOLUME:
+                return VOICE_BASELINE_DB;
+            default:
+                return 0f;
+        }
     }
 
     // ============================================================================

@@ -63,6 +63,12 @@ public class WorkerManager : MonoBehaviour
 
     public void AssembleWorker(WorkerData workerData)
     {
+        if (TutorialGuideManager.Instance != null && !TutorialGuideManager.Instance.CanAssembleWorker(workerData))
+        {
+            Debug.Log($"[TutorialGuide] BLOCKED: {workerData.workerName} is not the required worker assembly for the active tutorial step.");
+            return;
+        }
+
         if (HasEnoughResources(workerData.cost))
         {
             SpendResources(workerData.cost);
@@ -81,7 +87,7 @@ public class WorkerManager : MonoBehaviour
         }
     }
 
-    public bool AssignWorker(WorkerData workerData)
+    public bool AssignWorker(WorkerData workerData, Building assignmentBuilding = null)
     {
         if (availableWorkers.ContainsKey(workerData) && availableWorkers[workerData] > 0)
         {
@@ -92,7 +98,7 @@ public class WorkerManager : MonoBehaviour
             if (MissionChapterManager.Instance != null)
             {
                 MissionChapterManager.Instance.UpdateObjectiveProgress(
-                    ObjectiveType.AssignWorkers, 1, workerData: workerData);
+                    ObjectiveType.AssignWorkers, 1, workerData: workerData, assignmentBuilding: assignmentBuilding);
             }
 
             return true;

@@ -15,7 +15,6 @@ public class SaveListItemUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI playtimeText;
     [SerializeField] private TextMeshProUGUI timestampText;
     [SerializeField] private TextMeshProUGUI chapterMissionText;
-    [SerializeField] private TextMeshProUGUI modeIcon;
 
     [Header("Difficulty Badge")]
     [SerializeField] private Image difficultyBadge;
@@ -79,12 +78,6 @@ public class SaveListItemUI : MonoBehaviour
                     difficultyBadge.color = Color.red;
                     break;
             }
-        }
-
-        // AC4.4: Set mode icon ([SP] or [COOP])
-        if (modeIcon != null)
-        {
-            modeIcon.text = metadata.GetModeIcon();
         }
 
         // AC4.5: Convert totalPlaytime to HH:MM:SS format

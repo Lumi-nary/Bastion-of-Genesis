@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 549fa760c959a954d83336ebea1ee97b, type: 3}
+  m_Name: Tile_Cliff
+  m_EditorClassIdentifier: Assembly-CSharp::TileData
+  tileName: Cliff
+  description: Impassable cliff terrain. Texture/sprite will be assigned later.
+  groundState: 0
+  terrainType: 0
+  pollutionAffected: 0
+  tileSprite: {fileID: 0}
+  previewColor: {r: 0.32, g: 0.3, b: 0.28, a: 1}
+  properties:
+  - {fileID: 11400000, guid: f3835f57967f21e4eaf5aea0c3c24052, type: 2}

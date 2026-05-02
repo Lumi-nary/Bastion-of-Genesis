@@ -835,16 +835,9 @@ public class DebugManager : MonoBehaviour
         var mcm = MissionChapterManager.Instance;
         if (mcm == null || mcm.CurrentMission == null) return;
 
-        // Force complete all main (non-optional) objectives
-        foreach (var obj in mcm.CurrentMission.objectives)
-        {
-            if (!obj.isOptional && !obj.isCompleted)
-            {
-                ForceCompleteObjective(obj);
-            }
-        }
-
-        Debug.Log($"[DebugManager] Skipped mission: {mcm.CurrentMission.missionName}");
+        string skippedMissionName = mcm.CurrentMission.missionName;
+        mcm.ForceCompleteCurrentMission(includeOptional: false);
+        Debug.Log($"[DebugManager] Skipped mission: {skippedMissionName}");
     }
 
     private void CompleteAllObjectives()
@@ -852,14 +845,7 @@ public class DebugManager : MonoBehaviour
         var mcm = MissionChapterManager.Instance;
         if (mcm == null || mcm.CurrentMission == null) return;
 
-        foreach (var obj in mcm.CurrentMission.objectives)
-        {
-            if (!obj.isCompleted)
-            {
-                ForceCompleteObjective(obj);
-            }
-        }
-
+        mcm.ForceCompleteCurrentMission(includeOptional: true);
         Debug.Log("[DebugManager] All objectives force-completed");
     }
 

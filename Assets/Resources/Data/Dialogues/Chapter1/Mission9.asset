@@ -17,16 +17,43 @@ MonoBehaviour:
   entries:
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
-    expression: {fileID: 0}
-    dialogueText: Analysis complete. Our terraforming emissions are directly provoking the indigenous population. The more we reshape this environment, the more aggressively they resist.
-    voiceClip: {fileID: 0}
-  - speakerName: Kyra-Dominia
-    portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
-    expression: {fileID: 0}
-    dialogueText: The whole point is to reshape this environment. We do not stop. Push output, reinforce defenses, and hold the line.
+    expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
+    dialogueText: Analysis complete.
     voiceClip: {fileID: 0}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
-    expression: {fileID: 0}
-    dialogueText: Understood. Monitoring terraforming levels. Expect escalating hostility with each expansion cycle.
+    expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
+    dialogueText: Our terraforming emissions are directly provoking the indigenous
+      population.
+    voiceClip: {fileID: 0}
+  - speakerName: Nexus
+    portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
+    expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
+    dialogueText: The more we reshape this environment, the more aggressively they
+      resist.
+    voiceClip: {fileID: 0}
+  - speakerName: Kyra-Dominia
+    portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
+    expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
+    dialogueText: The whole point is to reshape this environment.
+    voiceClip: {fileID: 0}
+  - speakerName: Kyra-Dominia
+    portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
+    expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
+    dialogueText: We do not stop.
+    voiceClip: {fileID: 0}
+  - speakerName: Kyra-Dominia
+    portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
+    expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
+    dialogueText: Push output, reinforce defenses, and hold the line.
+    voiceClip: {fileID: 0}
+  - speakerName: Nexus
+    portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
+    expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
+    dialogueText: Understood. Monitoring terraforming levels.
+    voiceClip: {fileID: 0}
+  - speakerName: Nexus
+    portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
+    expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
+    dialogueText: Expect escalating hostility with each expansion cycle.
     voiceClip: {fileID: 0}

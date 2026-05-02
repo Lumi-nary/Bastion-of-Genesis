@@ -18,6 +18,8 @@ public class TechDetailPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI descriptionText;
     [SerializeField] private TextMeshProUGUI costText;
     [SerializeField] private TextMeshProUGUI timeText;
+    [SerializeField] private TextMeshProUGUI effectsText;
+    [SerializeField] private TextMeshProUGUI statusText;
     [SerializeField] private Button researchButton;
     [SerializeField] private TextMeshProUGUI researchButtonText;
 
@@ -107,6 +109,11 @@ public class TechDetailPanel : MonoBehaviour
             timeText.text = $"Time: {currentTech.GetTimeString()}";
         }
 
+        if (effectsText != null)
+        {
+            effectsText.text = $"Effects:\n{currentTech.GetEffectsDescription()}";
+        }
+
         // Button state
         UpdateButtonState();
     }
@@ -158,33 +165,54 @@ public class TechDetailPanel : MonoBehaviour
         if (isResearched)
         {
             researchButtonText.text = "Completed";
+            SetStatus("Completed", new Color(0.45f, 1f, 0.75f, 1f));
             researchButton.interactable = false;
         }
         else if (isResearching)
         {
             researchButtonText.text = "Cancel";
+            SetStatus("Researching", new Color(1f, 0.84f, 0.38f, 1f));
             researchButton.interactable = true;
         }
         else if (!isAvailable)
         {
             researchButtonText.text = "Locked";
+            SetStatus("Locked", new Color(0.85f, 0.9f, 0.95f, 1f));
             researchButton.interactable = false;
         }
         else if (otherResearching)
         {
             researchButtonText.text = "Busy";
+            SetStatus("Busy", new Color(1f, 0.84f, 0.38f, 1f));
+            researchButton.interactable = false;
+        }
+        else if (!CanResearchForTutorial())
+        {
+            researchButtonText.text = "Tutorial Locked";
+            SetStatus("Tutorial Locked", new Color(1f, 0.36f, 0.34f, 1f));
             researchButton.interactable = false;
         }
         else if (!ResearchManager.Instance.HasActiveResearchLab())
         {
             researchButtonText.text = "No Lab";
+            SetStatus("Requires active research lab", new Color(1f, 0.36f, 0.34f, 1f));
             researchButton.interactable = false;
         }
         else
         {
             researchButtonText.text = "Research";
+            SetStatus("Available", new Color(0.62f, 0.9f, 1f, 1f));
             researchButton.interactable = true;
         }
+    }
+
+    private void SetStatus(string text, Color color)
+    {
+        if (statusText == null)
+            return;
+
+        statusText.text = text;
+        statusText.color = color;
     }
 
     private bool CanAffordResearch()
@@ -217,6 +245,9 @@ public class TechDetailPanel : MonoBehaviour
         }
         else
         {
+            if (!CanResearchForTutorial())
+                return;
+
             ResearchManager.Instance.StartResearch(currentTech);
         }
 
@@ -240,5 +271,10 @@ public class TechDetailPanel : MonoBehaviour
         {
             researchButton.onClick.RemoveListener(OnResearchButtonClicked);
         }
+    }
+
+    private bool CanResearchForTutorial()
+    {
+        return TutorialGuideManager.Instance == null || TutorialGuideManager.Instance.CanResearchTechnology(currentTech);
     }
 }

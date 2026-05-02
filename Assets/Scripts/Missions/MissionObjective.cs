@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -16,6 +17,11 @@ public enum ObjectiveType
     DefeatBoss             // Defeat a boss enemy
 }
 
+public enum TutorialGateMode
+{
+    HardGate
+}
+
 [System.Serializable]
 public class MissionObjective
 {
@@ -31,6 +37,16 @@ public class MissionObjective
     public BuildingData requiredBuilding;  // For building construction objectives
     public WorkerData requiredWorker;     // For worker assembly/assignment objectives
     public RaceType targetRace;           // For enemy defeat objectives
+
+    [Header("Tutorial Gate")]
+    public bool isTutorialStep = false;
+    public TutorialGateMode gateMode = TutorialGateMode.HardGate;
+    public List<Vector2Int> allowedPlacementCells = new List<Vector2Int>();
+    public TechnologyData requiredTechnology;
+    public List<TechnologyData> requiredTechnologies = new List<TechnologyData>();
+    public BuildingData requiredAssignmentBuilding;
+    [TextArea(2, 4)] public string tutorialInstruction;
+    public bool focusCameraOnTarget = true;
 
     [Header("Completion Status")]
     [HideInInspector] public int currentAmount;
@@ -55,5 +71,72 @@ public class MissionObjective
             ObjectiveType.MaintainPollution => $"{currentTime:F0}s / {targetTime:F0}s",
             _ => $"{currentAmount} / {targetAmount}"
         };
+    }
+
+    public bool MatchesProgress(
+        ObjectiveType progressType,
+        ResourceType resourceType = null,
+        RaceType? raceType = null,
+        BuildingData buildingData = null,
+        WorkerData workerData = null,
+        Vector2Int? placementCell = null,
+        Building assignmentBuilding = null,
+        TechnologyData technologyData = null)
+    {
+        if (type != progressType)
+            return false;
+
+        if (progressType == ObjectiveType.CollectResources && requiredResource != resourceType)
+            return false;
+
+        if (progressType == ObjectiveType.DefeatEnemies && raceType.HasValue && targetRace != raceType.Value)
+            return false;
+
+        if (progressType == ObjectiveType.BuildStructures)
+        {
+            if (requiredBuilding != null && buildingData != null && requiredBuilding != buildingData)
+                return false;
+
+            if (isTutorialStep)
+            {
+                if (requiredBuilding != null && requiredBuilding != buildingData)
+                    return false;
+
+                if (allowedPlacementCells != null && allowedPlacementCells.Count > 0)
+                {
+                    if (!placementCell.HasValue || !allowedPlacementCells.Contains(placementCell.Value))
+                        return false;
+                }
+            }
+        }
+
+        if (progressType == ObjectiveType.AssignWorkers)
+        {
+            if (requiredWorker != null && requiredWorker != workerData)
+                return false;
+
+            if (isTutorialStep)
+            {
+                if (requiredWorker != null && requiredWorker != workerData)
+                    return false;
+
+                if (requiredAssignmentBuilding != null)
+                {
+                    if (assignmentBuilding == null || assignmentBuilding.BuildingData != requiredAssignmentBuilding)
+                        return false;
+                }
+            }
+        }
+
+        if (progressType == ObjectiveType.ResearchTechnology && isTutorialStep)
+        {
+            if (requiredTechnologies != null && requiredTechnologies.Count > 0)
+                return technologyData != null && requiredTechnologies.Contains(technologyData);
+
+            if (requiredTechnology != null && requiredTechnology != technologyData)
+                return false;
+        }
+
+        return true;
     }
 }

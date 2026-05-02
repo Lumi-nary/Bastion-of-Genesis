@@ -17,16 +17,32 @@ MonoBehaviour:
   entries:
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
-    expression: {fileID: 0}
-    dialogueText: Commander, a massive biosignature is approaching from the north. It dwarfs anything we have encountered. Designating it as a Warden-class entity.
-    voiceClip: {fileID: 0}
-  - speakerName: Kyra-Dominia
-    portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
-    expression: {fileID: 0}
-    dialogueText: That is a command unit. They sent their best. All defenses to maximum, concentrate fire on the big one.
+    expression: {fileID: -3924190032742187860, guid: 3a0df9f3b1f8216458b091e954b895e8, type: 3}
+    dialogueText: Commander, a massive biosignature is approaching from the north.
     voiceClip: {fileID: 0}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
-    expression: {fileID: 0}
-    dialogueText: Warden is accompanied by a full assault wave. Recommend eliminating the command unit first to break enemy cohesion.
+    expression: {fileID: -3924190032742187860, guid: 3a0df9f3b1f8216458b091e954b895e8, type: 3}
+    dialogueText: It dwarfs anything we have encountered. Designating it as a Warden-class
+      entity.
+    voiceClip: {fileID: 0}
+  - speakerName: Kyra-Dominia
+    portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
+    expression: {fileID: 621222158458474870, guid: 3ea5501f3c89c1346aae2957352121db, type: 3}
+    dialogueText: That is a command unit. They sent their best.
+    voiceClip: {fileID: 0}
+  - speakerName: Kyra-Dominia
+    portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
+    expression: {fileID: 621222158458474870, guid: 3ea5501f3c89c1346aae2957352121db, type: 3}
+    dialogueText: All defenses to maximum, concentrate fire on the big one.
+    voiceClip: {fileID: 0}
+  - speakerName: Nexus
+    portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
+    expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
+    dialogueText: Warden is accompanied by a full assault wave.
+    voiceClip: {fileID: 0}
+  - speakerName: Nexus
+    portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
+    expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
+    dialogueText: Recommend eliminating the command unit first to break enemy cohesion.
     voiceClip: {fileID: 0}

@@ -55,5 +55,6 @@ MonoBehaviour:
   optionalRewards: []
   timeLimit: 0
   failOnTimeExpired: 0
+  pollutionLimitPercent: 30
   disableNaturalWaves: 0
   scriptedWaves: []

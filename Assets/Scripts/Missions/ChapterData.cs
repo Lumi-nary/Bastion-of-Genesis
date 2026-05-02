@@ -28,8 +28,11 @@ public class ChapterData : ScriptableObject
     [Tooltip("Workers given at the start of this chapter")]
     public List<WorkerStartConfig> startingWorkers = new List<WorkerStartConfig>();
 
-    [Header("Starting Integration Zone")]
-    [Tooltip("Initial integration radius (buildable zone) for this chapter")]
+    [Header("Starting Tile States")]
+    [Tooltip("Initial withered radius for this chapter. Pollution growth expands from this radius.")]
+    public float startingWitherRadius = 10f;
+
+    [Tooltip("Initial integration radius (buildable zone) for this chapter.")]
     public float startingIntegrationRadius = 10f;
 
     [Header("Pollution Settings")]
@@ -56,6 +59,8 @@ public class ChapterData : ScriptableObject
     [Header("Audio")]
     [Tooltip("Background music for this chapter (normal gameplay)")]
     public AudioClip backgroundMusic;
+    [Tooltip("Background music playlist for this chapter (normal gameplay)")]
+    public List<AudioClip> backgroundMusicTracks = new List<AudioClip>();
     [Tooltip("Battle music when enemies are attacking")]
     public AudioClip battleMusic;
 

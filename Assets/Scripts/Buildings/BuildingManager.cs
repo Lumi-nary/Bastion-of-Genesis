@@ -63,6 +63,18 @@ public class BuildingManager : MonoBehaviour
             return; // No building selected
         }
 
+        Vector2Int gridPos = GridManager.Instance.WorldToGridPosition(position);
+        int centerOffsetX = buildingData.width / 2;
+        int centerOffsetY = buildingData.height / 2;
+        Vector2Int bottomLeftGridPos = new Vector2Int(gridPos.x - centerOffsetX, gridPos.y - centerOffsetY);
+
+        if (TutorialGuideManager.Instance != null &&
+            !TutorialGuideManager.Instance.CanPlaceBuilding(buildingData, bottomLeftGridPos, buildingData.width, buildingData.height))
+        {
+            Debug.Log($"[TutorialGuide] BLOCKED: {buildingData.buildingName} cannot be placed at {bottomLeftGridPos} for the active tutorial step.");
+            return;
+        }
+
         if (ignoreCost || (HasEnoughResources(buildingData.resourceCost) && HasEnoughBuilders(buildingData)))
         {
             if (!ignoreCost)
@@ -73,13 +85,6 @@ public class BuildingManager : MonoBehaviour
 
             GameObject newBuildingGO = Instantiate(buildingData.prefab, position, Quaternion.identity);
             Building newBuilding = newBuildingGO.GetComponent<Building>();
-
-            Vector2Int gridPos = GridManager.Instance.WorldToGridPosition(position);
-
-            // Position is the CENTER for all buildings, calculate bottom-left for grid tracking
-            int centerOffsetX = buildingData.width / 2;
-            int centerOffsetY = buildingData.height / 2;
-            Vector2Int bottomLeftGridPos = new Vector2Int(gridPos.x - centerOffsetX, gridPos.y - centerOffsetY);
 
             newBuilding.gridPosition = bottomLeftGridPos;
             newBuilding.width = buildingData.width;
@@ -399,6 +404,12 @@ public class BuildingManager : MonoBehaviour
     {
         if (workerType == null || !factoriesByWorkerType.ContainsKey(workerType))
             return false;
+
+        if (TutorialGuideManager.Instance != null && !TutorialGuideManager.Instance.CanAssembleWorker(workerType))
+        {
+            Debug.Log($"[TutorialGuide] BLOCKED: {workerType.workerName} is not the required worker assembly for the active tutorial step.");
+            return false;
+        }
 
         foreach (var factory in factoriesByWorkerType[workerType])
         {

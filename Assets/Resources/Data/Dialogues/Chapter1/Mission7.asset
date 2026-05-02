@@ -17,11 +17,31 @@ MonoBehaviour:
   entries:
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
-    expression: {fileID: 0}
-    dialogueText: New contact. A larger force is massing to the west, estimated twice the size of the previous engagement.
+    expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
+    dialogueText: New contact.
+    voiceClip: {fileID: 0}
+  - speakerName: Nexus
+    portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
+    expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
+    dialogueText: A larger force is massing to the west.
+    voiceClip: {fileID: 0}
+  - speakerName: Nexus
+    portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
+    expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
+    dialogueText: Estimated twice the size of the previous engagement.
     voiceClip: {fileID: 0}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
-    expression: {fileID: 0}
-    dialogueText: They are probing our flanks. Reinforce the western perimeter, turrets and walls. Nothing gets through.
+    expression: {fileID: 621222158458474870, guid: 3ea5501f3c89c1346aae2957352121db, type: 3}
+    dialogueText: They are probing our flanks.
+    voiceClip: {fileID: 0}
+  - speakerName: Kyra-Dominia
+    portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
+    expression: {fileID: 621222158458474870, guid: 3ea5501f3c89c1346aae2957352121db, type: 3}
+    dialogueText: Reinforce the western perimeter, turrets and walls.
+    voiceClip: {fileID: 0}
+  - speakerName: Kyra-Dominia
+    portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
+    expression: {fileID: 621222158458474870, guid: 3ea5501f3c89c1346aae2957352121db, type: 3}
+    dialogueText: Nothing gets through.
     voiceClip: {fileID: 0}

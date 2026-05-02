@@ -3,6 +3,16 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+public enum EnemyBuildingAggroPriority
+{
+    TurretDefense,
+    Energy,
+    Extraction,
+    Production,
+    Command,
+    AnyNonWall
+}
+
 /// <summary>
 /// Manages all enemy spawning, wave management, and targeting
 /// Singleton pattern for global access
@@ -20,6 +30,32 @@ public class EnemyManager : MonoBehaviour
 
     [Tooltip("Currently active enemies in the scene")]
     private List<Enemy> activeEnemies = new List<Enemy>();
+
+    [Header("Targeting Settings")]
+    [Tooltip("Maximum edge distance considered for ranged building aggro. Enemies still only attack targets inside their own attack range.")]
+    [SerializeField] private float aggroRange = 5f;
+
+    [Tooltip("Priority used when multiple non-wall buildings are already attackable.")]
+    [SerializeField]
+    private List<EnemyBuildingAggroPriority> buildingAggroPriority = new List<EnemyBuildingAggroPriority>
+    {
+        EnemyBuildingAggroPriority.TurretDefense,
+        EnemyBuildingAggroPriority.Energy,
+        EnemyBuildingAggroPriority.Extraction,
+        EnemyBuildingAggroPriority.Production,
+        EnemyBuildingAggroPriority.Command,
+        EnemyBuildingAggroPriority.AnyNonWall
+    };
+
+    private static readonly EnemyBuildingAggroPriority[] DefaultAggroPriority =
+    {
+        EnemyBuildingAggroPriority.TurretDefense,
+        EnemyBuildingAggroPriority.Energy,
+        EnemyBuildingAggroPriority.Extraction,
+        EnemyBuildingAggroPriority.Production,
+        EnemyBuildingAggroPriority.Command,
+        EnemyBuildingAggroPriority.AnyNonWall
+    };
 
     [Header("Wave System")]
     [Tooltip("Current wave number")]
@@ -50,6 +86,8 @@ public class EnemyManager : MonoBehaviour
     public int ActiveEnemyCount => activeEnemies.Count;
     public bool IsWaveActive => isWaveActive;
     public IReadOnlyList<Enemy> ActiveEnemies => activeEnemies;
+    public float AggroRange => aggroRange;
+    public IReadOnlyList<EnemyBuildingAggroPriority> BuildingAggroPriority => buildingAggroPriority;
 
     private void Awake()
     {
@@ -400,15 +438,9 @@ public class EnemyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Aggro range - enemies will target buildings within this range
-    /// </summary>
-    [Header("Targeting Settings")]
-    [SerializeField] private float aggroRange = 5f;
-
-    /// <summary>
-    /// Get the best target for an enemy based on aggro range and priority
-    /// 1. Buildings within aggro range (priority: Turrets > Defenses > Generators > Extractors > Walls)
-    /// 2. Command Center as ultimate goal if nothing in aggro range
+    /// Get the best attack target for an enemy.
+    /// Ranged aggro only selects non-wall buildings that are already attackable.
+    /// If nothing nearby is attackable, the Command Center remains the pressure target.
     /// </summary>
     public Building GetTargetForEnemy(Enemy enemy)
     {
@@ -417,54 +449,120 @@ public class EnemyManager : MonoBehaviour
         List<Building> allBuildings = BuildingManager.Instance.AllBuildings.ToList();
         if (allBuildings.Count == 0) return null;
 
-        Vector3 enemyPos = enemy.transform.position;
-
-        // Get buildings within aggro range (exclude walls - they're just obstacles)
-        List<Building> aggroTargets = allBuildings
-            .Where(b => b.BuildingData != null &&
-                        !b.IsDestroyed &&
-                        !b.BuildingData.HasFeature<WallFeature>() &&
-                        Vector3.Distance(enemyPos, b.transform.position) <= aggroRange)
-            .ToList();
-
-        // If buildings in aggro range, prioritize them
-        if (aggroTargets.Count > 0)
-        {
-            Building target = null;
-
-            // 1. Turrets (highest threat)
-            target = aggroTargets.FirstOrDefault(b =>
-                b.BuildingData.category == BuildingCategory.Defense &&
-                b.BuildingData.HasFeature<TurretFeature>());
-            if (target != null) return target;
-
-            // 2. Generators
-            target = aggroTargets.FirstOrDefault(b =>
-                b.BuildingData.category == BuildingCategory.Energy);
-            if (target != null) return target;
-
-            // 3. Extractors
-            target = aggroTargets.FirstOrDefault(b =>
-                b.BuildingData.category == BuildingCategory.Extraction);
-            if (target != null) return target;
-
-            // 4. Command Center (lowest priority when other buildings nearby)
-            target = aggroTargets.FirstOrDefault(b =>
-                b.BuildingData.category == BuildingCategory.Command);
-            if (target != null) return target;
-
-            // 5. Any other nearby building
-            target = aggroTargets.FirstOrDefault();
-            if (target != null) return target;
-        }
+        Building aggroTarget = GetAttackableAggroTarget(enemy, allBuildings);
+        if (aggroTarget != null) return aggroTarget;
 
         // No buildings in aggro range - target Command Center as ultimate goal
-        Building commandCenter = allBuildings.FirstOrDefault(b =>
-            b.BuildingData != null && b.BuildingData.category == BuildingCategory.Command);
+        Building commandCenter = allBuildings.FirstOrDefault(b => IsLiveBuilding(b) &&
+            b.BuildingData.category == BuildingCategory.Command);
         if (commandCenter != null) return commandCenter;
 
         // Fallback
-        return allBuildings.FirstOrDefault(b => !b.IsDestroyed);
+        return allBuildings.FirstOrDefault(IsLiveBuilding);
+    }
+
+    /// <summary>
+    /// Returns whether a building can be selected as a ranged aggro attack target now.
+    /// Walls are excluded here; they are attacked only when blocking the enemy's flow-field path.
+    /// </summary>
+    public bool IsTargetAttackableByEnemy(Enemy enemy, Building building)
+    {
+        return IsTargetAttackableByEnemy(enemy, building, false);
+    }
+
+    public bool IsTargetAttackableByEnemy(Enemy enemy, Building building, bool allowWalls)
+    {
+        if (enemy == null || enemy.Data == null || !IsLiveBuilding(building)) return false;
+        if (!allowWalls && IsWall(building)) return false;
+
+        float edgeDistance = GetEdgeDistance(enemy.transform.position, building);
+        return edgeDistance <= aggroRange && edgeDistance <= enemy.Data.attackRange;
+    }
+
+    public float GetEdgeDistanceToBuilding(Vector3 worldPosition, Building building)
+    {
+        return GetEdgeDistance(worldPosition, building);
+    }
+
+    private Building GetAttackableAggroTarget(Enemy enemy, List<Building> allBuildings)
+    {
+        if (enemy == null || enemy.Data == null) return null;
+
+        List<Building> candidates = allBuildings
+            .Where(b => IsTargetAttackableByEnemy(enemy, b))
+            .ToList();
+
+        if (candidates.Count == 0) return null;
+
+        IEnumerable<EnemyBuildingAggroPriority> priorities =
+            buildingAggroPriority != null && buildingAggroPriority.Count > 0
+                ? buildingAggroPriority
+                : DefaultAggroPriority;
+
+        foreach (EnemyBuildingAggroPriority priority in priorities)
+        {
+            Building target = candidates
+                .Where(b => MatchesPriority(b, priority))
+                .OrderBy(b => GetEdgeDistance(enemy.transform.position, b))
+                .FirstOrDefault();
+
+            if (target != null) return target;
+        }
+
+        return null;
+    }
+
+    private bool MatchesPriority(Building building, EnemyBuildingAggroPriority priority)
+    {
+        if (!IsLiveBuilding(building)) return false;
+
+        switch (priority)
+        {
+            case EnemyBuildingAggroPriority.TurretDefense:
+                return building.BuildingData.category == BuildingCategory.Defense &&
+                       building.BuildingData.HasFeature<TurretFeature>();
+            case EnemyBuildingAggroPriority.Energy:
+                return building.BuildingData.category == BuildingCategory.Energy;
+            case EnemyBuildingAggroPriority.Extraction:
+                return building.BuildingData.category == BuildingCategory.Extraction;
+            case EnemyBuildingAggroPriority.Production:
+                return building.BuildingData.category == BuildingCategory.Production;
+            case EnemyBuildingAggroPriority.Command:
+                return building.BuildingData.category == BuildingCategory.Command;
+            case EnemyBuildingAggroPriority.AnyNonWall:
+                return !IsWall(building);
+            default:
+                return false;
+        }
+    }
+
+    private bool IsLiveBuilding(Building building)
+    {
+        return building != null && building.BuildingData != null && !building.IsDestroyed;
+    }
+
+    private bool IsWall(Building building)
+    {
+        return building != null &&
+               building.BuildingData != null &&
+               building.BuildingData.HasFeature<WallFeature>();
+    }
+
+    private float GetEdgeDistance(Vector3 worldPosition, Building building)
+    {
+        if (building == null) return float.MaxValue;
+
+        int width = building.width > 0 ? building.width : building.BuildingData != null ? building.BuildingData.width : 1;
+        int height = building.height > 0 ? building.height : building.BuildingData != null ? building.BuildingData.height : 1;
+
+        Vector3 center = building.transform.position;
+        float halfWidth = width * 0.5f;
+        float halfHeight = height * 0.5f;
+
+        float nearestX = Mathf.Clamp(worldPosition.x, center.x - halfWidth, center.x + halfWidth);
+        float nearestY = Mathf.Clamp(worldPosition.y, center.y - halfHeight, center.y + halfHeight);
+
+        return Vector2.Distance(worldPosition, new Vector2(nearestX, nearestY));
     }
 
     /// <summary>

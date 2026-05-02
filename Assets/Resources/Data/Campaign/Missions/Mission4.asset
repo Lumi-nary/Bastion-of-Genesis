@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MissionData
   missionName: Knowledge is Power
   missionDescription: Establish your research capabilities. Build a Laboratory, research
-    storage technologies, and construct storage buildings to expand your colony's capacity.
+    storage technologies, and construct storage buildings to expand your colony's
+    capacity.
   missionNumber: 4
   missionType: 0
   introDialogue: {fileID: 11400000, guid: cc33dd44ee55ff6677889900112233aa, type: 2}
@@ -28,6 +29,14 @@ MonoBehaviour:
     requiredBuilding: {fileID: 11400000, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0, type: 2}
     requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: Build a Laboratory to unlock technology research.
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -40,6 +49,14 @@ MonoBehaviour:
     requiredBuilding: {fileID: 0}
     requiredWorker: {fileID: 11400000, guid: 1bcbdcbd154fdf1498bb2031cb36c0bd, type: 2}
     targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 11400000, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0, type: 2}
+    tutorialInstruction: Assign one Researcher to the Laboratory.
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -52,6 +69,18 @@ MonoBehaviour:
     requiredBuilding: {fileID: 0}
     requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies:
+    - {fileID: 11400000, guid: 1b157d4c536444faa6fee78ba097aa94, type: 2}
+    - {fileID: 11400000, guid: 6cffa3d89a354891bc15d33b900d23c3, type: 2}
+    - {fileID: 11400000, guid: ffcc335a7ed645758d95b77b0c21d87d, type: 2}
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: 'Research the three storage technologies: Resource Warehouse,
+      Energy Battery, and Robot Bay.'
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -64,6 +93,14 @@ MonoBehaviour:
     requiredBuilding: {fileID: 11400000, guid: 57f678dcbe0d44619d5ac8dea29666b9, type: 2}
     requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: Build a Resource Warehouse to expand material storage.
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -76,6 +113,14 @@ MonoBehaviour:
     requiredBuilding: {fileID: 11400000, guid: 4bc383f0ff2f4af2978719723f129fc4, type: 2}
     requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: Build an Energy Battery to expand energy storage.
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -88,6 +133,14 @@ MonoBehaviour:
     requiredBuilding: {fileID: 11400000, guid: f87d57d6d94d4d058ff4ae1b5a3b7a84, type: 2}
     requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: Build a Robot Bay to expand robot storage.
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -101,5 +154,6 @@ MonoBehaviour:
   optionalRewards: []
   timeLimit: 0
   failOnTimeExpired: 0
+  pollutionLimitPercent: 10
   disableNaturalWaves: 1
   scriptedWaves: []

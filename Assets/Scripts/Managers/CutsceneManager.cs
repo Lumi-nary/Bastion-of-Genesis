@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using System;
 
 /// <summary>
-/// CutsceneManager controls Unity Timeline playback for chapter introductions.
+/// CutsceneManager controls cutscene playback for chapter introductions.
 /// Scene-specific singleton (NO DontDestroyOnLoad) - destroyed when leaving CutsceneScene.
 /// Handles cutscene playback, skip functionality (ESC key + UI button), and scene transitions.
 /// Pattern 2: Scene-specific Manager Pattern (unlike SaveManager which is DontDestroyOnLoad).
@@ -25,6 +25,9 @@ public class CutsceneManager : MonoBehaviour
 
     [Header("Timeline Playback")]
     [SerializeField] private PlayableDirector director;
+
+    [Header("Still Image Cutscenes")]
+    [SerializeField] private StillImageCutscenePlayer stillImageCutscenePlayer;
 
     // ============================================================================
     // PUBLIC EVENTS
@@ -87,6 +90,11 @@ public class CutsceneManager : MonoBehaviour
             Debug.LogError("[CutsceneManager] PlayableDirector reference not assigned!");
         }
 
+        if (stillImageCutscenePlayer == null)
+        {
+            stillImageCutscenePlayer = GetComponentInChildren<StillImageCutscenePlayer>(true);
+        }
+
         // Get chapter number from SaveManager pending data (ADR-7: Pending Data Handoff)
         int chapterNumber = 1; // Default to Chapter 1
         if (SaveManager.Instance != null)
@@ -140,13 +148,30 @@ public class CutsceneManager : MonoBehaviour
 
     /// <summary>
     /// Play cutscene for the specified chapter number.
-    /// Loads Timeline asset from Resources/Cutscenes/Chapter{N}_Intro.playable.
+    /// Loads CutsceneData from Resources/Data/Cutscenes/Chapter{N}_Intro.asset.
+    /// Falls back to Timeline asset from Resources/Data/Cutscenes/Chapter{N}_Intro.playable.
     /// AC2: Timeline Playback Starts.
     /// AC7: Missing Asset Fallback - logs warning and skips to WorldMapScene if asset not found.
     /// </summary>
     /// <param name="chapterNumber">Chapter number (1-based)</param>
     public void PlayCutscene(int chapterNumber)
     {
+        string assetPath = $"Data/Cutscenes/Chapter{chapterNumber}_Intro";
+        CutsceneData cutsceneData = Resources.Load<CutsceneData>(assetPath);
+
+        if (cutsceneData != null && stillImageCutscenePlayer != null)
+        {
+            if (director != null && director.state == PlayState.Playing)
+            {
+                director.Stop();
+            }
+
+            cutsceneActive = true;
+            stillImageCutscenePlayer.Play(cutsceneData, OnStillImageCutsceneComplete);
+            Debug.Log($"[CutsceneManager] Playing data cutscene for Chapter {chapterNumber}: {cutsceneData.cutsceneName}");
+            return;
+        }
+
         if (director == null)
         {
             Debug.LogError("[CutsceneManager] Cannot play cutscene: PlayableDirector not assigned");
@@ -154,8 +179,7 @@ public class CutsceneManager : MonoBehaviour
             return;
         }
 
-        // Load Timeline asset from Resources folder (AC2)
-        string assetPath = $"Cutscenes/Chapter{chapterNumber}_Intro";
+        // Load Timeline asset from Resources folder (legacy fallback)
         PlayableAsset cutsceneAsset = Resources.Load<PlayableAsset>(assetPath);
 
         if (cutsceneAsset != null)
@@ -198,6 +222,12 @@ public class CutsceneManager : MonoBehaviour
             float skipTime = (float)director.time;
             director.Stop();
             Debug.Log($"[CutsceneManager] Cutscene skipped via skip button at time {skipTime:F2}s");
+        }
+
+        if (stillImageCutscenePlayer != null && stillImageCutscenePlayer.IsPlaying)
+        {
+            stillImageCutscenePlayer.Stop();
+            Debug.Log("[CutsceneManager] Still image cutscene playback stopped");
         }
 
         // Fire OnCutsceneSkipped event (for future analytics)
@@ -246,6 +276,20 @@ public class CutsceneManager : MonoBehaviour
 
         // AC6: Load WorldMapScene when cutscene completes naturally
         Debug.Log("[CutsceneManager] Cutscene completed, loading gameplay scene");
+        LoadGameplayScene();
+    }
+
+    private void OnStillImageCutsceneComplete()
+    {
+        if (!cutsceneActive)
+        {
+            return;
+        }
+
+        cutsceneActive = false;
+        OnCutsceneCompleted?.Invoke();
+
+        Debug.Log("[CutsceneManager] Still image cutscene completed, loading gameplay scene");
         LoadGameplayScene();
     }
 

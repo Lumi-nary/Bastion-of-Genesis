@@ -7,12 +7,17 @@ public class PlacementSystem : MonoBehaviour
 {
     public static PlacementSystem Instance { get; private set; }
 
+    public event System.Action BuildingPlacementEnded;
+
     [Header("Dependencies")]
     [SerializeField] private GridManager gridManager;
 
     [Header("Preview Materials")]
     [SerializeField] private Material validPlacementMaterial;
     [SerializeField] private Material invalidPlacementMaterial;
+
+    [Header("Placement UI")]
+    [SerializeField] private PlacementResourceRequirementUI resourceRequirementUI;
 
     private InputSystem_Actions inputActions;
     private BuildingData buildingToPlace;
@@ -146,8 +151,14 @@ public class PlacementSystem : MonoBehaviour
         }
     }
 
-    public void EnterBuildMode(BuildingData building)
+    public bool EnterBuildMode(BuildingData building)
     {
+        if (TutorialGuideManager.Instance != null && !TutorialGuideManager.Instance.CanSelectBuilding(building))
+        {
+            Debug.Log($"[TutorialGuide] BLOCKED: {building.buildingName} is not the required building for the active tutorial step.");
+            return false;
+        }
+
         buildingToPlace = building;
         if (buildingPreview != null) Destroy(buildingPreview);
 
@@ -167,11 +178,15 @@ public class PlacementSystem : MonoBehaviour
             previewBuilding.enabled = false;
         }
 
+        ShowResourceRequirementUI();
+
+        return true;
     }
 
     private void ExitBuildMode()
     {
         buildingToPlace = null;
+        if (resourceRequirementUI != null) resourceRequirementUI.Hide();
         if (buildingPreview != null) Destroy(buildingPreview);
 
         // Clear drag previews
@@ -184,11 +199,21 @@ public class PlacementSystem : MonoBehaviour
 
     }
 
+    private void ShowResourceRequirementUI()
+    {
+        if (resourceRequirementUI == null)
+            resourceRequirementUI = PlacementResourceRequirementUI.Ensure(FindFirstObjectByType<Canvas>());
+
+        if (resourceRequirementUI != null)
+            resourceRequirementUI.Show(buildingToPlace);
+    }
+
     private void OnRightClick(InputAction.CallbackContext context)
     {
         if (buildingToPlace != null)
         {
             ExitBuildMode();
+            BuildingPlacementEnded?.Invoke();
         }
     }
 
@@ -218,6 +243,7 @@ public class PlacementSystem : MonoBehaviour
             // After placing, we exit build mode. The click has been consumed by this action,
             // so the SelectBuilding() logic in Update() won't run in the same frame.
             ExitBuildMode();
+            BuildingPlacementEnded?.Invoke();
         }
     }
 
@@ -237,6 +263,7 @@ public class PlacementSystem : MonoBehaviour
         Vector3 worldPos = gridManager.GridToWorldPosition(gridPos);
 
         buildingPreview.transform.position = worldPos;
+        UpdateResourceRequirementAnchor(worldPos);
 
         if (CanPlaceBuilding(startCell, buildingToPlace.width, buildingToPlace.height))
         {
@@ -251,6 +278,13 @@ public class PlacementSystem : MonoBehaviour
 
     private bool CanPlaceBuilding(Vector2Int startCell, int width, int height)
     {
+        if (TutorialGuideManager.Instance != null &&
+            !TutorialGuideManager.Instance.CanPlaceBuilding(buildingToPlace, startCell, width, height))
+        {
+            Debug.Log($"[TutorialGuide] BLOCKED: {buildingToPlace.buildingName} cannot be placed at {startCell} for the active tutorial step.");
+            return false;
+        }
+
         // Check placement cap
         if (buildingToPlace != null && BuildingManager.Instance != null &&
             BuildingManager.Instance.IsAtPlacementCap(buildingToPlace))
@@ -466,6 +500,7 @@ public class PlacementSystem : MonoBehaviour
                 PlaceWallLine(dragStartPos, gridPos);
                 isDragging = false;
                 ExitBuildMode();
+                BuildingPlacementEnded?.Invoke();
             }
         }
     }
@@ -488,6 +523,8 @@ public class PlacementSystem : MonoBehaviour
         bool hitInvalid = false;
 
         // Update previews
+        Vector3 resourceAnchorWorldPos = gridManager.GridToWorldPosition(line[0]);
+        int validPlacementCount = 0;
         for (int i = 0; i < previewObjects.Count; i++)
         {
             if (i < line.Count && !hitInvalid)
@@ -496,6 +533,7 @@ public class PlacementSystem : MonoBehaviour
                 Vector2Int pos = line[i];
                 Vector3 worldPos = gridManager.GridToWorldPosition(pos);
                 previewObjects[i].transform.position = worldPos;
+                resourceAnchorWorldPos = worldPos;
 
                 SpriteRenderer ren = previewObjects[i].GetComponentInChildren<SpriteRenderer>();
                 if (ren != null)
@@ -508,6 +546,10 @@ public class PlacementSystem : MonoBehaviour
                     {
                         hitInvalid = true;
                     }
+                    else
+                    {
+                        validPlacementCount++;
+                    }
                 }
             }
             else
@@ -515,6 +557,26 @@ public class PlacementSystem : MonoBehaviour
                 previewObjects[i].SetActive(false);
             }
         }
+
+        UpdateResourceRequirementAnchor(resourceAnchorWorldPos, validPlacementCount);
+    }
+
+    private void UpdateResourceRequirementAnchor(Vector3 previewCenterWorldPosition)
+    {
+        if (resourceRequirementUI == null || buildingToPlace == null)
+            return;
+
+        resourceRequirementUI.SetPlacementAnchor(previewCenterWorldPosition, buildingToPlace.width, buildingToPlace.height);
+        resourceRequirementUI.SetPlacementCount(1);
+    }
+
+    private void UpdateResourceRequirementAnchor(Vector3 previewCenterWorldPosition, int placementCount)
+    {
+        if (resourceRequirementUI == null || buildingToPlace == null)
+            return;
+
+        resourceRequirementUI.SetPlacementAnchor(previewCenterWorldPosition, buildingToPlace.width, buildingToPlace.height);
+        resourceRequirementUI.SetPlacementCount(placementCount);
     }
 
     private void PlaceWallLine(Vector2Int start, Vector2Int end)

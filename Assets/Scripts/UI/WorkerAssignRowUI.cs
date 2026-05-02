@@ -13,9 +13,15 @@ public class WorkerAssignRowUI : MonoBehaviour
     [SerializeField] private Image buildingIcon;
     [SerializeField] private TextMeshProUGUI buildingNameText;
     [SerializeField] private TextMeshProUGUI workerCountText;
+    [SerializeField] private TextMeshProUGUI workerTypeText;
     [SerializeField] private Button addButton;
     [SerializeField] private Button removeButton;
     [SerializeField] private TextMeshProUGUI statusText;
+
+    [Header("Status Colors")]
+    [SerializeField] private Color operationalColor = new Color(0.45f, 1f, 0.75f, 1f);
+    [SerializeField] private Color needsWorkersColor = new Color(1f, 0.36f, 0.34f, 1f);
+    [SerializeField] private Color combinedStatusColor = new Color(0.62f, 0.9f, 1f, 1f);
 
     // Mode
     private bool isCombined = false;
@@ -67,8 +73,31 @@ public class WorkerAssignRowUI : MonoBehaviour
         // Hide status text in combined mode
         if (statusText != null)
         {
-            statusText.gameObject.SetActive(!isCombined);
+            statusText.gameObject.SetActive(true);
         }
+
+        if (workerTypeText != null)
+        {
+            workerTypeText.text = GetWorkerRequirementSummary();
+        }
+    }
+
+    private string GetWorkerRequirementSummary()
+    {
+        if (buildingData == null || buildingData.workerRequirements == null || buildingData.workerRequirements.Count == 0)
+            return "No crew required";
+
+        List<string> parts = new List<string>();
+        foreach (var req in buildingData.workerRequirements)
+        {
+            if (req == null || req.workerType == null)
+                continue;
+
+            int target = req.requiredCount > 0 ? req.requiredCount : req.capacity;
+            parts.Add($"{target} {req.workerType.workerName}");
+        }
+
+        return parts.Count > 0 ? string.Join(" / ", parts) : "Crew required";
     }
 
     private void SetupButtons()
@@ -119,12 +148,12 @@ public class WorkerAssignRowUI : MonoBehaviour
             if (singleBuilding.IsOperational)
             {
                 statusText.text = "Operational";
-                statusText.color = Color.green;
+                statusText.color = operationalColor;
             }
             else
             {
                 statusText.text = "Needs Workers";
-                statusText.color = Color.red;
+                statusText.color = needsWorkersColor;
             }
         }
 
@@ -152,6 +181,24 @@ public class WorkerAssignRowUI : MonoBehaviour
             workerCountText.text = $"{totalAssigned}/{totalCapacity}";
         }
 
+        if (statusText != null)
+        {
+            int operational = 0;
+            int total = 0;
+            foreach (Building building in buildings)
+            {
+                if (building == null)
+                    continue;
+
+                total++;
+                if (building.IsOperational)
+                    operational++;
+            }
+
+            statusText.text = $"Active {operational}/{total}";
+            statusText.color = total > 0 && operational == total ? operationalColor : combinedStatusColor;
+        }
+
         // Button states
         UpdateButtonStates(totalAssigned, totalCapacity);
     }
@@ -161,7 +208,7 @@ public class WorkerAssignRowUI : MonoBehaviour
         // Add button - enabled if capacity available and workers exist
         if (addButton != null)
         {
-            addButton.interactable = assigned < capacity && HasAvailableWorkers();
+            addButton.interactable = assigned < capacity && HasAvailableWorkers() && HasTutorialAllowedAssignment();
         }
 
         // Remove button - enabled if any workers assigned
@@ -216,9 +263,9 @@ public class WorkerAssignRowUI : MonoBehaviour
         UpdateDisplay();
     }
 
-    private void AddWorkerToBuilding(Building building)
+    private bool AddWorkerToBuilding(Building building)
     {
-        if (building == null) return;
+        if (building == null) return false;
 
         // Find first worker type that has capacity and available workers
         foreach (var req in building.BuildingData.workerRequirements)
@@ -227,12 +274,14 @@ public class WorkerAssignRowUI : MonoBehaviour
             int typeCapacity = building.GetCapacityForWorker(req.workerType);
 
             if (currentCount < typeCapacity &&
-                WorkerManager.Instance.GetAvailableWorkerCount(req.workerType) > 0)
+                WorkerManager.Instance.GetAvailableWorkerCount(req.workerType) > 0 &&
+                CanAssignForTutorial(building, req.workerType))
             {
-                building.AssignWorker(req.workerType);
-                return;
+                return building.AssignWorker(req.workerType);
             }
         }
+
+        return false;
     }
 
     private void RemoveWorkerFromBuilding(Building building)
@@ -264,8 +313,8 @@ public class WorkerAssignRowUI : MonoBehaviour
 
             if (assigned < capacity)
             {
-                AddWorkerToBuilding(building);
-                return;
+                if (AddWorkerToBuilding(building))
+                    return;
             }
         }
     }
@@ -286,5 +335,47 @@ public class WorkerAssignRowUI : MonoBehaviour
                 return;
             }
         }
+    }
+
+    private bool HasTutorialAllowedAssignment()
+    {
+        if (TutorialGuideManager.Instance == null || !TutorialGuideManager.Instance.HasActiveHardGate)
+            return true;
+
+        if (isCombined)
+        {
+            foreach (Building building in buildings)
+            {
+                if (HasAssignableWorkerForBuilding(building))
+                    return true;
+            }
+
+            return false;
+        }
+
+        return HasAssignableWorkerForBuilding(singleBuilding);
+    }
+
+    private bool HasAssignableWorkerForBuilding(Building building)
+    {
+        if (building == null || building.BuildingData == null || building.BuildingData.workerRequirements == null)
+            return false;
+
+        foreach (var req in building.BuildingData.workerRequirements)
+        {
+            if (WorkerManager.Instance != null &&
+                WorkerManager.Instance.GetAvailableWorkerCount(req.workerType) > 0 &&
+                CanAssignForTutorial(building, req.workerType))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool CanAssignForTutorial(Building building, WorkerData workerData)
+    {
+        return TutorialGuideManager.Instance == null || TutorialGuideManager.Instance.CanAssignWorker(building, workerData);
     }
 }

@@ -26,8 +26,24 @@ MonoBehaviour:
     targetTime: 0
     requiredResource: {fileID: 0}
     requiredBuilding: {fileID: 11400000, guid: a4ce82139003cca46a9abf6f002f9e7f, type: 2}
-    requiredWorker: {fileID: 0}
+    requiredWorker: {fileID: 11400000, guid: 4032d19a78fcf444596b3b15ff750222, type: 2}
     targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    allowedPlacementCells:
+    - {x: -8, y: -1}
+    - {x: -8, y: 0}
+    - {x: -8, y: 1}
+    - {x: -7, y: -1}
+    - {x: -7, y: 0}
+    - {x: -7, y: 1}
+    - {x: -6, y: -1}
+    - {x: -6, y: 0}
+    - {x: -6, y: 1}
+    requiredTechnology: {fileID: 0}
+    requiredAssignmentBuilding: {fileID: 11400000, guid: a4ce82139003cca46a9abf6f002f9e7f, type: 2}
+    tutorialInstruction: 
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -40,6 +56,13 @@ MonoBehaviour:
     requiredBuilding: {fileID: 0}
     requiredWorker: {fileID: 11400000, guid: 4032d19a78fcf444596b3b15ff750222, type: 2}
     targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredAssignmentBuilding: {fileID: 11400000, guid: a4ce82139003cca46a9abf6f002f9e7f, type: 2}
+    tutorialInstruction: 
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -52,6 +75,13 @@ MonoBehaviour:
     requiredBuilding: {fileID: 0}
     requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 0
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: 
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -66,5 +96,6 @@ MonoBehaviour:
   optionalRewards: []
   timeLimit: 0
   failOnTimeExpired: 0
+  pollutionLimitPercent: 10
   disableNaturalWaves: 1
   scriptedWaves: []

@@ -76,6 +76,10 @@ public class WaveController : MonoBehaviour
     public float ThreatPercentage => (currentThreat / threatThreshold) * 100f;
     public bool IsActive => isActive;
     public bool IsPaused => isPaused;
+    public float TimeUntilInitialDelayComplete => Mathf.Max(0f, initialDelay - timeSinceStart);
+    public float TimeUntilMinimumWaveWindow => Mathf.Max(0f, minTimeBetweenWaves - timeSinceLastWave);
+    public float TimeUntilForcedWave => maxWaitTime > 0f ? Mathf.Max(0f, maxWaitTime - timeSinceLastWave) : -1f;
+    public bool HasForcedWaveTimer => maxWaitTime > 0f;
 
     private void Awake()
     {

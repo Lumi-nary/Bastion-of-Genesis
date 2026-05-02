@@ -26,6 +26,7 @@ public class ResearchPanel : MonoBehaviour
     [Header("Tab Visual Settings")]
     [SerializeField] private Color activeTabColor = new Color(0.3f, 0.6f, 0.9f, 1f);
     [SerializeField] private Color inactiveTabColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+    [SerializeField] private Color tierHeaderColor = new Color(0.62f, 0.9f, 1f, 1f);
 
     [Header("Tech Nodes Grid")]
     [SerializeField] private Transform techNodesContainer;
@@ -47,14 +48,35 @@ public class ResearchPanel : MonoBehaviour
     private List<TechNodeUI> spawnedNodes = new List<TechNodeUI>();
     private TechnologyData selectedTech = null;
     private bool isVisible;
+    private bool isInitialized;
+    private bool subscribedToResearchEvents;
     public bool IsVisible => isVisible;
 
     // Tab button references for easy iteration
     private Dictionary<TechCategory, Button> categoryButtons;
 
+    private void Awake()
+    {
+        Initialize();
+    }
+
     private void Start()
     {
-        // Setup category button dictionary
+        Initialize();
+
+        // Hide panel initially
+        HidePanel();
+    }
+
+    private void Initialize()
+    {
+        if (isInitialized)
+        {
+            return;
+        }
+
+        isInitialized = true;
+
         categoryButtons = new Dictionary<TechCategory, Button>
         {
             { TechCategory.Economy, economyTabButton },
@@ -94,10 +116,8 @@ public class ResearchPanel : MonoBehaviour
             ResearchManager.Instance.OnTechResearched += OnTechResearched;
             ResearchManager.Instance.OnResearchProgress += OnResearchProgress;
             ResearchManager.Instance.OnTechAvailable += OnTechAvailable;
+            subscribedToResearchEvents = true;
         }
-
-        // Hide panel initially
-        HidePanel();
     }
 
     private void Update()
@@ -121,7 +141,7 @@ public class ResearchPanel : MonoBehaviour
     private void OnDestroy()
     {
         // Unsubscribe from events
-        if (ResearchManager.Instance != null)
+        if (subscribedToResearchEvents && ResearchManager.Instance != null)
         {
             ResearchManager.Instance.OnTechResearched -= OnTechResearched;
             ResearchManager.Instance.OnResearchProgress -= OnResearchProgress;
@@ -204,6 +224,8 @@ public class ResearchPanel : MonoBehaviour
 
     private void UpdateTabVisuals()
     {
+        Initialize();
+
         foreach (var kvp in categoryButtons)
         {
             if (kvp.Value == null) continue;
@@ -218,6 +240,12 @@ public class ResearchPanel : MonoBehaviour
 
     private void PopulateTechNodes()
     {
+        if (techNodesContainer == null)
+        {
+            spawnedNodes.Clear();
+            return;
+        }
+
         // Clear all children (nodes + tier headers)
         foreach (Transform child in techNodesContainer)
         {
@@ -225,7 +253,7 @@ public class ResearchPanel : MonoBehaviour
         }
         spawnedNodes.Clear();
 
-        if (ResearchManager.Instance == null || techNodesContainer == null || techNodePrefab == null)
+        if (ResearchManager.Instance == null || techNodePrefab == null)
             return;
 
         // Get technologies for current category
@@ -251,9 +279,8 @@ public class ResearchPanel : MonoBehaviour
         int columns = 4; // fallback
         if (grid != null)
         {
-            float containerWidth = ((RectTransform)techNodesContainer).rect.width;
-            if (containerWidth > 0)
-                columns = Mathf.Max(1, Mathf.FloorToInt((containerWidth + grid.spacing.x) / (grid.cellSize.x + grid.spacing.x)));
+            grid.constraint = UnityEngine.UI.GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = columns;
         }
 
         foreach (int tier in sortedTiers)
@@ -261,13 +288,15 @@ public class ResearchPanel : MonoBehaviour
             // Add tier label as the first cell in the row
             GameObject headerGO = new GameObject($"Tier{tier}Header", typeof(RectTransform));
             headerGO.transform.SetParent(techNodesContainer, false);
-            UnityEngine.UI.Text headerText = headerGO.AddComponent<UnityEngine.UI.Text>();
+            TextMeshProUGUI headerText = headerGO.AddComponent<TextMeshProUGUI>();
             headerText.text = $"Tier {tier}";
-            headerText.font = UnityEngine.Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            headerText.fontSize = 16;
-            headerText.fontStyle = FontStyle.Bold;
-            headerText.alignment = TextAnchor.MiddleCenter;
-            headerText.color = new Color(0.9f, 0.85f, 0.7f);
+            headerText.fontSize = 18;
+            headerText.fontStyle = FontStyles.Bold;
+            headerText.alignment = TextAlignmentOptions.Center;
+            headerText.color = tierHeaderColor;
+            headerText.enableAutoSizing = true;
+            headerText.fontSizeMin = 12;
+            headerText.fontSizeMax = 18;
 
             // Create tech nodes for this tier (tier label takes 1 cell)
             int cellsUsed = 1;
@@ -342,6 +371,8 @@ public class ResearchPanel : MonoBehaviour
 
         if (currentResearchProgressFill != null)
         {
+            currentResearchProgressFill.type = Image.Type.Filled;
+            currentResearchProgressFill.fillMethod = Image.FillMethod.Horizontal;
             currentResearchProgressFill.fillAmount = progress;
         }
 

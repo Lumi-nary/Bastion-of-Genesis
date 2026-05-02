@@ -53,6 +53,9 @@ public class WorkerSlotUI : MonoBehaviour
     {
         if (currentBuilding != null && workerData != null)
         {
+            if (TutorialGuideManager.Instance != null && !TutorialGuideManager.Instance.CanAssignWorker(currentBuilding, workerData))
+                return;
+
             if (CoopManager.Instance != null && CoopManager.Instance.IsClientOnly)
             {
                 Vector3 gridPos = new Vector3(currentBuilding.gridPosition.x, currentBuilding.gridPosition.y, 0);
@@ -93,16 +96,21 @@ public class WorkerSlotUI : MonoBehaviour
             {
                 int typeCapacity = currentBuilding.GetCapacityForWorker(workerData);
                 workerCountText.text = $"{assignedCount} / {typeCapacity}";
-                addButton.interactable = assignedCount < typeCapacity && WorkerManager.Instance.GetAvailableWorkerCount(workerData) > 0;
+                addButton.interactable = assignedCount < typeCapacity && WorkerManager.Instance.GetAvailableWorkerCount(workerData) > 0 && CanAssignForTutorial();
             }
             else // Shared Capacity
             {
                 workerCountText.text = $"{assignedCount}"; // For shared, just show the count for this type
-                addButton.interactable = totalAssigned < totalCapacity && WorkerManager.Instance.GetAvailableWorkerCount(workerData) > 0;
+                addButton.interactable = totalAssigned < totalCapacity && WorkerManager.Instance.GetAvailableWorkerCount(workerData) > 0 && CanAssignForTutorial();
             }
 
             // Disable remove button if there are no workers of this type to remove
             removeButton.interactable = assignedCount > 0;
         }
+    }
+
+    private bool CanAssignForTutorial()
+    {
+        return TutorialGuideManager.Instance == null || TutorialGuideManager.Instance.CanAssignWorker(currentBuilding, workerData);
     }
 }

@@ -74,8 +74,21 @@ public class DialogueManager : MonoBehaviour
         if (debugLog)
             Debug.Log($"[DialogueManager] Started dialogue: {dialogue.dialogueName}");
 
+        EnsureDialogueUIsSubscribed();
         OnDialogueStarted?.Invoke(dialogue);
         DisplayCurrentEntry();
+    }
+
+    private void EnsureDialogueUIsSubscribed()
+    {
+        DialogueUI[] dialogueUis = FindObjectsByType<DialogueUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (DialogueUI dialogueUi in dialogueUis)
+        {
+            if (dialogueUi != null)
+            {
+                dialogueUi.EnsureSubscribed();
+            }
+        }
     }
 
     /// <summary>

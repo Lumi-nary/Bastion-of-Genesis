@@ -27,6 +27,7 @@ public class Enemy : MonoBehaviour
 
     [Header("Target")]
     private Building currentTarget;
+    private bool currentTargetBlocksMovement = false;
 
     [Header("Movement")]
     private Vector2Int lastGridPosition;
@@ -46,6 +47,10 @@ public class Enemy : MonoBehaviour
     [SerializeField] private bool debugMovement = false;
     private int stuckFrameCount = 0;
     private Vector3 lastPosition;
+
+    [Header("Animation")]
+    [SerializeField] private Animator animator;
+    [SerializeField] private string attackTriggerName = "Attack";
 
     // Public properties
     public EnemyData Data => enemyData;
@@ -70,6 +75,10 @@ public class Enemy : MonoBehaviour
         // Don't init here if networked, wait for ServerInitialize
         // But if local testing (no network), allow Awake?
         // We'll rely on Initialize call.
+        if (animator == null)
+        {
+            animator = GetComponent<Animator>();
+        }
     }
 
     /// <summary>
@@ -158,6 +167,27 @@ public class Enemy : MonoBehaviour
         
         TrackGridPosition();
 
+        if (currentTarget != null && currentTarget.IsDestroyed)
+        {
+            ClearTarget();
+        }
+
+        if (currentTargetBlocksMovement && currentTarget != null && IsInAttackRange())
+        {
+            AttackTarget();
+            return;
+        }
+
+        if (!currentTargetBlocksMovement)
+        {
+            FindTarget();
+        }
+        else if (currentTarget == null || !IsInAttackRange())
+        {
+            ClearTarget();
+            FindTarget();
+        }
+
         // Update behavior based on current state
         if (currentTarget != null && !currentTarget.IsDestroyed)
         {
@@ -166,15 +196,6 @@ public class Enemy : MonoBehaviour
                 AttackTarget();
             }
             else
-            {
-                MoveUsingFlowField();
-            }
-        }
-        else
-        {
-            // Find new target
-            FindTarget();
-            if (currentTarget != null)
             {
                 MoveUsingFlowField();
             }
@@ -267,13 +288,14 @@ public class Enemy : MonoBehaviour
     }
 
     /// <summary>
-    /// Find the next target based on targeting priority
-    /// Priority: Base → Generators → Extractors → Defenses → Walls
-    /// Abilities can override targeting (e.g., Elven Healer prioritizes production buildings)
+    /// Find the next attack target without changing flow-field navigation.
+    /// Non-wall aggro targets must already be attackable; walls are handled only when blocking movement.
+    /// Abilities can override targeting, but only to targets currently attackable by range.
     /// </summary>
     protected virtual void FindTarget()
     {
         Building defaultTarget = null;
+        currentTargetBlocksMovement = false;
 
         // Get default target from EnemyManager
         if (EnemyManager.Instance != null)
@@ -282,15 +304,20 @@ public class Enemy : MonoBehaviour
         }
 
         // Allow abilities to override target selection
-        foreach (var ability in enemyData.specialAbilities)
+        if (EnemyManager.Instance != null && enemyData != null)
         {
-            if (ability != null)
+            foreach (var ability in enemyData.specialAbilities)
             {
-                Building preferredTarget = ability.GetPreferredTarget(this, defaultTarget);
-                if (preferredTarget != null)
+                if (ability != null)
                 {
-                    currentTarget = preferredTarget;
-                    return;
+                    Building preferredTarget = ability.GetPreferredTarget(this, defaultTarget);
+                    if (preferredTarget != null &&
+                        preferredTarget != defaultTarget &&
+                        EnemyManager.Instance.IsTargetAttackableByEnemy(this, preferredTarget))
+                    {
+                        currentTarget = preferredTarget;
+                        return;
+                    }
                 }
             }
         }
@@ -323,6 +350,23 @@ public class Enemy : MonoBehaviour
                 // Couldn't determine a move - stay put
                 return;
             }
+        }
+
+        if (TrySetBlockingTargetAtCell(targetCell))
+        {
+            return;
+        }
+
+        if (TrySetBlockingTargetForDiagonal(currentCell, targetCell))
+        {
+            return;
+        }
+
+        if (GridManager.Instance.IsObstacle(targetCell))
+        {
+            if (debugMovement) Debug.Log($"[Enemy] {name} blocked by obstacle at {targetCell}");
+            hasTargetCell = false;
+            return;
         }
 
         // Move toward target cell center
@@ -405,6 +449,22 @@ public class Enemy : MonoBehaviour
         // Apply separation to avoid stacking on other enemies
         Vector3 separationOffset = GetSeparationOffset();
         newPosition += separationOffset * Time.deltaTime;
+
+        if (enemyData.movementType != MovementType.Flying)
+        {
+            Vector2Int finalCell = GridManager.Instance.WorldToGridPosition(newPosition);
+            if (TrySetBlockingTargetAtCell(finalCell))
+            {
+                return;
+            }
+
+            if (!IsPositionWalkable(newPosition))
+            {
+                if (debugMovement) Debug.Log($"[Enemy] {name} separation blocked by non-walkable tile at {newPosition}");
+                hasTargetCell = false;
+                return;
+            }
+        }
 
         // Apply movement
         transform.position = newPosition;
@@ -492,20 +552,14 @@ public class Enemy : MonoBehaviour
 
         Vector2Int nextCell = new Vector2Int(currentCell.x + dx, currentCell.y + dy);
 
-        // Check if next cell contains any building - if so, attack it
-        // All buildings are destroyable and block movement
-        if (GridManager.Instance.IsCellOccupied(nextCell))
+        if (TrySetBlockingTargetAtCell(nextCell))
         {
-            Building buildingInPath = GetBuildingAtCell(nextCell);
-            if (buildingInPath != null)
-            {
-                // Building is in the adjacent cell - attack it
-                currentTarget = buildingInPath;
-                hasTargetCell = false; // Stop movement, focus on attacking
+            return;
+        }
 
-                if (debugMovement) Debug.Log($"[Enemy] {name} targeting building {buildingInPath.name} at {nextCell}");
-                return;
-            }
+        if (TrySetBlockingTargetForDiagonal(currentCell, nextCell))
+        {
+            return;
         }
 
         // Next cell is walkable - move to it
@@ -525,6 +579,70 @@ public class Enemy : MonoBehaviour
             // Cell not walkable (water, etc.) - shouldn't happen with proper flow field
             if (debugMovement) Debug.LogWarning($"[Enemy] {name} flow points to non-walkable cell {nextCell}");
         }
+    }
+
+    private bool TrySetBlockingTargetForDiagonal(Vector2Int fromCell, Vector2Int toCell)
+    {
+        if (GridManager.Instance == null) return false;
+
+        int dx = toCell.x - fromCell.x;
+        int dy = toCell.y - fromCell.y;
+
+        if (Mathf.Abs(dx) != 1 || Mathf.Abs(dy) != 1)
+        {
+            return false;
+        }
+
+        Vector2Int horizontalCell = new Vector2Int(fromCell.x + dx, fromCell.y);
+        Vector2Int verticalCell = new Vector2Int(fromCell.x, fromCell.y + dy);
+
+        bool horizontalBlocked = IsMovementBlockingCell(horizontalCell);
+        bool verticalBlocked = IsMovementBlockingCell(verticalCell);
+
+        if (!horizontalBlocked && !verticalBlocked)
+        {
+            return false;
+        }
+
+        if (horizontalBlocked && TrySetBlockingTargetAtCell(horizontalCell))
+        {
+            return true;
+        }
+
+        if (verticalBlocked && TrySetBlockingTargetAtCell(verticalCell))
+        {
+            return true;
+        }
+
+        hasTargetCell = false;
+        return true;
+    }
+
+    private bool IsMovementBlockingCell(Vector2Int cell)
+    {
+        if (GridManager.Instance == null) return false;
+
+        if (GridManager.Instance.IsCellOccupied(cell) || GridManager.Instance.IsObstacle(cell))
+        {
+            return true;
+        }
+
+        return !GridManager.Instance.IsWalkable(cell);
+    }
+
+    private bool TrySetBlockingTargetAtCell(Vector2Int cell)
+    {
+        if (GridManager.Instance == null || !GridManager.Instance.IsCellOccupied(cell)) return false;
+
+        Building buildingInPath = GetBuildingAtCell(cell);
+        if (buildingInPath == null) return false;
+
+        currentTarget = buildingInPath;
+        currentTargetBlocksMovement = true;
+        hasTargetCell = false;
+
+        if (debugMovement) Debug.Log($"[Enemy] {name} targeting blocking building {buildingInPath.name} at {cell}");
+        return true;
     }
 
     /// <summary>
@@ -735,11 +853,13 @@ public class Enemy : MonoBehaviour
         // Simple single cell check (enemy is 1x1)
         Vector2Int cell = GridManager.Instance.WorldToGridPosition(position);
 
-        // Check if terrain is walkable (water, etc.)
-        // IsCellOccupied and IsObstacle are buildings/obstacles - flow field handles those
-        if (!GridManager.Instance.IsWalkable(cell) &&
-            !GridManager.Instance.IsCellOccupied(cell) &&
-            !GridManager.Instance.IsObstacle(cell))
+        // Flow fields can route through high-cost buildings, but movement must stop before entering them.
+        if (GridManager.Instance.IsCellOccupied(cell) || GridManager.Instance.IsObstacle(cell))
+        {
+            return false;
+        }
+
+        if (!GridManager.Instance.IsWalkable(cell))
         {
             return false; // Non-walkable terrain (water)
         }
@@ -835,6 +955,11 @@ public class Enemy : MonoBehaviour
 
         // Check attack cooldown (attackSpeed is attacks per second, so cooldown is 1/attackSpeed)
         if (Time.time - lastAttackTime < (1f / enemyData.attackSpeed)) return;
+
+        if (animator != null && !string.IsNullOrWhiteSpace(attackTriggerName))
+        {
+            animator.SetTrigger(attackTriggerName);
+        }
 
         // Check if any ability replaces normal damage (e.g., EnergyDrainAbility)
         bool damageReplaced = false;
@@ -947,6 +1072,7 @@ public class Enemy : MonoBehaviour
     public void ClearTarget()
     {
         currentTarget = null;
+        currentTargetBlocksMovement = false;
     }
 
     /// <summary>
@@ -955,5 +1081,6 @@ public class Enemy : MonoBehaviour
     public void SetTarget(Building target)
     {
         currentTarget = target;
+        currentTargetBlocksMovement = false;
     }
 }

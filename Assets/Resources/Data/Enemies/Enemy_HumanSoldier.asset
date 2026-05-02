@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Human Soldier
   description: A well-armed human soldier. Tougher and better equipped than peasants.
-  icon: {fileID: 0}
+  icon: {fileID: 2324236343598682440, guid: 8c0d86112e819bd48807ed110614588f, type: 3}
   prefab: {fileID: 5947702409958486025, guid: c2d3e4f5a6b7890123456789abcdef02, type: 3}
   race: 0
   damageType: 0

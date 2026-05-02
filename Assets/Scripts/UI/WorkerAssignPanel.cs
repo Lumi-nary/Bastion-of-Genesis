@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using TMPro;
 
 /// <summary>
 /// Panel that shows all buildings that require workers.
@@ -16,6 +17,7 @@ public class WorkerAssignPanel : MonoBehaviour
     [SerializeField] private Transform rowContainer;
     [SerializeField] private GameObject assignRowPrefab;
     [SerializeField] private Toggle combineToggle;
+    [SerializeField] private TextMeshProUGUI workerSummaryText;
 
     [Header("Anchor to trigger button")]
     [Tooltip("Horizontal gap between the trigger button and the left edge of the panel.")]
@@ -67,6 +69,11 @@ public class WorkerAssignPanel : MonoBehaviour
 
     private void Update()
     {
+        if (isVisible)
+        {
+            UpdateWorkerSummary(GetBuildingsWithWorkerRequirements());
+        }
+
         // Click outside to close
         if (isVisible && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
@@ -119,10 +126,27 @@ public class WorkerAssignPanel : MonoBehaviour
         }
         rows.Clear();
 
-        // Get all buildings with worker requirements
-        List<Building> allBuildings = BuildingManager.Instance.GetAllBuildings();
-        List<Building> buildingsWithWorkers = new List<Building>();
+        List<Building> buildingsWithWorkers = GetBuildingsWithWorkerRequirements();
 
+        if (combineBuildings)
+        {
+            CreateCombinedRows(buildingsWithWorkers);
+        }
+        else
+        {
+            CreateIndividualRows(buildingsWithWorkers);
+        }
+
+        UpdateWorkerSummary(buildingsWithWorkers);
+    }
+
+    private List<Building> GetBuildingsWithWorkerRequirements()
+    {
+        List<Building> buildingsWithWorkers = new List<Building>();
+        if (BuildingManager.Instance == null)
+            return buildingsWithWorkers;
+
+        List<Building> allBuildings = BuildingManager.Instance.GetAllBuildings();
         foreach (Building building in allBuildings)
         {
             if (building != null && building.BuildingData != null &&
@@ -133,14 +157,35 @@ public class WorkerAssignPanel : MonoBehaviour
             }
         }
 
-        if (combineBuildings)
+        return buildingsWithWorkers;
+    }
+
+    private void UpdateWorkerSummary(List<Building> buildingsWithWorkers)
+    {
+        if (workerSummaryText == null)
+            return;
+
+        int assigned = 0;
+        int capacity = 0;
+        foreach (Building building in buildingsWithWorkers)
         {
-            CreateCombinedRows(buildingsWithWorkers);
+            if (building == null)
+                continue;
+
+            assigned += building.GetTotalAssignedWorkerCount();
+            capacity += building.GetTotalWorkerCapacity();
         }
-        else
+
+        int available = 0;
+        if (WorkerManager.Instance != null)
         {
-            CreateIndividualRows(buildingsWithWorkers);
+            foreach (var kvp in WorkerManager.Instance.AvailableWorkers)
+            {
+                available += kvp.Value;
+            }
         }
+
+        workerSummaryText.text = $"Pool {available}  |  Assigned {assigned}/{capacity}";
     }
 
     private void CreateIndividualRows(List<Building> buildings)

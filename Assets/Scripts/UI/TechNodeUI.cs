@@ -18,6 +18,7 @@ public class TechNodeUI : MonoBehaviour
     [SerializeField] private GameObject lockIcon;
     [SerializeField] private GameObject checkIcon;
     [SerializeField] private Button nodeButton;
+    [SerializeField] private TextMeshProUGUI statusText;
 
     [Header("Status Colors")]
     [SerializeField] private Color lockedColor = new Color(0.3f, 0.3f, 0.3f, 1f);
@@ -118,6 +119,11 @@ public class TechNodeUI : MonoBehaviour
         if (lockIcon != null) lockIcon.SetActive(true);
         if (checkIcon != null) checkIcon.SetActive(false);
         if (statusOverlay != null) statusOverlay.color = new Color(0, 0, 0, 0.5f);
+        if (statusText != null)
+        {
+            statusText.text = "LOCKED";
+            statusText.color = new Color(0.85f, 0.9f, 0.95f, 1f);
+        }
         if (nodeButton != null) nodeButton.interactable = true; // Still clickable to show info
     }
 
@@ -127,6 +133,11 @@ public class TechNodeUI : MonoBehaviour
         if (lockIcon != null) lockIcon.SetActive(false);
         if (checkIcon != null) checkIcon.SetActive(false);
         if (statusOverlay != null) statusOverlay.color = Color.clear;
+        if (statusText != null)
+        {
+            statusText.text = "AVAILABLE";
+            statusText.color = new Color(0.62f, 0.9f, 1f, 1f);
+        }
         if (nodeButton != null) nodeButton.interactable = true;
     }
 
@@ -136,6 +147,11 @@ public class TechNodeUI : MonoBehaviour
         if (lockIcon != null) lockIcon.SetActive(false);
         if (checkIcon != null) checkIcon.SetActive(false);
         if (statusOverlay != null) statusOverlay.color = Color.clear;
+        if (statusText != null)
+        {
+            statusText.text = "RESEARCHING";
+            statusText.color = new Color(1f, 0.84f, 0.38f, 1f);
+        }
         if (nodeButton != null) nodeButton.interactable = true;
     }
 
@@ -145,6 +161,11 @@ public class TechNodeUI : MonoBehaviour
         if (lockIcon != null) lockIcon.SetActive(false);
         if (checkIcon != null) checkIcon.SetActive(true);
         if (statusOverlay != null) statusOverlay.color = Color.clear;
+        if (statusText != null)
+        {
+            statusText.text = "COMPLETE";
+            statusText.color = new Color(0.45f, 1f, 0.75f, 1f);
+        }
         if (nodeButton != null) nodeButton.interactable = false;
     }
 

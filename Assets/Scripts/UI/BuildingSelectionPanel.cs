@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
 
@@ -61,6 +62,8 @@ public class BuildingSelectionPanel : MonoBehaviour
     private CanvasGroup buildingListCanvasGroup;
     private GridLayoutGroup buildingGrid;
     private Coroutine slideRoutine;
+    private bool reopenAfterBuildModeEnds;
+    private int suppressCloseInputFrame = -1;
 
     public bool IsVisible => categoriesVisible;
 
@@ -89,6 +92,30 @@ public class BuildingSelectionPanel : MonoBehaviour
     private void Start()
     {
         HidePanel();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeFromBuildModeEnded();
+    }
+
+    private void Update()
+    {
+        if (!categoriesVisible || !IsBuildingListVisible())
+            return;
+
+        if (Time.frameCount == suppressCloseInputFrame)
+            return;
+
+        if (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame)
+        {
+            HideBuildingListAnimated();
+        }
+
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame && !IsPointerInsideBuildingSelection())
+        {
+            HideBuildingListAnimated();
+        }
     }
 
     private void CacheBuildingsByCategory()
@@ -149,6 +176,31 @@ public class BuildingSelectionPanel : MonoBehaviour
             categoryContainer.gameObject.SetActive(false);
             ClearCategoryButtons();
         }
+    }
+
+    public void HidePanelImmediate()
+    {
+        categoriesVisible = false;
+        HideBuildingListImmediate();
+
+        if (categoryAccordion != null)
+        {
+            LayoutElement layoutElement = categoryAccordion.GetComponent<LayoutElement>();
+            if (layoutElement != null)
+            {
+                layoutElement.preferredHeight = 0f;
+                layoutElement.minHeight = 0f;
+            }
+
+            CanvasGroup canvasGroup = categoryAccordion.GetComponent<CanvasGroup>();
+            if (canvasGroup != null)
+                canvasGroup.alpha = 0f;
+        }
+
+        if (categoryContainer != null)
+            categoryContainer.gameObject.SetActive(false);
+
+        ClearCategoryButtons();
     }
 
     private void CreateCategoryButtons()
@@ -235,7 +287,10 @@ public class BuildingSelectionPanel : MonoBehaviour
                 buildingButton.Configure(data);
                 Button btn = buildingButton.GetButton();
                 if (btn != null)
+                {
+                    btn.interactable = IsBuildingSelectableForTutorial(data);
                     btn.onClick.AddListener(() => OnBuildingSelected(data));
+                }
             }
         }
 
@@ -298,6 +353,7 @@ public class BuildingSelectionPanel : MonoBehaviour
     private void HideBuildingListAnimated()
     {
         if (buildingListPanel == null || !buildingListPanel.activeSelf) return;
+        ClearSelectedCategory();
         if (slideRoutine != null) StopCoroutine(slideRoutine);
         if (actionPanelToggle != null) actionPanelToggle.SuppressAutoHide = false;
         slideRoutine = StartCoroutine(SlideRoutine(false, () =>
@@ -312,9 +368,59 @@ public class BuildingSelectionPanel : MonoBehaviour
     {
         if (slideRoutine != null) { StopCoroutine(slideRoutine); slideRoutine = null; }
         if (buildingListPanel != null) buildingListPanel.SetActive(false);
+        ClearSelectedCategory();
         foreach (GameObject btn in buildingButtons) Destroy(btn);
         buildingButtons.Clear();
         if (actionPanelToggle != null) actionPanelToggle.SuppressAutoHide = false;
+    }
+
+    private void HideBuildingListForPlacement()
+    {
+        if (slideRoutine != null) { StopCoroutine(slideRoutine); slideRoutine = null; }
+        if (buildingListPanel != null) buildingListPanel.SetActive(false);
+        foreach (GameObject btn in buildingButtons) Destroy(btn);
+        buildingButtons.Clear();
+        if (actionPanelToggle != null) actionPanelToggle.SuppressAutoHide = false;
+    }
+
+    private bool IsBuildingListVisible()
+    {
+        return buildingListPanel != null && buildingListPanel.activeSelf;
+    }
+
+    private bool IsPointerInsideBuildingSelection()
+    {
+        if (Mouse.current == null)
+            return false;
+
+        Vector2 pointerPosition = Mouse.current.position.ReadValue();
+
+        if (IsPointerInsideRect(buildingListRect, pointerPosition))
+            return true;
+
+        return IsPointerInsideRect(categoryContainer as RectTransform, pointerPosition);
+    }
+
+    private bool IsPointerInsideRect(RectTransform rect, Vector2 pointerPosition)
+    {
+        if (rect == null || !rect.gameObject.activeInHierarchy)
+            return false;
+
+        Canvas canvas = rect.GetComponentInParent<Canvas>();
+        Camera cam = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
+            ? canvas.worldCamera
+            : null;
+
+        return RectTransformUtility.RectangleContainsScreenPoint(rect, pointerPosition, cam);
+    }
+
+    private void ClearSelectedCategory()
+    {
+        if (selectedCategoryButton != null)
+        {
+            SetButtonColor(selectedCategoryButton, normalCategoryColor);
+            selectedCategoryButton = null;
+        }
     }
 
     private IEnumerator SlideRoutine(bool show, System.Action onDone)
@@ -348,8 +454,48 @@ public class BuildingSelectionPanel : MonoBehaviour
 
     private void OnBuildingSelected(BuildingData data)
     {
+        if (!IsBuildingSelectableForTutorial(data))
+            return;
+
         if (data != null && PlacementSystem.Instance != null)
-            PlacementSystem.Instance.EnterBuildMode(data);
+        {
+            bool buildModeStarted = PlacementSystem.Instance.EnterBuildMode(data);
+            if (!buildModeStarted)
+                return;
+
+            reopenAfterBuildModeEnds = true;
+            PlacementSystem.Instance.BuildingPlacementEnded -= HandleBuildingPlacementEnded;
+            PlacementSystem.Instance.BuildingPlacementEnded += HandleBuildingPlacementEnded;
+            HideBuildingListForPlacement();
+        }
+    }
+
+    private void HandleBuildingPlacementEnded()
+    {
+        if (!reopenAfterBuildModeEnds)
+            return;
+
+        reopenAfterBuildModeEnds = false;
+        UnsubscribeFromBuildModeEnded();
+
+        if (categoriesVisible && selectedCategoryButton != null)
+        {
+            ShowBuildingsForCategory(currentCategory);
+            PositionPanelBesideButton(selectedCategoryButton);
+            suppressCloseInputFrame = Time.frameCount;
+            StartSlideIn();
+        }
+    }
+
+    private void UnsubscribeFromBuildModeEnded()
+    {
+        if (PlacementSystem.Instance != null)
+            PlacementSystem.Instance.BuildingPlacementEnded -= HandleBuildingPlacementEnded;
+    }
+
+    private bool IsBuildingSelectableForTutorial(BuildingData data)
+    {
+        return TutorialGuideManager.Instance == null || TutorialGuideManager.Instance.CanSelectBuilding(data);
     }
 
     private bool IsBuildingUnlocked(BuildingData data)

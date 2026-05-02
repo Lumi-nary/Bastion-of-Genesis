@@ -16,6 +16,7 @@ MonoBehaviour:
   description: 
   groundState: 2
   terrainType: 3
+  pollutionAffected: 0
   tileSprite: {fileID: 0}
   previewColor: {r: 0.003070495, g: 0.15483059, b: 0.6509434, a: 1}
   properties:

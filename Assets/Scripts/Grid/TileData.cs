@@ -45,6 +45,9 @@ public class TileData : ScriptableObject
     [Tooltip("Fixed terrain type for visual transitions (Grass/Sand/Water)")]
     public TerrainType terrainType = TerrainType.None;
 
+    [Tooltip("If true, TileStateManager may overlay wither/integrated sprites when pollution reaches this cell, and pollution can spread through it. Set false for immune substrate (water, rock) that blocks the pollution frontier and never changes sprite.")]
+    public bool pollutionAffected = true;
+
     [Header("Visual")]
     [Tooltip("Sprite for this tile (used in Tilemap)")]
     public Sprite tileSprite;

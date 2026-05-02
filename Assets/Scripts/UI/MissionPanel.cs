@@ -78,6 +78,8 @@ public class MissionPanel : MonoBehaviour
                 HidePanel();
             }
         }
+
+        UpdateMissionTimer();
     }
 
     private void OnDestroy()
@@ -220,7 +222,7 @@ public class MissionPanel : MonoBehaviour
 
     private void OnMissionTimerUpdate(float time)
     {
-        UpdateMissionTimer(time);
+        UpdateMissionTimer();
     }
 
     private void DisplayMission(MissionData mission)
@@ -284,31 +286,139 @@ public class MissionPanel : MonoBehaviour
         }
     }
 
-    private void UpdateMissionTimer(float time)
+    private void UpdateMissionTimer()
     {
         if (missionTimerText == null) return;
 
-        MissionData mission = MissionChapterManager.Instance.CurrentMission;
-        if (mission != null && mission.timeLimit > 0)
+        MissionChapterManager missionManager = MissionChapterManager.Instance;
+        MissionData mission = missionManager != null ? missionManager.CurrentMission : null;
+
+        if (mission == null)
         {
-            missionTimerText.gameObject.SetActive(true);
-
-            float remaining = mission.timeLimit - time;
-            int minutes = Mathf.FloorToInt(remaining / 60f);
-            int seconds = Mathf.FloorToInt(remaining % 60f);
-
-            Color timerColor = Color.white;
-            if (remaining < 30f)
-                timerColor = Color.red;
-            else if (remaining < 60f)
-                timerColor = Color.yellow;
-
-            missionTimerText.text = $"<color=#{ColorUtility.ToHtmlStringRGB(timerColor)}>Time: {minutes:00}:{seconds:00}</color>";
-        }
-        else
-        {
-            // No time limit — hide the timer
             missionTimerText.gameObject.SetActive(false);
+            return;
         }
+
+        missionTimerText.gameObject.SetActive(true);
+
+        string missionTime = FormatMissionTime(mission, missionManager.MissionTimer);
+        string waveSpawnTime = GetWaveSpawnTimeText(mission, missionManager.MissionTimer);
+
+        missionTimerText.text =
+            "<color=#7FA9BA><size=70%>MISSION TIME</size></color><pos=55%><color=#7FA9BA><size=70%>WAVE SPAWN TIME</size></color>\n" +
+            $"<color=#E7F7FF>{missionTime}</color><pos=55%><color=#B5F6D0>{waveSpawnTime}</color>";
+    }
+
+    private string FormatMissionTime(MissionData mission, float missionTime)
+    {
+        string elapsed = FormatTime(missionTime);
+
+        if (mission != null && mission.timeLimit > 0f)
+        {
+            return $"{elapsed} / {FormatTime(mission.timeLimit)}";
+        }
+
+        return elapsed;
+    }
+
+    private string GetWaveSpawnTimeText(MissionData mission, float missionTime)
+    {
+        if (mission == null) return string.Empty;
+
+        bool hasScriptedWave = TryGetNextScriptedWave(mission, missionTime, out float scriptedSeconds, out bool waitingForObjective);
+
+        if (mission.disableNaturalWaves)
+        {
+            if (hasScriptedWave)
+            {
+                return waitingForObjective ? $"{FormatTime(scriptedSeconds)} gated" : FormatTime(scriptedSeconds);
+            }
+
+            return "Paused";
+        }
+
+        WaveController waveController = WaveController.Instance;
+        if (waveController == null || !waveController.IsActive)
+        {
+            return hasScriptedWave ? FormatTime(scriptedSeconds) : "--:--";
+        }
+
+        if (waveController.TimeUntilInitialDelayComplete > 0f)
+        {
+            return FormatTime(waveController.TimeUntilInitialDelayComplete);
+        }
+
+        if (waveController.TimeUntilMinimumWaveWindow > 0f)
+        {
+            return FormatTime(waveController.TimeUntilMinimumWaveWindow);
+        }
+
+        if (hasScriptedWave && (!waveController.HasForcedWaveTimer || scriptedSeconds <= waveController.TimeUntilForcedWave))
+        {
+            return FormatTime(scriptedSeconds);
+        }
+
+        if (waveController.HasForcedWaveTimer)
+        {
+            return FormatTime(waveController.TimeUntilForcedWave);
+        }
+
+        return $"Threat {waveController.ThreatPercentage:0}%";
+    }
+
+    private bool TryGetNextScriptedWave(MissionData mission, float missionTime, out float secondsUntilWave, out bool waitingForObjective)
+    {
+        secondsUntilWave = 0f;
+        waitingForObjective = false;
+
+        if (mission == null || mission.scriptedWaves == null || mission.scriptedWaves.Count == 0)
+        {
+            return false;
+        }
+
+        float bestReadyTime = float.MaxValue;
+        float bestLockedTime = float.MaxValue;
+
+        foreach (ScriptedWave wave in mission.scriptedWaves)
+        {
+            if (wave == null || wave.isTriggered) continue;
+
+            float remaining = Mathf.Max(0f, wave.triggerTime - missionTime);
+            bool objectiveReady = wave.triggerAfterObjectiveIndex < 0 ||
+                (wave.triggerAfterObjectiveIndex < mission.objectives.Count &&
+                 mission.objectives[wave.triggerAfterObjectiveIndex].isCompleted);
+
+            if (objectiveReady)
+            {
+                bestReadyTime = Mathf.Min(bestReadyTime, remaining);
+            }
+            else
+            {
+                bestLockedTime = Mathf.Min(bestLockedTime, remaining);
+            }
+        }
+
+        if (bestReadyTime < float.MaxValue)
+        {
+            secondsUntilWave = bestReadyTime;
+            return true;
+        }
+
+        if (bestLockedTime < float.MaxValue)
+        {
+            secondsUntilWave = bestLockedTime;
+            waitingForObjective = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    private string FormatTime(float seconds)
+    {
+        seconds = Mathf.Max(0f, seconds);
+        int minutes = Mathf.FloorToInt(seconds / 60f);
+        int wholeSeconds = Mathf.FloorToInt(seconds % 60f);
+        return $"{minutes:00}:{wholeSeconds:00}";
     }
 }

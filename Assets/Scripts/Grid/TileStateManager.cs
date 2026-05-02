@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -16,11 +17,16 @@ public class TileStateManager : MonoBehaviour
     [Header("Pollution Settings")]
     [SerializeField] private Transform pollutionCenter; // Command Center
     [SerializeField] private float pollutionRadius = 10f; // How far Polluted (wither) zone extends
-    [SerializeField] private float witherBorderWidth = 2f; // Buffer zone around integrated
 
     [Header("Building Integration Settings")]
     [SerializeField] private int buildingIntegrationRadius = 3; // Tiles around each building that become integrated
     [SerializeField] private float commandCenterBaseRadius = 5f; // Starter integrated zone around Command Center
+
+    [Header("Pollution Spread Animation")]
+    [Tooltip("How many frontier cells get polluted per tick. Lower = slower creep, more organic fringe.")]
+    [SerializeField] private int tilesPerStep = 2;
+    [Tooltip("Seconds between frontier ticks while pollution is creeping outward.")]
+    [SerializeField] private float secondsPerStep = 0.25f;
 
     // Legacy compatibility - redirect to new names
     private Transform integrationCenter => pollutionCenter;
@@ -89,12 +95,36 @@ public class TileStateManager : MonoBehaviour
     private BoundsInt tilemapBounds;
     private bool isSubscribedToBuildingEvents = false;
 
+    // Pollution BFS frontier state (FIFO BFS, creeping cohesive growth)
+    private HashSet<Vector2Int> pollutedBfsSet = new HashSet<Vector2Int>();
+    // FIFO queue of discovered-but-not-yet-polluted cells. Stays FIFO so shallow cells always
+    // get polluted before deeper cells (cohesive growth, no stranded inner tiles).
+    // When the queue head's depth exceeds targetFrontierDepth, the coroutine pauses — the cell
+    // is NOT discarded, so a later radius increase picks up right where it left off.
+    private Queue<Vector2Int> bfsQueue = new Queue<Vector2Int>();
+    private HashSet<Vector2Int> bfsFrontierSet = new HashSet<Vector2Int>();
+    private Dictionary<Vector2Int, int> cellDepth = new Dictionary<Vector2Int, int>();
+    private int targetFrontierDepth = 0;
+    private Coroutine spreadCoroutine;
+    private bool frontierInitialized = false;
+
+    private static readonly Vector2Int[] Neighbors4 = {
+        new Vector2Int(1, 0),
+        new Vector2Int(-1, 0),
+        new Vector2Int(0, 1),
+        new Vector2Int(0, -1)
+    };
+
     // Event for ground state changes (used by vegetation system)
     public delegate void GroundStateChangedHandler(Vector2Int gridPos, GroundState oldState, GroundState newState);
     public event GroundStateChangedHandler OnGroundStateChanged;
 
     // Cached tiles to avoid creating new ScriptableObjects every update
     private Dictionary<Sprite, Tile> tileCache = new Dictionary<Sprite, Tile>();
+
+    // Authored TileBase ref per cell, captured the first time TSM overlays wither/integrated.
+    // Restored when the cell returns to Alive so hand-painted variants survive pollution recession.
+    private Dictionary<Vector2Int, TileBase> originalTileCache = new Dictionary<Vector2Int, TileBase>();
 
     private void Awake()
     {
@@ -313,14 +343,24 @@ public class TileStateManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Apply authored chapter tile-state values. Scene serialized radii are defaults only.
+    /// </summary>
+    public void ConfigureFromChapter(float startingWitherRadius, float startingIntegrationRadius)
+    {
+        commandCenterBaseRadius = Mathf.Max(0f, startingIntegrationRadius);
+        SetPollutionRadius(Mathf.Max(0f, startingWitherRadius), true);
+        Debug.Log($"[TileStateManager] Chapter tile states configured: witherRadius={pollutionRadius}, integrationRadius={commandCenterBaseRadius}");
+    }
+
+    /// <summary>
     /// Update pollution radius (called when pollution changes)
     /// </summary>
-    public void SetPollutionRadius(float newRadius)
+    public void SetPollutionRadius(float newRadius, bool instant = false)
     {
-        if (Mathf.Approximately(pollutionRadius, newRadius)) return;
+        if (Mathf.Approximately(pollutionRadius, newRadius) && !instant) return;
 
         pollutionRadius = newRadius;
-        UpdateAllTileStates();
+        UpdateAllTileStates(instant);
     }
 
     /// <summary>
@@ -328,7 +368,8 @@ public class TileStateManager : MonoBehaviour
     /// </summary>
     public void SetIntegrationRadius(float newRadius)
     {
-        SetPollutionRadius(newRadius);
+        commandCenterBaseRadius = Mathf.Max(0f, newRadius);
+        RunFinalStatePass();
     }
 
     /// <summary>
@@ -386,86 +427,353 @@ public class TileStateManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Update all tile states based on:
-    /// 1. Pollution radius determines Polluted (wither) zone
-    /// 2. Buildings extend Integrated zone into Polluted tiles only
-    /// 3. Grass tiles cannot be directly converted to Integrated
+    /// Update all tile states. Pollution creeps outward tile-by-tile: each tick, tilesPerStep
+    /// cells are pulled at random from the live frontier, flipped to Polluted, and their
+    /// walkable neighbors get added to the frontier. Blocker tiles (pollutionAffected=false)
+    /// never enter the frontier, so the ring flows around them.
     /// </summary>
-    public void UpdateAllTileStates()
+    public void UpdateAllTileStates(bool instant = false)
     {
         if (terrainTilemap == null || pollutionCenter == null) return;
 
         // Ensure we're subscribed to building events (in case BuildingManager loaded after us)
         SubscribeToBuildingEvents();
 
-        Vector2 centerPos = pollutionCenter.position;
+        int newTarget = Mathf.CeilToInt(pollutionRadius);
+        bool shrinking = newTarget < targetFrontierDepth;
+        targetFrontierDepth = newTarget;
+        frontierInitialized = true;
 
-        // Track tiles that changed state (need sprite update)
-        HashSet<Vector2Int> changedTiles = new HashSet<Vector2Int>();
-
-        // First pass: determine which tiles are in the Polluted zone (based on pollution radius)
-        HashSet<Vector2Int> pollutedZoneTiles = new HashSet<Vector2Int>();
-
-        for (int x = tilemapBounds.xMin; x < tilemapBounds.xMax; x++)
+        if (instant)
         {
-            for (int y = tilemapBounds.yMin; y < tilemapBounds.yMax; y++)
+            if (spreadCoroutine != null)
             {
-                Vector2Int gridPos = new Vector2Int(x, y);
-                Vector3 worldPos = terrainTilemap.CellToWorld(new Vector3Int(x, y, 0)) + new Vector3(0.5f, 0.5f, 0);
+                StopCoroutine(spreadCoroutine);
+                spreadCoroutine = null;
+            }
+            RebuildPollutionToDepth(newTarget);
+        }
+        else if (shrinking)
+        {
+            if (spreadCoroutine != null)
+            {
+                StopCoroutine(spreadCoroutine);
+                spreadCoroutine = null;
+            }
+            ShrinkToDepth(newTarget);
+        }
+        else
+        {
+            if (pollutedBfsSet.Count == 0 && newTarget > 0)
+            {
+                SeedFrontier();
+            }
 
-                // Square distance (Chebyshev) = max of X and Y distance
-                float dx = Mathf.Abs(worldPos.x - centerPos.x);
-                float dy = Mathf.Abs(worldPos.y - centerPos.y);
-                float distance = Mathf.Max(dx, dy);
-
-                // Mark tiles within pollution radius as polluted zone (candidates for integration)
-                if (distance < pollutionRadius)
-                {
-                    pollutedZoneTiles.Add(gridPos);
-                }
+            if (spreadCoroutine == null && HasEligibleFrontier() && isActiveAndEnabled)
+            {
+                spreadCoroutine = StartCoroutine(GrowFrontier());
             }
         }
 
-        // Second pass: calculate building-based integration (only into polluted tiles)
-        CalculateBuildingIntegration(pollutedZoneTiles);
+        RunFinalStatePass();
+    }
 
-        // Third pass: determine final state for each tile
+    /// <summary>
+    /// Coroutine: each tick pulls tilesPerStep cells from the FIFO frontier and pollutes them
+    /// as an adjacent chain (tile + partner + partner...) so the spread grows as cohesive
+    /// rectangles rather than isolated specks. If the queue head is beyond targetFrontierDepth
+    /// the coroutine pauses without discarding — radius bumps resume spread instantly.
+    /// </summary>
+    private IEnumerator GrowFrontier()
+    {
+        while (true)
+        {
+            Vector2Int? head = PeekEligibleHead();
+            if (!head.HasValue) break;
+
+            Vector2Int a = head.Value;
+            bfsQueue.Dequeue();
+            bfsFrontierSet.Remove(a);
+            if (pollutedBfsSet.Contains(a)) continue;
+
+            pollutedBfsSet.Add(a);
+            AddCandidateNeighbors(a, cellDepth[a]);
+
+            // Chain up to tilesPerStep-1 adjacent partners so this tick's spread is a connected
+            // run of cells (1x2 rectangle at default tilesPerStep=2).
+            Vector2Int tail = a;
+            for (int extra = 1; extra < tilesPerStep; extra++)
+            {
+                Vector2Int? partner = FindAdjacentEligible(tail);
+                if (!partner.HasValue) break;
+                Vector2Int b = partner.Value;
+                pollutedBfsSet.Add(b);
+                bfsFrontierSet.Remove(b); // still physically in queue; skipped on dequeue
+                AddCandidateNeighbors(b, cellDepth[b]);
+                tail = b;
+            }
+
+            RunFinalStatePass();
+            yield return new WaitForSeconds(secondsPerStep);
+        }
+
+        spreadCoroutine = null;
+    }
+
+    /// <summary>
+    /// Return the queue head if it's an eligible cell (unpolluted, within target depth,
+    /// non-blocker). Peels off stale heads (already polluted / missing depth / blocker) first.
+    /// Returns null when the queue is empty or the head is beyond target depth (paused).
+    /// </summary>
+    private Vector2Int? PeekEligibleHead()
+    {
+        while (bfsQueue.Count > 0)
+        {
+            Vector2Int head = bfsQueue.Peek();
+            if (pollutedBfsSet.Contains(head))
+            {
+                bfsQueue.Dequeue();
+                bfsFrontierSet.Remove(head);
+                continue;
+            }
+            if (!cellDepth.TryGetValue(head, out int d))
+            {
+                bfsQueue.Dequeue();
+                bfsFrontierSet.Remove(head);
+                continue;
+            }
+            if (IsPollutionBlocker(head))
+            {
+                bfsQueue.Dequeue();
+                bfsFrontierSet.Remove(head);
+                continue;
+            }
+            if (d > targetFrontierDepth) return null; // pause — keep head for later
+            return head;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Return an unpolluted, unblocked, within-radius 4-neighbor of `from`, if one exists.
+    /// Neighbors are tried in randomized order so consecutive pair chains don't always grow in
+    /// the same cardinal direction.
+    /// </summary>
+    private Vector2Int? FindAdjacentEligible(Vector2Int from)
+    {
+        if (!cellDepth.TryGetValue(from, out int fromDepth)) return null;
+
+        int start = Random.Range(0, Neighbors4.Length);
+        for (int i = 0; i < Neighbors4.Length; i++)
+        {
+            Vector2Int n = from + Neighbors4[(start + i) % Neighbors4.Length];
+            if (!InBounds(n)) continue;
+            if (pollutedBfsSet.Contains(n)) continue;
+            if (IsPollutionBlocker(n)) continue;
+
+            int nDepth = cellDepth.TryGetValue(n, out int existing) ? existing : fromDepth + 1;
+            if (nDepth > targetFrontierDepth) continue;
+
+            if (!cellDepth.ContainsKey(n)) cellDepth[n] = nDepth;
+            return n;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// True if the queue has at least one cell whose depth is within targetFrontierDepth and
+    /// whose walkability is fine. Uses PeekEligibleHead so FIFO order is preserved.
+    /// </summary>
+    private bool HasEligibleFrontier()
+    {
+        return PeekEligibleHead().HasValue;
+    }
+
+    /// <summary>
+    /// Add a cell's unblocked, unvisited 4-neighbors to the FIFO frontier.
+    /// </summary>
+    private void AddCandidateNeighbors(Vector2Int cell, int cellDepthValue)
+    {
+        for (int i = 0; i < Neighbors4.Length; i++)
+        {
+            Vector2Int n = cell + Neighbors4[i];
+            if (!InBounds(n)) continue;
+            if (pollutedBfsSet.Contains(n)) continue;
+            if (bfsFrontierSet.Contains(n)) continue;
+            if (IsPollutionBlocker(n)) continue;
+
+            int nDepth = cellDepthValue + 1;
+            if (cellDepth.TryGetValue(n, out int existing) && existing <= nDepth) continue;
+            cellDepth[n] = nDepth;
+
+            bfsQueue.Enqueue(n);
+            bfsFrontierSet.Add(n);
+        }
+    }
+
+    /// <summary>
+    /// Pollute the seed cell and seed the frontier with its walkable neighbors.
+    /// </summary>
+    private void SeedFrontier()
+    {
+        Vector2Int seed = GetSeedCell();
+        if (!InBounds(seed) || IsPollutionBlocker(seed)) return;
+
+        pollutedBfsSet.Add(seed);
+        cellDepth[seed] = 0;
+        AddCandidateNeighbors(seed, 0);
+    }
+
+    /// <summary>
+    /// Instantly establish the authored starting wither area, then leave the frontier ready
+    /// for later pollution growth.
+    /// </summary>
+    private void RebuildPollutionToDepth(int depthCap)
+    {
+        pollutedBfsSet.Clear();
+        bfsQueue.Clear();
+        bfsFrontierSet.Clear();
+        cellDepth.Clear();
+
+        if (depthCap <= 0) return;
+
+        Vector2Int seed = GetSeedCell();
+        if (!InBounds(seed) || IsPollutionBlocker(seed)) return;
+
+        Queue<Vector2Int> pending = new Queue<Vector2Int>();
+        pending.Enqueue(seed);
+        cellDepth[seed] = 0;
+
+        while (pending.Count > 0)
+        {
+            Vector2Int cell = pending.Dequeue();
+            int depth = cellDepth[cell];
+
+            if (depth <= depthCap)
+            {
+                pollutedBfsSet.Add(cell);
+            }
+
+            if (depth >= depthCap) continue;
+
+            foreach (Vector2Int direction in Neighbors4)
+            {
+                Vector2Int next = cell + direction;
+                if (!InBounds(next)) continue;
+                if (cellDepth.ContainsKey(next)) continue;
+                if (IsPollutionBlocker(next)) continue;
+
+                cellDepth[next] = depth + 1;
+                pending.Enqueue(next);
+            }
+        }
+
+        foreach (Vector2Int cell in pollutedBfsSet)
+        {
+            AddCandidateNeighbors(cell, cellDepth[cell]);
+        }
+    }
+
+    /// <summary>
+    /// Instantly trim pollutedBfsSet and queue to cells whose BFS depth is within depthCap.
+    /// </summary>
+    private void ShrinkToDepth(int depthCap)
+    {
+        if (depthCap <= 0)
+        {
+            pollutedBfsSet.Clear();
+            bfsQueue.Clear();
+            bfsFrontierSet.Clear();
+            cellDepth.Clear();
+            return;
+        }
+
+        List<Vector2Int> toRemove = new List<Vector2Int>();
+        foreach (var cell in pollutedBfsSet)
+        {
+            if (!cellDepth.TryGetValue(cell, out int d) || d > depthCap) toRemove.Add(cell);
+        }
+        foreach (var cell in toRemove) pollutedBfsSet.Remove(cell);
+
+        // Rebuild queue without the trimmed cells (Queue has no arbitrary remove).
+        Queue<Vector2Int> kept = new Queue<Vector2Int>(bfsQueue.Count);
+        HashSet<Vector2Int> keptSet = new HashSet<Vector2Int>();
+        foreach (var cell in bfsQueue)
+        {
+            if (!cellDepth.TryGetValue(cell, out int d) || d > depthCap) continue;
+            if (pollutedBfsSet.Contains(cell)) continue;
+            if (!keptSet.Add(cell)) continue;
+            kept.Enqueue(cell);
+        }
+        bfsQueue = kept;
+        bfsFrontierSet = keptSet;
+    }
+
+    private Vector2Int GetSeedCell()
+    {
+        Vector3Int cell = terrainTilemap.WorldToCell(pollutionCenter.position);
+        return new Vector2Int(cell.x, cell.y);
+    }
+
+    private bool InBounds(Vector2Int p)
+    {
+        return p.x >= tilemapBounds.xMin && p.x < tilemapBounds.xMax
+            && p.y >= tilemapBounds.yMin && p.y < tilemapBounds.yMax;
+    }
+
+    /// <summary>
+    /// True if the substrate tile at this cell opts out of pollution (pollutionAffected=false).
+    /// Those cells both block spread and keep their authored sprite.
+    /// </summary>
+    private bool IsPollutionBlocker(Vector2Int gridPos)
+    {
+        if (terrainTilemap == null) return false;
+        Vector3Int tilePos = new Vector3Int(gridPos.x, gridPos.y, 0);
+        PlanetfallTile tile = terrainTilemap.GetTile<PlanetfallTile>(tilePos);
+        return tile != null && tile.tileData != null && !tile.tileData.pollutionAffected;
+    }
+
+    /// <summary>
+    /// Decide each tile's final GroundState from the current pollutedBfsSet + buildings +
+    /// command-center base zone, then repaint sprites for cells whose state changed.
+    /// </summary>
+    private void RunFinalStatePass()
+    {
+        if (terrainTilemap == null || pollutionCenter == null) return;
+
+        CalculateBuildingIntegration(pollutedBfsSet);
+
+        Vector2 centerPos = pollutionCenter.position;
+        HashSet<Vector2Int> changedTiles = new HashSet<Vector2Int>();
+
         for (int x = tilemapBounds.xMin; x < tilemapBounds.xMax; x++)
         {
             for (int y = tilemapBounds.yMin; y < tilemapBounds.yMax; y++)
             {
                 Vector2Int gridPos = new Vector2Int(x, y);
                 Vector3 worldPos = terrainTilemap.CellToWorld(new Vector3Int(x, y, 0)) + new Vector3(0.5f, 0.5f, 0);
-
-                // Square distance from Command Center
                 float dx = Mathf.Abs(worldPos.x - centerPos.x);
                 float dy = Mathf.Abs(worldPos.y - centerPos.y);
-                float distance = Mathf.Max(dx, dy);
+                float chebyshev = Mathf.Max(dx, dy);
 
                 GroundState newState;
-
-                // Priority 1: Command Center base zone is always Integrated
-                if (distance < commandCenterBaseRadius)
+                if (chebyshev < commandCenterBaseRadius)
                 {
                     newState = GroundState.Integrated;
                 }
-                // Priority 2: Tiles integrated by buildings (only works on Polluted tiles)
                 else if (buildingIntegratedTiles.Contains(gridPos))
                 {
                     newState = GroundState.Integrated;
                 }
-                // Priority 3: Tiles within pollution radius but not integrated = Polluted (wither)
-                else if (distance < pollutionRadius)
+                else if (pollutedBfsSet.Contains(gridPos))
                 {
                     newState = GroundState.Polluted;
                 }
-                // Priority 4: Everything else = Grass (Alive)
                 else
                 {
                     newState = GroundState.Alive;
                 }
 
-                // Check if state changed
                 GroundState oldState = GroundState.Alive;
                 bool hadOldState = tileStates.TryGetValue(gridPos, out oldState);
 
@@ -474,13 +782,11 @@ public class TileStateManager : MonoBehaviour
                     tileStates[gridPos] = newState;
                     changedTiles.Add(gridPos);
 
-                    // Fire event for state change (vegetation system listens for this)
                     if (hadOldState && oldState != newState)
                     {
                         OnGroundStateChanged?.Invoke(gridPos, oldState, newState);
                     }
 
-                    // Also mark neighbors as needing update (for transition sprites)
                     changedTiles.Add(gridPos + Vector2Int.up);
                     changedTiles.Add(gridPos + Vector2Int.down);
                     changedTiles.Add(gridPos + Vector2Int.left);
@@ -489,7 +795,6 @@ public class TileStateManager : MonoBehaviour
             }
         }
 
-        // Fourth pass: only update sprites for changed tiles and their neighbors
         foreach (Vector2Int gridPos in changedTiles)
         {
             UpdateTileSprite(gridPos);
@@ -545,30 +850,35 @@ public class TileStateManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Check if a grid position is in the Alive (grass) zone - outside pollution radius
-    /// Uses direct distance check - safe to call before tile states are initialized
+    /// Check if a grid position is in the Alive (grass) zone - outside the BFS-polluted set.
+    /// Falls back to a Chebyshev check before the initial frontier snap has run.
     /// </summary>
     public bool IsInAliveZone(Vector2Int gridPos)
     {
         if (pollutionCenter == null) return true; // No center = all grass
+
+        if (frontierInitialized)
+        {
+            return !pollutedBfsSet.Contains(gridPos);
+        }
 
         Vector3 worldPos = GridManager.Instance != null
             ? GridManager.Instance.GridToWorldPosition(gridPos)
             : new Vector3(gridPos.x + 0.5f, gridPos.y + 0.5f, 0);
 
         Vector2 centerPos = pollutionCenter.position;
-
-        // Square distance (Chebyshev) = max of X and Y distance
         float dx = Mathf.Abs(worldPos.x - centerPos.x);
         float dy = Mathf.Abs(worldPos.y - centerPos.y);
         float distance = Mathf.Max(dx, dy);
 
-        // Alive zone is OUTSIDE the pollution radius
         return distance >= pollutionRadius;
     }
 
     /// <summary>
-    /// Update a single tile's sprite based on its state and neighbors
+    /// Update a single tile's sprite based on its ground state.
+    /// Alive cells are never repainted (authored art preserved); Polluted/Integrated cells
+    /// get a wither/integrated overlay with the authored TileBase cached for later restore.
+    /// Cells whose TileData opts out via pollutionAffected=false are skipped entirely.
     /// </summary>
     private void UpdateTileSprite(Vector2Int gridPos)
     {
@@ -576,25 +886,36 @@ public class TileStateManager : MonoBehaviour
 
         Vector3Int tilePos = new Vector3Int(gridPos.x, gridPos.y, 0);
 
-        // Only update tiles that already exist in the tilemap
         TileBase existingTile = terrainTilemap.GetTile(tilePos);
         if (existingTile == null) return;
 
-        Sprite newSprite = null;
-
-        // Check terrain type first - fixed terrain uses terrain transitions
-        TerrainType terrainType = GetTerrainType(gridPos);
-        if (terrainType != TerrainType.None)
+        // Opt-out: tiles marked pollutionAffected=false (water, rock, walls) keep authored sprite.
+        PlanetfallTile pfTile = terrainTilemap.GetTile<PlanetfallTile>(tilePos);
+        if (pfTile != null && pfTile.tileData != null && !pfTile.tileData.pollutionAffected)
         {
-            newSprite = GetSpriteForTerrainType(gridPos, terrainType);
-        }
-        else
-        {
-            // No terrain type - use ground state (radius-based) transitions
-            GroundState currentState = GetGroundState(gridPos);
-            newSprite = GetSpriteForGroundState(gridPos, currentState);
+            return;
         }
 
+        GroundState currentState = GetGroundState(gridPos);
+
+        if (currentState == GroundState.Alive)
+        {
+            // Pollution receded from this cell — restore the authored TileBase if we cached one.
+            if (originalTileCache.TryGetValue(gridPos, out TileBase authored))
+            {
+                terrainTilemap.SetTile(tilePos, authored);
+                originalTileCache.Remove(gridPos);
+            }
+            return;
+        }
+
+        // Polluted / Integrated: overlay wither/integrated sprite. Capture authored on first write.
+        if (!originalTileCache.ContainsKey(gridPos))
+        {
+            originalTileCache[gridPos] = existingTile;
+        }
+
+        Sprite newSprite = GetSpriteForGroundState(gridPos, currentState);
         if (newSprite != null)
         {
             terrainTilemap.SetTile(tilePos, GetCachedTile(newSprite));

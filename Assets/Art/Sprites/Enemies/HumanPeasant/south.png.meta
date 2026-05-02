@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 1dc3b18ea1553024987c1e65bc969fbe
+guid: 00cca9b5919a7c0499f479f4084f98cf
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2324236343598682440
-    second: south_0
+      213: 4453658455740404394
+    second: south 1_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,9 +46,9 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 0
+  spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 32
@@ -96,17 +96,30 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: south_0
+      name: south 1_0
       rect:
         serializedVersion: 2
-        x: 22
-        y: 8
-        width: 23
-        height: 47
+        x: 30
+        y: 22
+        width: 31
+        height: 40
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8419042e3a8514020800000000000000
-      internalID: 2324236343598682440
+      spriteID: aa2525dd4c29ecd30800000000000000
+      internalID: 4453658455740404394
       vertices: []
       indices: 
       edges: []
@@ -125,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      south_0: 2324236343598682440
+      south 1_0: 4453658455740404394
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

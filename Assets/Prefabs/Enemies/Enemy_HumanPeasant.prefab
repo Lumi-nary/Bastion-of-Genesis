@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1329334088568116958}
   - component: {fileID: 621528998833345905}
   - component: {fileID: 6780038235967895712}
+  - component: {fileID: 7597153060967096224}
   m_Layer: 8
   m_Name: Enemy_HumanPeasant
   m_TagString: Untagged
@@ -45,13 +46,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 804d4f4a0adfc0c44abe01cdc73dde0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  _componentIndexCache: 0
-  _addedNetworkObject: {fileID: 0}
-  _networkObjectCache: {fileID: 0}
   enemyData: {fileID: 11400000, guid: ea7b570b3d85d5c4a9cdeac7babd8071, type: 2}
   separationRadius: 0.5
   separationStrength: 2
   debugMovement: 0
+  animator: {fileID: 7597153060967096224}
+  attackTriggerName: Attack
 --- !u!212 &6780038235967895712
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -99,14 +99,36 @@ SpriteRenderer:
   m_SortingLayerID: 1627275181
   m_SortingLayer: 5
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 1dc3b18ea1553024987c1e65bc969fbe, type: 3}
+  m_Sprite: {fileID: 4453658455740404394, guid: 00cca9b5919a7c0499f479f4084f98cf, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 2, y: 2}
+  m_Size: {x: 0.96875, y: 1.25}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!95 &7597153060967096224
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4847702409958486025}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 2affeab7f93ec814bb5d1ce5e9e417f2, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

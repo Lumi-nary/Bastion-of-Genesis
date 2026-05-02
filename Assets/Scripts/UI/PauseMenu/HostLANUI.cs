@@ -79,7 +79,15 @@ public class HostLANUI : MonoBehaviour
         // Start LAN broadcasting
         if (LANBroadcaster.Instance != null)
         {
-            string serverName = SaveManager.Instance?.pendingBaseName ?? "Planetfall Server";
+            string serverName = SaveManager.Instance != null ? SaveManager.Instance.pendingBaseName : null;
+            if (string.IsNullOrWhiteSpace(serverName))
+            {
+                string playerName = SettingsManager.Instance != null
+                    ? SettingsManager.Instance.CurrentSettings?.playerName
+                    : null;
+                serverName = $"{SettingsData.NormalizePlayerName(playerName)}'s Game";
+            }
+
             LANBroadcaster.Instance.StartBroadcasting(
                 serverName,
                 CoopBootstrap.Instance.Port,

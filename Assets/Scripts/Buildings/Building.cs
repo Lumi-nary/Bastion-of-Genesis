@@ -22,6 +22,7 @@ public class Building : MonoBehaviour
     public bool IsDestroyed => isDestroyed;
 
     // Events
+    public static event Action<Building, WorkerData> OnAnyWorkerAssigned;
     public event Action<Building, float> OnBuildingDamaged;
     public event Action<Building> OnBuildingDestroyed;
     public event Action OnWorkersChanged;
@@ -186,10 +187,17 @@ public class Building : MonoBehaviour
         }
 
         // Try to assign the worker from the manager
-        if (WorkerManager.Instance.AssignWorker(workerData))
+        if (TutorialGuideManager.Instance != null && !TutorialGuideManager.Instance.CanAssignWorker(this, workerData))
+        {
+            Debug.Log($"[TutorialGuide] BLOCKED: {workerData.workerName} cannot be assigned to {buildingData.buildingName} for the active tutorial step.");
+            return false;
+        }
+
+        if (WorkerManager.Instance.AssignWorker(workerData, this))
         {
             assignedWorkers.Add(workerData);
             OnWorkersChanged?.Invoke();
+            OnAnyWorkerAssigned?.Invoke(this, workerData);
             return true;
         }
 

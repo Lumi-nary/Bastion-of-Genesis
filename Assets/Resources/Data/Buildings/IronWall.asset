@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BuildingData
   buildingName: Iron Wall
   description: Basic defensive wall. Blocks ground enemies but bypassed by tunnelers.
-  icon: {fileID: -7227225381432144484, guid: 2311ff31dc9beee4ba97cef3300cc750, type: 3}
+  icon: {fileID: 21300000, guid: 2311ff31dc9beee4ba97cef3300cc750, type: 3}
   category: 4
   prefab: {fileID: 5433590470182939469, guid: de3b61389a8ae144b8400263aa8f604b, type: 3}
   isPlayerBuildable: 1
@@ -30,6 +30,7 @@ MonoBehaviour:
   workerRequirements: []
   features:
   - {fileID: 11400000, guid: 3fe10f8cc0175dd4d9be592195e82e5f, type: 2}
+  maxPlacementCount: 0
   width: 1
   height: 1
   spreadsIntegration: 0

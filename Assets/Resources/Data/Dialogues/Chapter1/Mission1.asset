@@ -17,21 +17,21 @@ MonoBehaviour:
   entries:
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
-    expression: {fileID: 0}
+    expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: Energy reserves are low. Scanning for local energy sources... Detected.
     voiceClip: {fileID: 8300000, guid: f38bc01d551a1e043887b368ca8bfb93, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
-    expression: {fileID: 0}
+    expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: The locals ignore these high-yield Iron Nodes.
     voiceClip: {fileID: 8300000, guid: 193d30a95111c044597ceb2ca0b51cb6, type: 3}
   - speakerName: Kyra-Dominia
-    portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
-    expression: {fileID: 0}
+    portrait: {fileID: -6139927998474567378, guid: 2947f589050144d4eb00bd17121273fd, type: 3}
+    expression: {fileID: -6504533043834447420, guid: d696bb1620849b84895ff6fdb8830226, type: 3}
     dialogueText: Their ignorance is our gain. Harvest it.
     voiceClip: {fileID: 0}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
-    expression: {fileID: 0}
+    expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
     dialogueText: We need power and resources. Now.
     voiceClip: {fileID: 0}

@@ -125,10 +125,15 @@ public class LoadGameUI : MonoBehaviour
         if (saveListContent == null)
             return;
 
-        // Destroy all child GameObjects
-        foreach (Transform child in saveListContent)
+        // Destroy all child GameObjects. Iterate backwards because RefreshSaveList can be
+        // called more than once in the same frame when the canvas is shown explicitly.
+        for (int i = saveListContent.childCount - 1; i >= 0; i--)
         {
-            Destroy(child.gameObject);
+            Transform child = saveListContent.GetChild(i);
+            if (Application.isPlaying)
+                Destroy(child.gameObject);
+            else
+                DestroyImmediate(child.gameObject);
         }
     }
 

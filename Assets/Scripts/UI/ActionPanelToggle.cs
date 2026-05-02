@@ -108,7 +108,7 @@ public class ActionPanelToggle : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
         // Auto-hide countdown (only when shown, not hovering, not manually hidden, not paused)
         bool isPaused = UIManager.Instance != null && UIManager.Instance.IsPaused;
-        if (SuppressAutoHide)
+        if (IsAutoHideSuppressed())
         {
             idleTimer = 0f;
         }
@@ -182,6 +182,13 @@ public class ActionPanelToggle : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
         isHovering = false;
         idleTimer = 0f;
+    }
+
+    private bool IsAutoHideSuppressed()
+    {
+        return SuppressAutoHide
+            || (UIManager.Instance != null && UIManager.Instance.HasVisibleNavPanel())
+            || (PlacementSystem.Instance != null && PlacementSystem.Instance.IsBuilding);
     }
 
     private void UpdateArrow()

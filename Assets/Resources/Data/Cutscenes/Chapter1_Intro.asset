@@ -1,0 +1,483 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09f46ecf5736a1e41986f9cb1f9351e5, type: 3}
+  m_Name: Chapter1_Intro
+  m_EditorClassIdentifier: Assembly-CSharp::CutsceneData
+  cutsceneName: Chapter 1 Intro
+  defaultBeatDuration: 3.35
+  finalHoldSeconds: 1.25
+  defaultTypewriterWordsPerSecond: 6
+  beats:
+  - duration: 0
+    showDialogue: 1
+    speaker: Kyra-Dominia
+    dialogue: Do you still have that archive from the academy world?
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 8c22891853fca0243974ac56e732677b, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
+    image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: NEXUS
+    dialogue: Specify archive. We passed through seven thousand academic civilizations
+      before departure.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: f5697acfbe76d6e46a961c70bac573be, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
+    image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: Kyra-Dominia
+    dialogue: The one with students carrying rifles and halos over their heads. Blue
+      city sectors. Too many clubs. Too little supervision.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: cc05f3ad0c83dd34eb1e2723b0b06f89, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
+    image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: NEXUS
+    dialogue: Confirmed. Local youths possessed luminous halo structures and disproportionate
+      access to military hardware.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 401719e259b2210429da1983ae10d474, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
+    image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: NEXUS
+    dialogue: Their command structure was statistically unsound. Also, several cafeterias
+      were classified as strategic targets.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: d84438aeb5ffe2e41b0e208f28dc270d, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
+    image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: NEXUS
+    dialogue: Anomalous resilience is not a governing principle I recommend adopting.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 0a0f2d69df56db049a0733a56eb15539, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
+    image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: Kyra-Dominia
+    dialogue: And still, they survived. Halos, guns, absurd optimism. That world
+      should not have worked.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 7bfbdb30b8a049049a303b990f17eb5b, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
+    image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: NEXUS
+    dialogue: Final approach remains stable. Surface horizon entering visual range.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 43ed1da6fb4e11346b19297447f453d7, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
+    image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: Kyra-Dominia
+    dialogue: You sound almost peaceful, Nexus.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 9eb75abafb105994fb4aa804e011df27, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
+    image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: NEXUS
+    dialogue: Correction. I am reporting an absence of immediate catastrophic failure.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 57d20fccc774c4a46af12163ce144c15, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
+    image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: NEXUS
+    dialogue: New reading. Gravitational distortion forming beneath the descent path.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 82b8c3c6ac1fbfc4e9bbec94f56cd962, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: 075b1a3d8362d26489c5810b43685e2f, type: 3}
+    image: {fileID: 21300000, guid: 465b3515f07495d4d957400749bbc309, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 2
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: Kyra-Dominia
+    dialogue: Define distortion. We were fine a moment ago.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 537bf5ec73d732941bcdd0bfc4d57535, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: 075b1a3d8362d26489c5810b43685e2f, type: 3}
+    image: {fileID: 21300000, guid: 465b3515f07495d4d957400749bbc309, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 2
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: NEXUS
+    dialogue: Navigation solution degrading. Thruster alignment drifting. Impact
+      probability rising.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 4bef3e18d5e8f4e49a080b152890b8ac, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: 075b1a3d8362d26489c5810b43685e2f, type: 3}
+    image: {fileID: 21300000, guid: 465b3515f07495d4d957400749bbc309, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 2
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: Kyra-Dominia
+    dialogue: Override! Reroute power to stabilizers and give me manual correction!
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: d68d0a30bb231854891261e3e5b870e9, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: 075b1a3d8362d26489c5810b43685e2f, type: 3}
+    image: {fileID: 21300000, guid: 465b3515f07495d4d957400749bbc309, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 2
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 1
+  - duration: 0
+    showDialogue: 1
+    speaker: NEXUS
+    dialogue: Override denied. Reactor shielding compromised. Brace for impact.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 891e5e741e59a534b875c03eb19eab3b, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: 075b1a3d8362d26489c5810b43685e2f, type: 3}
+    image: {fileID: 21300000, guid: 465b3515f07495d4d957400749bbc309, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 2
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 1
+  - duration: 3
+    showDialogue: 0
+    speaker: 
+    dialogue: 
+    useTypewriter: 0
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 0}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 0}
+    image: {fileID: 0}
+    clearImage: 1
+    imageColor: {r: 0, g: 0, b: 0, a: 1}
+    visualEffect: 1
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: NEXUS
+    dialogue: Systems rebooting... Hull integrity at 31%. Landing thrusters fired
+      late. We are grounded, Architect.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: ef9cae1b3ebe0964386c812934e9ed92, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
+    image: {fileID: 21300000, guid: 3089a2c5dbe607748b21e7280db183c5, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: NEXUS
+    dialogue: 'Primary crew complement: one. Status: alive. Stress indicators elevated
+      but functional.'
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: f8e4156e5cd063a4099d857dcb4f8ad9, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
+    image: {fileID: 21300000, guid: 3089a2c5dbe607748b21e7280db183c5, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: Kyra-Dominia
+    dialogue: Well that changes everything. Functional is enough. We are stranded.
+      Can we launch again?
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 6e75b5d84d02b0d4f9398264dfa82cc3, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
+    image: {fileID: 21300000, guid: 3089a2c5dbe607748b21e7280db183c5, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: NEXUS
+    dialogue: Negative. The Null-Vector's propulsion array is beyond repair. This
+      landing is permanent, Architect.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 62d3ea5b7155e744b964ac69142af808, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
+    image: {fileID: 21300000, guid: 3089a2c5dbe607748b21e7280db183c5, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: NEXUS
+    dialogue: 'Recommendation: activate the Supreme Habitation Protocol. This world
+      is hostile but resource-rich. We build here, or we die here.'
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 447a97afdc560424bbfd0ce9603709b0, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
+    image: {fileID: 21300000, guid: ecc2a28163f4892419a2c9eb63359232, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: Kyra-Dominia
+    dialogue: Then we build. Initialize the Colonizing Protocol. Deploy the task-bots.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 7b4239603cb2bbc40a02efc40b5930c7, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
+    image: {fileID: 21300000, guid: ecc2a28163f4892419a2c9eb63359232, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: NEXUS
+    dialogue: Acknowledged. Be advised - long-range sensors detect biological signatures.
+      Numerous. Organized. They are aware of our arrival.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 5afe577d1aa92314e9647f4b024b85dc, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
+    image: {fileID: 21300000, guid: ecc2a28163f4892419a2c9eb63359232, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: Kyra-Dominia
+    dialogue: Let them watch. By the time they understand what we're doing, it will
+      be too late.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 92ec398bcdcbb1640a7a2016b118d7a9, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
+    image: {fileID: 21300000, guid: ecc2a28163f4892419a2c9eb63359232, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0
+  - duration: 0
+    showDialogue: 1
+    speaker: NEXUS
+    dialogue: Supreme Habitation Protocol initialized, Bastion has been started.
+      The Bastion of Genesis begins, Architect.
+    useTypewriter: 1
+    overrideTypewriterSpeed: 0
+    typewriterWordsPerSecond: 6
+    voiceline: {fileID: 8300000, guid: 2c4f51f247d7fdc4a837d7ecf276aeb6, type: 3}
+    soundEffect: {fileID: 0}
+    backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
+    image: {fileID: 21300000, guid: ecc2a28163f4892419a2c9eb63359232, type: 3}
+    clearImage: 0
+    imageColor: {r: 1, g: 1, b: 1, a: 1}
+    visualEffect: 0
+    visualEffectPrefab: {fileID: 0}
+    screenShakeMagnitude: 12
+    screenShakeSeconds: 0.45
+    loopScreenShake: 0

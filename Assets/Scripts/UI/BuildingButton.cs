@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 
@@ -7,7 +8,7 @@ using TMPro;
 /// Used in BuildingSelectionPanel.
 /// </summary>
 [RequireComponent(typeof(Button))]
-public class BuildingButton : MonoBehaviour
+public class BuildingButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [Header("UI References")]
     [SerializeField] private Image iconImage;
@@ -15,6 +16,7 @@ public class BuildingButton : MonoBehaviour
 
     [Header("Runtime")]
     [SerializeField] private BuildingData buildingData;
+    [SerializeField] private float requirementPopupDuration = 4f;
 
     public BuildingData BuildingData => buildingData;
 
@@ -67,5 +69,21 @@ public class BuildingButton : MonoBehaviour
         if (button == null)
             button = GetComponent<Button>();
         return button;
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (UIManager.Instance != null && buildingData != null)
+        {
+            UIManager.Instance.ShowBuildingRequirementPopup(buildingData, requirementPopupDuration, this);
+        }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.HideBuildingHoverPopup(this);
+        }
     }
 }

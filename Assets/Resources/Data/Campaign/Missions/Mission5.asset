@@ -26,7 +26,16 @@ MonoBehaviour:
     targetTime: 0
     requiredResource: {fileID: 11400000, guid: f44ba9d81749962419739a7656fee1cc, type: 2}
     requiredBuilding: {fileID: 0}
+    requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 0
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: 
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -37,7 +46,16 @@ MonoBehaviour:
     targetTime: 0
     requiredResource: {fileID: 0}
     requiredBuilding: {fileID: 0}
+    requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 11400000, guid: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9, type: 2}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: Research Iron Wall technology to unlock defensive walls.
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -51,5 +69,6 @@ MonoBehaviour:
   optionalRewards: []
   timeLimit: 0
   failOnTimeExpired: 0
+  pollutionLimitPercent: 10
   disableNaturalWaves: 1
   scriptedWaves: []

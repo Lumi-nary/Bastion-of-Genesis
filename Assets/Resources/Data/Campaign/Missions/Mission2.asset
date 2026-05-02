@@ -26,7 +26,16 @@ MonoBehaviour:
     targetTime: 0
     requiredResource: {fileID: 0}
     requiredBuilding: {fileID: 11400000, guid: 98b686f2c4591fa459bcb351eb8876dc, type: 2}
+    requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: Build a Steam Generator to begin producing energy.
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -37,7 +46,16 @@ MonoBehaviour:
     targetTime: 0
     requiredResource: {fileID: 11400000, guid: bb2aea2cb49421c46aabf3bfd3252158, type: 2}
     requiredBuilding: {fileID: 0}
+    requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 0
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: 
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -52,5 +70,6 @@ MonoBehaviour:
   optionalRewards: []
   timeLimit: 0
   failOnTimeExpired: 0
+  pollutionLimitPercent: 10
   disableNaturalWaves: 1
   scriptedWaves: []

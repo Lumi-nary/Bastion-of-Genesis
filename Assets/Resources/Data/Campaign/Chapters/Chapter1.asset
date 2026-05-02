@@ -52,7 +52,8 @@ MonoBehaviour:
     initialCount: 0
   - workerData: {fileID: 11400000, guid: 216587715e5a72f4dafb90fd6b71cd1b, type: 2}
     initialCount: 0
-  startingIntegrationRadius: 15
+  startingWitherRadius: 10
+  startingIntegrationRadius: 7
   maxPollution: 5000
   pollutionDecayRate: 0.5
   missions:
@@ -73,7 +74,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7, type: 2}
   sceneName: Chapter1Map
   chapterThumbnail: {fileID: 0}
-  backgroundMusic: {fileID: 8300000, guid: 85ed3e89b45a61c40991a223fc9551be, type: 3}
-  battleMusic: {fileID: 0}
+  backgroundMusic: {fileID: 8300000, guid: d7016236a115ebe46b4109a7c61fc2d6, type: 3}
+  backgroundMusicTracks:
+  - {fileID: 8300000, guid: d7016236a115ebe46b4109a7c61fc2d6, type: 3}
+  - {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
+  battleMusic: {fileID: 8300000, guid: 075b1a3d8362d26489c5810b43685e2f, type: 3}
   isUnlocked: 1
   previousChapter: {fileID: 0}

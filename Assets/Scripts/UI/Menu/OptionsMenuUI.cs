@@ -20,7 +20,24 @@ public class OptionsMenuUI : MonoBehaviour
 
     [Header("Graphics Settings UI")]
     [SerializeField] private TMP_Dropdown resolutionDropdown;
+    [SerializeField] private TMP_Dropdown windowModeDropdown;
     [SerializeField] private Toggle fullscreenToggle;
+
+    [Header("Gameplay Settings UI")]
+    [SerializeField] private Toggle tutorialEnabledToggle;
+
+    [Header("Multiplayer Settings UI")]
+    [SerializeField] private TMP_InputField playerNameInput;
+
+    [Header("Category Navigation")]
+    [SerializeField] private Button audioCategoryButton;
+    [SerializeField] private Button graphicsCategoryButton;
+    [SerializeField] private Button gameplayCategoryButton;
+    [SerializeField] private Button multiplayerCategoryButton;
+    [SerializeField] private GameObject audioSection;
+    [SerializeField] private GameObject graphicsSection;
+    [SerializeField] private GameObject gameplaySection;
+    [SerializeField] private GameObject multiplayerSection;
 
     [Header("Buttons")]
     [SerializeField] private Button applyButton;
@@ -28,6 +45,7 @@ public class OptionsMenuUI : MonoBehaviour
 
     // Working copy of settings (modified by UI, not saved until Apply)
     private SettingsData workingSettings;
+    private GameObject activeSection;
 
     /// <summary>
     /// OnEnable - Setup UI when canvas is shown (AC3).
@@ -94,10 +112,11 @@ public class OptionsMenuUI : MonoBehaviour
             return;
         }
 
-        Debug.Log($"[OptionsMenuUI] Settings cloned: Master={workingSettings.masterVolume:F2}, ResolutionIndex={workingSettings.resolutionIndex}");
+        Debug.Log($"[OptionsMenuUI] Settings cloned: Master={workingSettings.masterVolume:F2}, Resolution={workingSettings.resolutionWidth}x{workingSettings.resolutionHeight}, WindowMode={workingSettings.windowMode}");
 
         // Populate UI with current values
         PopulateUI();
+        ShowCategory(audioSection);
 
         Debug.Log("[OptionsMenuUI] Settings loaded into UI");
     }
@@ -137,65 +156,55 @@ public class OptionsMenuUI : MonoBehaviour
             voiceVolumeSlider.onValueChanged.AddListener(OnVoiceVolumeChanged);
         }
 
-        // Resolution dropdown (AC5) with Auto-Detect Logic
+        // Resolution dropdown (AC5)
         if (resolutionDropdown != null)
         {
-            // 1. Get available resolution strings from manager
             resolutionDropdown.ClearOptions();
             string[] resolutions = SettingsManager.Instance.GetAvailableResolutions();
             resolutionDropdown.AddOptions(new List<string>(resolutions));
 
-            // 2. Check for "First Run" flag (-1)
-            if (workingSettings.resolutionIndex == -1)
-            {
-                // Auto-detect based on current screen hardware
-                int nativeIndex = GetAutoDetectedResolutionIndex(resolutions);
+            int selectedIndex = SettingsManager.Instance.GetResolutionIndex(
+                workingSettings.resolutionWidth,
+                workingSettings.resolutionHeight);
 
-                // Update working settings immediately
-                workingSettings.resolutionIndex = nativeIndex;
-                Debug.Log($"[OptionsMenuUI] Auto-detected resolution index: {nativeIndex} ({resolutions[nativeIndex]})");
-            }
-
-            // 3. Safety Clamp to ensure we don't crash if index is out of bounds
-            workingSettings.resolutionIndex = Mathf.Clamp(workingSettings.resolutionIndex, 0, resolutions.Length - 1);
-
-            // 4. Set UI value
-            resolutionDropdown.value = workingSettings.resolutionIndex;
+            resolutionDropdown.value = selectedIndex;
             resolutionDropdown.onValueChanged.RemoveAllListeners();
             resolutionDropdown.onValueChanged.AddListener(OnResolutionChanged);
         }
 
-        // Fullscreen toggle (AC5)
+        if (windowModeDropdown != null)
+        {
+            windowModeDropdown.ClearOptions();
+            windowModeDropdown.AddOptions(new List<string>(SettingsManager.GetWindowModeOptions()));
+            windowModeDropdown.value = SettingsManager.GetWindowModeIndex(workingSettings.windowMode);
+            windowModeDropdown.onValueChanged.RemoveAllListeners();
+            windowModeDropdown.onValueChanged.AddListener(OnWindowModeChanged);
+        }
+
         if (fullscreenToggle != null)
         {
-            fullscreenToggle.isOn = workingSettings.fullscreen;
+            fullscreenToggle.gameObject.SetActive(windowModeDropdown == null);
+            fullscreenToggle.isOn = workingSettings.windowMode == WindowMode.Fullscreen;
             fullscreenToggle.onValueChanged.RemoveAllListeners();
             fullscreenToggle.onValueChanged.AddListener(OnFullscreenChanged);
         }
-    }
 
-    /// <summary>
-    /// Helper to find the index of the user's current screen resolution in the available list.
-    /// </summary>
-    private int GetAutoDetectedResolutionIndex(string[] availableResolutions)
-    {
-        // Get the current screen resolution (native monitor resolution)
-        Resolution currentRes = Screen.currentResolution;
-
-        // Construct the expected string format (Width x Height)
-        string targetResString = $"{currentRes.width} x {currentRes.height}";
-
-        for (int i = 0; i < availableResolutions.Length; i++)
+        if (tutorialEnabledToggle != null)
         {
-            // Check if the dropdown option contains the width and height
-            if (availableResolutions[i].Contains(targetResString))
-            {
-                return i;
-            }
+            tutorialEnabledToggle.SetIsOnWithoutNotify(workingSettings.tutorialEnabled);
+            tutorialEnabledToggle.onValueChanged.RemoveAllListeners();
+            tutorialEnabledToggle.onValueChanged.AddListener(OnTutorialEnabledChanged);
         }
 
-        // Fallback: If exact match not found, return the last one (usually highest/best res)
-        return Mathf.Max(0, availableResolutions.Length - 1);
+        if (playerNameInput != null)
+        {
+            playerNameInput.characterLimit = SettingsData.MaxPlayerNameLength;
+            playerNameInput.SetTextWithoutNotify(SettingsData.NormalizePlayerName(workingSettings.playerName));
+            playerNameInput.onValueChanged.RemoveAllListeners();
+            playerNameInput.onValueChanged.AddListener(OnPlayerNameChanged);
+            playerNameInput.onEndEdit.RemoveAllListeners();
+            playerNameInput.onEndEdit.AddListener(OnPlayerNameEndEdit);
+        }
     }
 
     /// <summary>
@@ -212,7 +221,58 @@ public class OptionsMenuUI : MonoBehaviour
         if (backButton != null)
         {
             backButton.onClick.RemoveAllListeners();
-            backButton.onClick.AddListener(OnBackClicked);
+            backButton.onClick.AddListener(RequestBack);
+        }
+
+        SetupCategoryButton(audioCategoryButton, audioSection);
+        SetupCategoryButton(graphicsCategoryButton, graphicsSection);
+        SetupCategoryButton(gameplayCategoryButton, gameplaySection);
+        SetupCategoryButton(multiplayerCategoryButton, multiplayerSection);
+    }
+
+    private void SetupCategoryButton(Button button, GameObject section)
+    {
+        if (button == null || section == null)
+        {
+            return;
+        }
+
+        button.onClick.RemoveAllListeners();
+        button.onClick.AddListener(() => ShowCategory(section));
+    }
+
+    private void ShowCategory(GameObject section)
+    {
+        if (section == null)
+        {
+            return;
+        }
+
+        SetSectionActive(audioSection, section);
+        SetSectionActive(graphicsSection, section);
+        SetSectionActive(gameplaySection, section);
+        SetSectionActive(multiplayerSection, section);
+        activeSection = section;
+
+        UpdateCategoryButtonState(audioCategoryButton, audioSection);
+        UpdateCategoryButtonState(graphicsCategoryButton, graphicsSection);
+        UpdateCategoryButtonState(gameplayCategoryButton, gameplaySection);
+        UpdateCategoryButtonState(multiplayerCategoryButton, multiplayerSection);
+    }
+
+    private void SetSectionActive(GameObject section, GameObject active)
+    {
+        if (section != null)
+        {
+            section.SetActive(section == active);
+        }
+    }
+
+    private void UpdateCategoryButtonState(Button button, GameObject section)
+    {
+        if (button != null)
+        {
+            button.interactable = section != activeSection;
         }
     }
 
@@ -281,8 +341,47 @@ public class OptionsMenuUI : MonoBehaviour
     /// </summary>
     private void OnResolutionChanged(int index)
     {
-        workingSettings.resolutionIndex = index;
-        Debug.Log($"[OptionsMenuUI] Resolution changed: Index {index}");
+        if (workingSettings == null) return;
+
+        if (SettingsManager.Instance != null &&
+            SettingsManager.Instance.TryGetResolutionAtIndex(index, out Resolution selectedResolution))
+        {
+            workingSettings.resolutionWidth = selectedResolution.width;
+            workingSettings.resolutionHeight = selectedResolution.height;
+            if (workingSettings.windowMode == WindowMode.Fullscreen &&
+                !SettingsManager.Instance.IsDefaultDeviceResolution(selectedResolution.width, selectedResolution.height))
+            {
+                workingSettings.windowMode = WindowMode.Windowed;
+                workingSettings.fullscreen = false;
+                if (windowModeDropdown != null)
+                {
+                    windowModeDropdown.SetValueWithoutNotify(SettingsManager.GetWindowModeIndex(WindowMode.Windowed));
+                }
+            }
+
+            Debug.Log($"[OptionsMenuUI] Resolution changed: {selectedResolution.width}x{selectedResolution.height}");
+        }
+    }
+
+    private void OnWindowModeChanged(int index)
+    {
+        if (workingSettings == null) return;
+
+        workingSettings.windowMode = SettingsManager.GetWindowModeAtIndex(index);
+        if (workingSettings.windowMode == WindowMode.Fullscreen &&
+            SettingsManager.Instance != null &&
+            !SettingsManager.Instance.IsDefaultDeviceResolution(workingSettings.resolutionWidth, workingSettings.resolutionHeight))
+        {
+            workingSettings.windowMode = WindowMode.Windowed;
+            workingSettings.fullscreen = false;
+            if (windowModeDropdown != null)
+            {
+                windowModeDropdown.SetValueWithoutNotify(SettingsManager.GetWindowModeIndex(WindowMode.Windowed));
+            }
+        }
+
+        workingSettings.fullscreen = workingSettings.windowMode == WindowMode.Fullscreen;
+        Debug.Log($"[OptionsMenuUI] Window mode changed: {workingSettings.windowMode}");
     }
 
     /// <summary>
@@ -290,8 +389,36 @@ public class OptionsMenuUI : MonoBehaviour
     /// </summary>
     private void OnFullscreenChanged(bool isFullscreen)
     {
+        if (workingSettings == null) return;
+
+        workingSettings.windowMode = isFullscreen ? WindowMode.Fullscreen : WindowMode.Windowed;
         workingSettings.fullscreen = isFullscreen;
         Debug.Log($"[OptionsMenuUI] Fullscreen changed: {isFullscreen}");
+    }
+
+    private void OnTutorialEnabledChanged(bool isEnabled)
+    {
+        if (workingSettings == null) return;
+
+        workingSettings.tutorialEnabled = isEnabled;
+    }
+
+    private void OnPlayerNameChanged(string value)
+    {
+        if (workingSettings == null) return;
+
+        workingSettings.playerName = value;
+    }
+
+    private void OnPlayerNameEndEdit(string value)
+    {
+        if (workingSettings == null) return;
+
+        workingSettings.playerName = SettingsData.NormalizePlayerName(value);
+        if (playerNameInput != null)
+        {
+            playerNameInput.SetTextWithoutNotify(workingSettings.playerName);
+        }
     }
 
     // ============================================================================
@@ -310,6 +437,28 @@ public class OptionsMenuUI : MonoBehaviour
         }
 
         Debug.Log("[OptionsMenuUI] Apply clicked - Saving and applying settings");
+        ApplySettingsAndReturnToMainMenu();
+    }
+
+    private void ApplySettingsAndReturnToMainMenu()
+    {
+        if (SettingsManager.Instance == null)
+        {
+            Debug.LogError("[OptionsMenuUI] SettingsManager.Instance is null - cannot apply settings");
+            return;
+        }
+
+        if (workingSettings == null)
+        {
+            Debug.LogWarning("[OptionsMenuUI] No working settings to apply");
+            return;
+        }
+
+        workingSettings.playerName = SettingsData.NormalizePlayerName(workingSettings.playerName);
+        if (playerNameInput != null)
+        {
+            playerNameInput.SetTextWithoutNotify(workingSettings.playerName);
+        }
 
         // Update SettingsManager with working settings
         SettingsManager.Instance.UpdateSettings(workingSettings);
@@ -343,15 +492,80 @@ public class OptionsMenuUI : MonoBehaviour
     /// <summary>
     /// Back button clicked - Discard changes and return to main menu (AC8).
     /// </summary>
-    private void OnBackClicked()
+    public void RequestBack()
     {
-        Debug.Log("[OptionsMenuUI] Back clicked - Discarding changes");
+        if (HasUnsavedChanges())
+        {
+            Debug.Log("[OptionsMenuUI] Back clicked with unsaved changes - showing confirmation modal");
+            ShowUnsavedSettingsModal();
+            return;
+        }
+
+        Debug.Log("[OptionsMenuUI] Back clicked - no unsaved changes");
+        DiscardChangesAndReturnToMainMenu();
+    }
+
+    private void ShowUnsavedSettingsModal()
+    {
+        if (ModalDialog.Instance == null)
+        {
+            Debug.LogWarning("[OptionsMenuUI] ModalDialog missing; discarding settings and returning to main menu");
+            DiscardChangesAndReturnToMainMenu();
+            return;
+        }
+
+        ModalDialog.Instance.Show(
+            "Unsaved Settings",
+            "Apply settings before returning, or cancel changes?",
+            new[] { "Apply", "Cancel" },
+            buttonIndex =>
+            {
+                if (buttonIndex == 0)
+                {
+                    ApplySettingsAndReturnToMainMenu();
+                }
+                else
+                {
+                    DiscardChangesAndReturnToMainMenu();
+                }
+            });
+    }
+
+    private bool HasUnsavedChanges()
+    {
+        if (workingSettings == null || SettingsManager.Instance == null || SettingsManager.Instance.CurrentSettings == null)
+        {
+            return false;
+        }
+
+        SettingsData saved = SettingsManager.Instance.CurrentSettings;
+        return !Mathf.Approximately(workingSettings.masterVolume, saved.masterVolume) ||
+            !Mathf.Approximately(workingSettings.musicVolume, saved.musicVolume) ||
+            !Mathf.Approximately(workingSettings.sfxVolume, saved.sfxVolume) ||
+            !Mathf.Approximately(workingSettings.voiceVolume, saved.voiceVolume) ||
+            workingSettings.resolutionWidth != saved.resolutionWidth ||
+            workingSettings.resolutionHeight != saved.resolutionHeight ||
+            workingSettings.windowMode != saved.windowMode ||
+            workingSettings.fullscreen != saved.fullscreen ||
+            workingSettings.tutorialEnabled != saved.tutorialEnabled ||
+            SettingsData.NormalizePlayerName(workingSettings.playerName) != SettingsData.NormalizePlayerName(saved.playerName);
+    }
+
+    private void DiscardChangesAndReturnToMainMenu()
+    {
+        Debug.Log("[OptionsMenuUI] Discarding unapplied settings");
 
         // Remove slider listeners first so reverting values doesn't trigger callbacks
         if (masterVolumeSlider != null) masterVolumeSlider.onValueChanged.RemoveAllListeners();
         if (musicVolumeSlider != null) musicVolumeSlider.onValueChanged.RemoveAllListeners();
         if (sfxVolumeSlider != null) sfxVolumeSlider.onValueChanged.RemoveAllListeners();
         if (voiceVolumeSlider != null) voiceVolumeSlider.onValueChanged.RemoveAllListeners();
+        if (tutorialEnabledToggle != null) tutorialEnabledToggle.onValueChanged.RemoveAllListeners();
+        if (playerNameInput != null)
+        {
+            playerNameInput.onValueChanged.RemoveAllListeners();
+            playerNameInput.onEndEdit.RemoveAllListeners();
+        }
 
         // Revert audio and sliders to saved settings
         if (SettingsManager.Instance != null)
@@ -371,6 +585,8 @@ public class OptionsMenuUI : MonoBehaviour
             if (musicVolumeSlider != null) musicVolumeSlider.value = saved.musicVolume;
             if (sfxVolumeSlider != null) sfxVolumeSlider.value = saved.sfxVolume;
             if (voiceVolumeSlider != null) voiceVolumeSlider.value = saved.voiceVolume;
+            if (tutorialEnabledToggle != null) tutorialEnabledToggle.SetIsOnWithoutNotify(saved.tutorialEnabled);
+            if (playerNameInput != null) playerNameInput.SetTextWithoutNotify(SettingsData.NormalizePlayerName(saved.playerName));
         }
 
         // Discard working settings (do not save)

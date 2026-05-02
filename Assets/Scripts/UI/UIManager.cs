@@ -9,6 +9,8 @@ public class UIManager : MonoBehaviour
 
     [Header("UI Panels")]
     [SerializeField] private BuildingInfoPanel buildingInfoPanel;
+    [SerializeField] private BuildingHoverHealthUI buildingHoverHealthUI;
+    [SerializeField] private BuildingHoverPopupUI buildingHoverPopupUI;
     [SerializeField] private BuildingSelectionPanel buildingSelectionPanel;
     [SerializeField] private ResearchPanel researchPanel;
     [SerializeField] private WorkerAssemblyPanel workerAssemblyPanel;
@@ -56,6 +58,44 @@ public class UIManager : MonoBehaviour
             return;
         }
         Instance = this;
+
+        EnsureGameplayCanvasEnabled();
+        EnsureBuildingHoverHealthUI();
+        EnsureBuildingHoverPopupUI();
+    }
+
+    private void EnsureGameplayCanvasEnabled()
+    {
+        if (gameplayCanvasGroup != null)
+        {
+            gameplayCanvasGroup.alpha = 1f;
+            gameplayCanvasGroup.interactable = true;
+            gameplayCanvasGroup.blocksRaycasts = true;
+
+            Canvas gameplayCanvas = gameplayCanvasGroup.GetComponent<Canvas>();
+            if (gameplayCanvas == null)
+            {
+                gameplayCanvas = gameplayCanvasGroup.GetComponentInParent<Canvas>();
+            }
+
+            if (gameplayCanvas != null)
+            {
+                gameplayCanvas.enabled = true;
+            }
+
+            return;
+        }
+
+        Canvas fallbackCanvas = GetComponentInParent<Canvas>();
+        if (fallbackCanvas == null)
+        {
+            fallbackCanvas = FindFirstObjectByType<Canvas>();
+        }
+
+        if (fallbackCanvas != null)
+        {
+            fallbackCanvas.enabled = true;
+        }
     }
 
     private void Update()
@@ -286,6 +326,7 @@ public class UIManager : MonoBehaviour
         if (kind == PanelKind.None) return;
 
         CloseOtherNavPanels(kind);
+        Canvas.ForceUpdateCanvases();
 
         switch (kind)
         {
@@ -340,7 +381,7 @@ public class UIManager : MonoBehaviour
     private void CloseOtherNavPanels(PanelKind keepOpen)
     {
         if (keepOpen != PanelKind.BuildingSelection && buildingSelectionPanel != null && buildingSelectionPanel.IsVisible)
-            buildingSelectionPanel.HidePanel();
+            buildingSelectionPanel.HidePanelImmediate();
         if (keepOpen != PanelKind.WorkerAssembly && workerAssemblyPanel != null && workerAssemblyPanel.IsVisible)
             workerAssemblyPanel.HidePanel();
         if (keepOpen != PanelKind.WorkerAssign && workerAssignPanel != null && workerAssignPanel.IsVisible)
@@ -380,6 +421,15 @@ public class UIManager : MonoBehaviour
         OnActivePanelChanged?.Invoke(kind);
     }
 
+    public bool HasVisibleNavPanel()
+    {
+        return (buildingSelectionPanel != null && buildingSelectionPanel.IsVisible)
+            || (workerAssemblyPanel != null && workerAssemblyPanel.IsVisible)
+            || (workerAssignPanel != null && workerAssignPanel.IsVisible)
+            || (researchPanel != null && researchPanel.IsVisible)
+            || (MissionPanel.Instance != null && MissionPanel.Instance.IsVisible);
+    }
+
     #endregion
 
     #region Building Panels (legacy wrappers)
@@ -393,6 +443,12 @@ public class UIManager : MonoBehaviour
     {
         if (buildingInfoPanel != null)
         {
+            if (!BuildingInfoPanel.ShouldShowFullInfoPanel(building))
+            {
+                buildingInfoPanel.HidePanel();
+                return;
+            }
+
             buildingInfoPanel.ShowPanel(building);
         }
     }
@@ -402,6 +458,99 @@ public class UIManager : MonoBehaviour
         if (buildingInfoPanel != null)
         {
             buildingInfoPanel.HidePanel();
+        }
+
+        if (buildingHoverHealthUI != null)
+        {
+            buildingHoverHealthUI.Hide();
+        }
+
+        if (buildingHoverPopupUI != null)
+        {
+            buildingHoverPopupUI.Hide(this);
+        }
+    }
+
+    private void EnsureBuildingHoverHealthUI()
+    {
+        if (buildingHoverHealthUI == null)
+        {
+            buildingHoverHealthUI = GetComponent<BuildingHoverHealthUI>();
+        }
+
+        if (buildingHoverHealthUI == null)
+        {
+            buildingHoverHealthUI = gameObject.AddComponent<BuildingHoverHealthUI>();
+        }
+
+        Canvas canvas = gameplayCanvasGroup != null
+            ? gameplayCanvasGroup.GetComponent<Canvas>()
+            : FindFirstObjectByType<Canvas>();
+
+        if (canvas == null && gameplayCanvasGroup != null)
+        {
+            canvas = gameplayCanvasGroup.GetComponentInParent<Canvas>();
+        }
+
+        buildingHoverHealthUI.Initialize(canvas);
+    }
+
+    private void EnsureBuildingHoverPopupUI()
+    {
+        if (buildingHoverPopupUI == null)
+        {
+            buildingHoverPopupUI = GetComponent<BuildingHoverPopupUI>();
+        }
+
+        if (buildingHoverPopupUI == null)
+        {
+            buildingHoverPopupUI = gameObject.AddComponent<BuildingHoverPopupUI>();
+        }
+
+        Canvas canvas = gameplayCanvasGroup != null
+            ? gameplayCanvasGroup.GetComponent<Canvas>()
+            : FindFirstObjectByType<Canvas>();
+
+        if (canvas == null && gameplayCanvasGroup != null)
+        {
+            canvas = gameplayCanvasGroup.GetComponentInParent<Canvas>();
+        }
+
+        buildingHoverPopupUI.Initialize(canvas);
+    }
+
+    public void ShowBuildingRequirementPopup(BuildingData data, float durationSeconds, object source)
+    {
+        EnsureBuildingHoverPopupUI();
+        if (buildingHoverPopupUI != null)
+        {
+            buildingHoverPopupUI.ShowBuildingRequirements(data, durationSeconds, source);
+        }
+    }
+
+    public void ShowBuiltBuildingStatusPopup(Building building, float durationSeconds, object source)
+    {
+        EnsureBuildingHoverPopupUI();
+        if (buildingHoverPopupUI != null)
+        {
+            buildingHoverPopupUI.ShowBuiltBuildingStatus(building, durationSeconds, source);
+        }
+    }
+
+    public void ShowBuiltBuildingHealthPopup(Building building, float durationSeconds, object source)
+    {
+        EnsureBuildingHoverPopupUI();
+        if (buildingHoverPopupUI != null)
+        {
+            buildingHoverPopupUI.ShowBuiltBuildingHealth(building, durationSeconds, source);
+        }
+    }
+
+    public void HideBuildingHoverPopup(object source)
+    {
+        if (buildingHoverPopupUI != null)
+        {
+            buildingHoverPopupUI.Hide(source);
         }
     }
 

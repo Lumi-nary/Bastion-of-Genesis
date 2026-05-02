@@ -26,7 +26,16 @@ MonoBehaviour:
     targetTime: 0
     requiredResource: {fileID: 0}
     requiredBuilding: {fileID: 11400000, guid: eb6c78fd58692da47ad170bbe65e08d3, type: 2}
+    requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: Build four Iron Walls at your chosen defensive line.
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -37,7 +46,16 @@ MonoBehaviour:
     targetTime: 0
     requiredResource: {fileID: 0}
     requiredBuilding: {fileID: 0}
+    requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 11400000, guid: b98401c7a0d37b44e9d0af36edc2a041, type: 2}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: Research Starter Turret technology.
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -48,7 +66,16 @@ MonoBehaviour:
     targetTime: 0
     requiredResource: {fileID: 0}
     requiredBuilding: {fileID: 11400000, guid: b91bd58d66a7c924caccae47417f8f29, type: 2}
+    requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: Build a Gun Turret to defend the base.
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -59,7 +86,16 @@ MonoBehaviour:
     targetTime: 0
     requiredResource: {fileID: 0}
     requiredBuilding: {fileID: 0}
+    requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 0
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: 
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -74,14 +110,14 @@ MonoBehaviour:
   optionalRewards: []
   timeLimit: 0
   failOnTimeExpired: 0
+  pollutionLimitPercent: 30
   disableNaturalWaves: 1
   scriptedWaves:
   - triggerTime: 5
     enemyCount: 0
-    triggerAfterObjectiveIndex: 2
     waveMessage: Enemies approaching!
-    spawnEdges:
-    - 0
+    triggerAfterObjectiveIndex: 2
+    spawnEdges: 00000000
     spawnList:
     - enemyData: {fileID: 11400000, guid: ea7b570b3d85d5c4a9cdeac7babd8071, type: 2}
       count: 2

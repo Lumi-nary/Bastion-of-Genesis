@@ -23,21 +23,25 @@ public class Turret : MonoBehaviour
     [SerializeField] private float targetSearchInterval = 0.5f;
     private float targetSearchTimer = 0f;
 
-    [Header("Gun Pivot")]
-    [Tooltip("Child transform that rotates to aim at target (auto-found by name 'GunPivot')")]
-    [SerializeField] private Transform gunPivot;
+    [Header("Directional Sprites")]
+    [Tooltip("Renderer that displays the turret direction sprite. Defaults to this GameObject's SpriteRenderer.")]
+    [SerializeField] private SpriteRenderer turretRenderer;
 
-    [Tooltip("Rotation speed in degrees per second")]
-    [SerializeField] private float rotationSpeed = 360f;
+    [Tooltip("Eight sprites ordered around the turret. Element 0 is the firstSpriteAngle direction, then each element advances 45 degrees.")]
+    [SerializeField] private Sprite[] directionalSprites = new Sprite[8];
 
-    // Current aim angle (z-rotation in 2D)
-    private float currentAimAngle = 0f;
+    [Tooltip("World angle represented by Directional Sprites element 0. 0 = right, 90 = up.")]
+    [SerializeField] private float firstSpriteAngle = 0f;
+
+    [Tooltip("Enable if sprite indices advance clockwise instead of counter-clockwise.")]
+    [SerializeField] private bool spritesAreClockwise = false;
+
+    private int currentDirectionIndex = -1;
 
     // Public properties
     public bool IsActive => isActive;
     public bool IsManned => building != null && building.GetTotalAssignedWorkerCount() > 0;
     public Enemy CurrentTarget => currentTarget;
-    public Transform GunPivot => gunPivot;
 
     private void Awake()
     {
@@ -59,15 +63,14 @@ public class Turret : MonoBehaviour
             return;
         }
 
-        // Auto-find GunPivot child if not assigned
-        if (gunPivot == null)
+        if (turretRenderer == null)
         {
-            gunPivot = transform.Find("GunPivot");
+            turretRenderer = GetComponent<SpriteRenderer>();
         }
 
-        if (gunPivot != null)
+        if (turretRenderer != null && directionalSprites != null && directionalSprites.Length > 0)
         {
-            currentAimAngle = gunPivot.eulerAngles.z;
+            ApplyDirectionSprite(0);
         }
     }
 
@@ -91,8 +94,8 @@ public class Turret : MonoBehaviour
             FindTarget();
         }
 
-        // Rotate gun pivot toward target
-        RotateGunPivot();
+        // Update facing sprite toward target
+        UpdateDirectionSprite();
 
         // Attack current target if in range
         if (currentTarget != null)
@@ -109,24 +112,34 @@ public class Turret : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Smoothly rotate the gun pivot to aim at the current target.
-    /// </summary>
-    private void RotateGunPivot()
+    private void UpdateDirectionSprite()
     {
-        if (gunPivot == null) return;
+        if (currentTarget == null || currentTarget.IsDead) return;
 
-        if (currentTarget != null && !currentTarget.IsDead)
+        Vector3 direction = currentTarget.transform.position - transform.position;
+        if (direction.sqrMagnitude <= Mathf.Epsilon) return;
+
+        float targetAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        float normalizedAngle = Mathf.Repeat(targetAngle - firstSpriteAngle, 360f);
+        int directionIndex = Mathf.RoundToInt(normalizedAngle / 45f) % 8;
+
+        if (spritesAreClockwise && directionIndex != 0)
         {
-            // Calculate angle to target in 2D
-            Vector3 direction = currentTarget.transform.position - gunPivot.position;
-            float targetAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-
-            // Smoothly rotate toward target
-            currentAimAngle = Mathf.MoveTowardsAngle(currentAimAngle, targetAngle, rotationSpeed * Time.deltaTime);
-            gunPivot.rotation = Quaternion.Euler(0f, 0f, currentAimAngle);
+            directionIndex = 8 - directionIndex;
         }
-        // No target: gun stays at last aimed angle (doesn't snap back)
+
+        ApplyDirectionSprite(directionIndex);
+    }
+
+    private void ApplyDirectionSprite(int directionIndex)
+    {
+        if (turretRenderer == null || directionalSprites == null || directionalSprites.Length == 0) return;
+        if (directionIndex < 0 || directionIndex >= directionalSprites.Length) return;
+        if (directionIndex == currentDirectionIndex) return;
+        if (directionalSprites[directionIndex] == null) return;
+
+        turretRenderer.sprite = directionalSprites[directionIndex];
+        currentDirectionIndex = directionIndex;
     }
 
     /// <summary>

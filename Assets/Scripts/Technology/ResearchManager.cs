@@ -171,6 +171,12 @@ public class ResearchManager : MonoBehaviour
             return false;
         }
 
+        if (TutorialGuideManager.Instance != null && !TutorialGuideManager.Instance.CanResearchTechnology(tech))
+        {
+            Debug.LogWarning($"[TutorialGuide] BLOCKED: {tech.techName} is not the required research for the active tutorial step.");
+            return false;
+        }
+
         // Check that we have a Laboratory with Researcher assigned
         if (!HasActiveResearchLab())
         {
@@ -337,7 +343,7 @@ public class ResearchManager : MonoBehaviour
         if (MissionChapterManager.Instance != null)
         {
             MissionChapterManager.Instance.UpdateObjectiveProgress(
-                ObjectiveType.ResearchTechnology, 1);
+                ObjectiveType.ResearchTechnology, 1, technologyData: completedTech);
         }
 
         Debug.Log($"[ResearchManager] Completed research: {completedTech.techName}");

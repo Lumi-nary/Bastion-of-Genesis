@@ -28,6 +28,15 @@ MonoBehaviour:
     requiredBuilding: {fileID: 11400000, guid: 0b6ffc8e53a1f6c48ac9b79296c80336, type: 2}
     requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: Build a Builder Factory so the colony can produce more robotic
+      workers.
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -40,6 +49,14 @@ MonoBehaviour:
     requiredBuilding: {fileID: 0}
     requiredWorker: {fileID: 0}
     targetRace: 0
+    isTutorialStep: 0
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: 
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -52,6 +69,14 @@ MonoBehaviour:
     requiredBuilding: {fileID: 0}
     requiredWorker: {fileID: 11400000, guid: 1bcbdcbd154fdf1498bb2031cb36c0bd, type: 2}
     targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    allowedPlacementCells: []
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: Assemble two Researchers for the next research step.
+    focusCameraOnTarget: 1
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -65,5 +90,6 @@ MonoBehaviour:
   optionalRewards: []
   timeLimit: 0
   failOnTimeExpired: 0
+  pollutionLimitPercent: 10
   disableNaturalWaves: 1
   scriptedWaves: []

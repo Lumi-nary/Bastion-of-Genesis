@@ -17,16 +17,27 @@ MonoBehaviour:
   entries:
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
-    expression: {fileID: 0}
-    dialogueText: Commander, I am detecting coordinated movement from multiple vectors. North, west, and south simultaneously. This is not a random patrol.
-    voiceClip: {fileID: 0}
-  - speakerName: Kyra-Dominia
-    portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
-    expression: {fileID: 0}
-    dialogueText: A pincer maneuver. These things have actual military tactics. Shore up every approach, spread our turrets across all fronts.
+    expression: {fileID: -3924190032742187860, guid: 3a0df9f3b1f8216458b091e954b895e8, type: 3}
+    dialogueText: Commander, I am detecting coordinated movement from multiple vectors.
     voiceClip: {fileID: 0}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
-    expression: {fileID: 0}
-    dialogueText: Recommend prioritizing resource production to sustain extended multi-front engagement.
+    expression: {fileID: -3924190032742187860, guid: 3a0df9f3b1f8216458b091e954b895e8, type: 3}
+    dialogueText: North, west, and south simultaneously. This is not a random patrol.
+    voiceClip: {fileID: 0}
+  - speakerName: Kyra-Dominia
+    portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
+    expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
+    dialogueText: A pincer maneuver. These things have actual military tactics.
+    voiceClip: {fileID: 0}
+  - speakerName: Kyra-Dominia
+    portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
+    expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
+    dialogueText: Shore up every approach, spread our turrets across all fronts.
+    voiceClip: {fileID: 0}
+  - speakerName: Nexus
+    portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
+    expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
+    dialogueText: Recommend prioritizing resource production to sustain extended
+      multi-front engagement.
     voiceClip: {fileID: 0}

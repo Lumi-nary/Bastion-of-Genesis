@@ -17,11 +17,16 @@ MonoBehaviour:
   entries:
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
-    expression: {fileID: 0}
-    dialogueText: Hostile biosignatures confirmed, approaching from the north. Small patrol, six to eight contacts. They are not friendly, Commander.
+    expression: {fileID: -3924190032742187860, guid: 3a0df9f3b1f8216458b091e954b895e8, type: 3}
+    dialogueText: Hostile biosignatures confirmed, approaching from the north.
+    voiceClip: {fileID: 0}
+  - speakerName: Nexus
+    portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
+    expression: {fileID: -3924190032742187860, guid: 3a0df9f3b1f8216458b091e954b895e8, type: 3}
+    dialogueText: Small patrol, six to eight contacts. They are not friendly, Commander.
     voiceClip: {fileID: 0}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
-    expression: {fileID: 0}
+    expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
     dialogueText: Walls up, turrets online. This is our ground now. Prepare for engagement.
     voiceClip: {fileID: 0}

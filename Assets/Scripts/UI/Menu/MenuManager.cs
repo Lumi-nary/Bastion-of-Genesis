@@ -19,6 +19,10 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private Canvas optionsCanvas;
     [SerializeField] private Canvas creditsCanvas;
 
+    [Header("Modal Blur")]
+    [SerializeField] private bool blurModalCanvases = true;
+    [SerializeField] private int modalCanvasSortingOrder = 100;
+
     // Track currently active canvas
     private Canvas currentCanvas;
 
@@ -57,7 +61,6 @@ public class MenuManager : MonoBehaviour
         // Validate canvas references (AC4.5: No NullReferenceExceptions)
         ValidateCanvasReferences();
 
-        // Set main menu as default active canvas
         if (mainMenuCanvas != null)
         {
             ShowMainMenuCanvas();
@@ -129,6 +132,17 @@ public class MenuManager : MonoBehaviour
         // Only navigate back if not already on main menu
         if (currentCanvas != mainMenuCanvas && mainMenuCanvas != null)
         {
+            if (currentCanvas == optionsCanvas && optionsCanvas != null)
+            {
+                OptionsMenuUI optionsUI = optionsCanvas.GetComponentInChildren<OptionsMenuUI>();
+                if (optionsUI != null)
+                {
+                    Debug.Log("[MenuManager] Delegating options back navigation to OptionsMenuUI");
+                    optionsUI.RequestBack();
+                    return;
+                }
+            }
+
             Debug.Log("[MenuManager] Navigating back to main menu");
             ShowMainMenuCanvas();
         }
@@ -139,7 +153,7 @@ public class MenuManager : MonoBehaviour
     /// Core canvas switching logic (AC4.2, AC4.6).
     /// Achieves <100ms transition by using Canvas.enabled (no GameObject destruction).
     /// </summary>
-    private void SwitchCanvas(Canvas targetCanvas)
+    private void SwitchCanvas(Canvas targetCanvas, bool useBackgroundBlur = false)
     {
         if (targetCanvas == null)
         {
@@ -147,14 +161,40 @@ public class MenuManager : MonoBehaviour
             return;
         }
 
-        // Disable current canvas
-        if (currentCanvas != null)
+        bool shouldBlur = blurModalCanvases && useBackgroundBlur && targetCanvas != mainMenuCanvas;
+        bool keepMainMenuBehind = shouldBlur && mainMenuCanvas != null;
+
+        if (currentCanvas != null && currentCanvas != targetCanvas)
+        {
+            UIBackgroundBlur currentBlur = currentCanvas.GetComponent<UIBackgroundBlur>();
+            if (currentBlur != null)
+                currentBlur.HideBlur();
+        }
+
+        // Disable current canvas unless the modal needs the main menu rendered behind it.
+        if (currentCanvas != null && currentCanvas != targetCanvas && !(keepMainMenuBehind && currentCanvas == mainMenuCanvas))
         {
             currentCanvas.enabled = false;
         }
 
+        if (keepMainMenuBehind)
+            mainMenuCanvas.enabled = true;
+
         // Enable target canvas
         targetCanvas.enabled = true;
+
+        if (shouldBlur)
+        {
+            targetCanvas.overrideSorting = true;
+            targetCanvas.sortingOrder = Mathf.Max(targetCanvas.sortingOrder, modalCanvasSortingOrder);
+            UIBackgroundBlur.Ensure(targetCanvas)?.ShowBlur();
+        }
+        else
+        {
+            UIBackgroundBlur targetBlur = targetCanvas.GetComponent<UIBackgroundBlur>();
+            if (targetBlur != null)
+                targetBlur.HideBlur();
+        }
 
         // Update current canvas reference
         currentCanvas = targetCanvas;
@@ -181,7 +221,7 @@ public class MenuManager : MonoBehaviour
     /// </summary>
     public void ShowNewBaseCanvas()
     {
-        SwitchCanvas(newBaseCanvas);
+        SwitchCanvas(newBaseCanvas, useBackgroundBlur: true);
 
         // Reset NewBaseUI form to generate new name and clear any changes
         if (newBaseCanvas != null)
@@ -199,7 +239,7 @@ public class MenuManager : MonoBehaviour
     /// </summary>
     public void ShowLoadGameCanvas()
     {
-        SwitchCanvas(loadGameCanvas);
+        SwitchCanvas(loadGameCanvas, useBackgroundBlur: true);
 
         // Canvas.enabled doesn't trigger OnEnable, so explicitly refresh save list
         if (loadGameCanvas != null)
@@ -215,7 +255,7 @@ public class MenuManager : MonoBehaviour
     /// </summary>
     public void ShowJoinGameCanvas()
     {
-        SwitchCanvas(joinGameCanvas);
+        SwitchCanvas(joinGameCanvas, useBackgroundBlur: true);
     }
 
     /// <summary>
@@ -223,7 +263,7 @@ public class MenuManager : MonoBehaviour
     /// </summary>
     public void ShowOptionsCanvas()
     {
-        SwitchCanvas(optionsCanvas);
+        SwitchCanvas(optionsCanvas, useBackgroundBlur: true);
 
         // Canvas.enabled doesn't trigger OnEnable, so explicitly reinitialize
         if (optionsCanvas != null)
@@ -239,6 +279,6 @@ public class MenuManager : MonoBehaviour
     /// </summary>
     public void ShowCreditsCanvas()
     {
-        SwitchCanvas(creditsCanvas);
+        SwitchCanvas(creditsCanvas, useBackgroundBlur: true);
     }
 }

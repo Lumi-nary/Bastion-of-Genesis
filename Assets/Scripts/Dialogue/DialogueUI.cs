@@ -17,6 +17,10 @@ public class DialogueUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private TextMeshProUGUI dialogueText;
 
+    [Header("Background Blur")]
+    [SerializeField] private bool blurBackground = true;
+    [SerializeField] private Canvas blurCanvas;
+
     [Header("Typewriter Settings")]
     [Tooltip("Delay between each word appearing")]
     [SerializeField] private float wordDelay = 0.05f;
@@ -25,26 +29,42 @@ public class DialogueUI : MonoBehaviour
     private Coroutine typewriterCoroutine;
     private bool isTyping;
     private string fullText;
+    private UIBackgroundBlur backgroundBlur;
+    private bool isSubscribed;
 
     private void Start()
     {
-        // Subscribe to DialogueManager events
-        if (DialogueManager.Instance != null)
+        EnsureSubscribed();
+
+        if (DialogueManager.Instance != null && DialogueManager.Instance.IsDialogueActive)
         {
-            DialogueManager.Instance.OnDialogueStarted += OnDialogueStarted;
-            DialogueManager.Instance.OnDialogueEnded += OnDialogueEnded;
-            DialogueManager.Instance.OnEntryDisplayed += OnEntryDisplayed;
+            OnDialogueStarted(DialogueManager.Instance.CurrentDialogue);
+            OnEntryDisplayed(DialogueManager.Instance.CurrentEntry, DialogueManager.Instance.CurrentEntryIndex);
+        }
+        else if (dialoguePanel != null)
+        {
+            dialoguePanel.SetActive(false);
         }
 
-        // Hide panel initially
-        if (dialoguePanel != null)
-            dialoguePanel.SetActive(false);
+        if (blurCanvas == null)
+            blurCanvas = GetComponentInParent<Canvas>();
+    }
+
+    public void EnsureSubscribed()
+    {
+        if (isSubscribed || DialogueManager.Instance == null)
+            return;
+
+        DialogueManager.Instance.OnDialogueStarted += OnDialogueStarted;
+        DialogueManager.Instance.OnDialogueEnded += OnDialogueEnded;
+        DialogueManager.Instance.OnEntryDisplayed += OnEntryDisplayed;
+        isSubscribed = true;
     }
 
     private void OnDestroy()
     {
         // Unsubscribe from events
-        if (DialogueManager.Instance != null)
+        if (isSubscribed && DialogueManager.Instance != null)
         {
             DialogueManager.Instance.OnDialogueStarted -= OnDialogueStarted;
             DialogueManager.Instance.OnDialogueEnded -= OnDialogueEnded;
@@ -92,6 +112,15 @@ public class DialogueUI : MonoBehaviour
     /// </summary>
     private void OnDialogueStarted(DialogueData dialogue)
     {
+        if (blurBackground)
+        {
+            if (blurCanvas == null)
+                blurCanvas = GetComponentInParent<Canvas>();
+
+            backgroundBlur = UIBackgroundBlur.Ensure(blurCanvas);
+            backgroundBlur?.ShowBlur();
+        }
+
         if (dialoguePanel != null)
             dialoguePanel.SetActive(true);
     }
@@ -105,6 +134,9 @@ public class DialogueUI : MonoBehaviour
 
         if (dialoguePanel != null)
             dialoguePanel.SetActive(false);
+
+        if (backgroundBlur != null)
+            backgroundBlur.HideBlur();
 
         // Stop any playing voice via AudioManager
         if (AudioManager.Instance != null)

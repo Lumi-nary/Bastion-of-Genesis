@@ -16,15 +16,17 @@ public class PollutionManager : MonoBehaviour
     [SerializeField] private float maxPollution = 1000f;
     [SerializeField] private float pollutionDecayRate = 0.5f;
     [SerializeField] private bool enableNaturalDecay = true;
+    [Range(0f, 100f)]
+    [SerializeField] private float missionPollutionLimitPercent = 100f;
 
     [Header("Difficulty Configuration")]
     [Tooltip("ScriptableObject containing all difficulty settings")]
     [SerializeField] private DifficultySettings difficultySettings;
 
-    [Header("Integration Radius (Buildable Zone)")]
-    [Tooltip("Starting integration radius - zone will never shrink below this")]
+    [Header("Pollution Spread Radius")]
+    [Tooltip("Starting wither radius from ChapterData. Scene value is a fallback only.")]
     [SerializeField] private float starterIntegrationRadius = 10f;
-    [Tooltip("Additional radius gained at max pollution")]
+    [Tooltip("Additional wither radius gained at max pollution.")]
     [SerializeField] private float maxAdditionalRadius = 40f;
 
     // Runtime state
@@ -35,17 +37,20 @@ public class PollutionManager : MonoBehaviour
     private Difficulty menuDifficulty = Difficulty.Medium;
 
     // Events
-    public event Action<float, float> OnPollutionChanged; // current, max
+    public event Action<float, float> OnPollutionChanged; // current, chapter max
     public event Action<DifficultyTier> OnDifficultyTierChanged;
 
     // Properties
     public float CurrentPollution => currentPollution;
     public float MaxPollution => maxPollution;
-    public float PollutionPercentage => (currentPollution / maxPollution) * 100f;
-    public float PollutionNormalized => currentPollution / maxPollution; // 0.0 to 1.0
+    public float CurrentPollutionLimit => GetCurrentPollutionLimit();
+    public float MissionPollutionLimitPercent => missionPollutionLimitPercent;
+    public float PollutionPercentage => maxPollution > 0f ? (currentPollution / maxPollution) * 100f : 0f;
+    public float PollutionNormalized => maxPollution > 0f ? currentPollution / maxPollution : 0f; // 0.0 to 1.0
     public DifficultyTier CurrentTier => currentTier;
     public Difficulty MenuDifficulty => menuDifficulty;
     public float IntegrationRadius => GetIntegrationRadius();
+    public float PollutionSpreadRadius => GetIntegrationRadius();
 
     // ==========================================================================
     // POLLUTION-BASED SPAWN FORMULAS (Linear Scaling)
@@ -112,7 +117,7 @@ public class PollutionManager : MonoBehaviour
     {
         if (amount <= 0) return;
 
-        currentPollution = Mathf.Clamp(currentPollution + amount, 0, maxPollution);
+        currentPollution = ClampToCurrentPollutionLimit(currentPollution + amount);
         OnPollutionChanged?.Invoke(currentPollution, maxPollution);
 
         CheckDifficultyTier();
@@ -132,11 +137,31 @@ public class PollutionManager : MonoBehaviour
 
     public void SetPollution(float amount)
     {
-        currentPollution = Mathf.Clamp(amount, 0, maxPollution);
+        currentPollution = ClampToCurrentPollutionLimit(amount);
         OnPollutionChanged?.Invoke(currentPollution, maxPollution);
 
         CheckDifficultyTier();
         UpdateTileStates();
+    }
+
+    public void SetMissionPollutionLimitPercent(float limitPercent)
+    {
+        missionPollutionLimitPercent = Mathf.Clamp(limitPercent, 0f, 100f);
+        currentPollution = ClampToCurrentPollutionLimit(currentPollution);
+        OnPollutionChanged?.Invoke(currentPollution, maxPollution);
+
+        CheckDifficultyTier();
+        UpdateTileStates();
+    }
+
+    private float GetCurrentPollutionLimit()
+    {
+        return maxPollution * (missionPollutionLimitPercent / 100f);
+    }
+
+    private float ClampToCurrentPollutionLimit(float amount)
+    {
+        return Mathf.Clamp(amount, 0f, CurrentPollutionLimit);
     }
 
     /// <summary>
@@ -296,7 +321,7 @@ public class PollutionManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Calculate integration radius based on current pollution level
+    /// Calculate wither spread radius based on current pollution level
     /// </summary>
     private float CalculateIntegrationRadius()
     {
@@ -306,7 +331,7 @@ public class PollutionManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Get integration radius - uses peak value so it never shrinks
+    /// Get wither spread radius - uses peak value so it never shrinks
     /// </summary>
     private float GetIntegrationRadius()
     {
@@ -333,7 +358,7 @@ public class PollutionManager : MonoBehaviour
 
             if (TileStateManager.Instance != null)
             {
-                TileStateManager.Instance.SetIntegrationRadius(currentRadius);
+                TileStateManager.Instance.SetPollutionRadius(currentRadius);
             }
         }
     }
@@ -355,11 +380,18 @@ public class PollutionManager : MonoBehaviour
     /// Configure pollution settings from ChapterData.
     /// Called by MissionChapterManager when starting a new chapter.
     /// </summary>
-    public void ConfigureFromChapter(float chapterMaxPollution, float chapterDecayRate)
+    public void ConfigureFromChapter(float chapterMaxPollution, float chapterDecayRate, float chapterStartingWitherRadius)
     {
         maxPollution = chapterMaxPollution;
         pollutionDecayRate = chapterDecayRate;
-        Debug.Log($"[PollutionManager] Configured: maxPollution={maxPollution}, decayRate={pollutionDecayRate}");
+        missionPollutionLimitPercent = 100f;
+        starterIntegrationRadius = Mathf.Max(0f, chapterStartingWitherRadius);
+        Debug.Log($"[PollutionManager] Configured: maxPollution={maxPollution}, decayRate={pollutionDecayRate}, startingWitherRadius={starterIntegrationRadius}");
+    }
+
+    public void ConfigureFromChapter(float chapterMaxPollution, float chapterDecayRate)
+    {
+        ConfigureFromChapter(chapterMaxPollution, chapterDecayRate, starterIntegrationRadius);
     }
 
     // ============================================================================
@@ -386,9 +418,11 @@ public class PollutionManager : MonoBehaviour
         menuDifficulty = (Difficulty)data.menuDifficulty;
         peakIntegrationRadius = data.peakIntegrationRadius;
         lastIntegrationRadius = -1f; // Force recalculation
+        currentPollution = ClampToCurrentPollutionLimit(currentPollution);
 
         OnPollutionChanged?.Invoke(currentPollution, maxPollution);
         OnDifficultyTierChanged?.Invoke(currentTier);
+        UpdateTileStates();
 
         Debug.Log($"[PollutionManager] State imported: pollution={currentPollution}, tier={currentTier}, menuDifficulty={menuDifficulty}");
     }

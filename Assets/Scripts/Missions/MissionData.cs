@@ -81,6 +81,10 @@ public class MissionData : ScriptableObject
     public float timeLimit = 0f;
     public bool failOnTimeExpired = false;
 
+    [Range(0f, 100f)]
+    [Tooltip("Maximum pollution allowed during this mission as a percent of the chapter maximum.")]
+    public float pollutionLimitPercent = 100f;
+
     [Tooltip("If true, standard pollution-based waves will be paused.")]
     public bool disableNaturalWaves = false;
 

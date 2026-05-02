@@ -28,10 +28,12 @@ public class MissionChapterManager : MonoBehaviour
 
     private float missionTimer = 0f;
     private bool missionActive = false;
+    private Coroutine missionIntroCoroutine;
 
     // Scene transition tracking
     private bool awaitingSceneValidation = false;
     private bool isLoadingFromSave = false;
+    private bool chapterStateInitialized = false;
 
     #region Events
     // Mission Events
@@ -61,6 +63,52 @@ public class MissionChapterManager : MonoBehaviour
     public List<ChapterData> Chapters => chapters;
     #endregion
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void BootstrapDirectChapterScene()
+    {
+        if (Instance != null)
+        {
+            return;
+        }
+
+        Scene activeScene = SceneManager.GetActiveScene();
+        ChapterData matchingChapter = FindChapterForScene(activeScene.name);
+        if (matchingChapter == null)
+        {
+            return;
+        }
+
+        GameObject managerObject = new GameObject(nameof(MissionChapterManager));
+        MissionChapterManager manager = managerObject.AddComponent<MissionChapterManager>();
+        manager.LoadChaptersFromResourcesIfNeeded();
+        manager.currentChapterIndex = Mathf.Max(0, manager.chapters.IndexOf(matchingChapter));
+        manager.currentMissionIndex = 0;
+        manager.currentChapter = matchingChapter;
+        manager.currentChapter.isUnlocked = true;
+
+        Debug.Log($"[MissionChapterManager] Bootstrapped direct chapter scene: {activeScene.name}");
+        manager.StartCoroutine(manager.ValidateSceneAfterDelay());
+    }
+
+    private static ChapterData FindChapterForScene(string sceneName)
+    {
+        if (string.IsNullOrEmpty(sceneName))
+        {
+            return null;
+        }
+
+        ChapterData[] loadedChapters = Resources.LoadAll<ChapterData>("Data/Campaign/Chapters");
+        foreach (ChapterData chapter in loadedChapters)
+        {
+            if (chapter != null && chapter.sceneName == sceneName)
+            {
+                return chapter;
+            }
+        }
+
+        return null;
+    }
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -71,9 +119,22 @@ public class MissionChapterManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        LoadChaptersFromResourcesIfNeeded();
 
         // Subscribe to scene events for validation
         SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void LoadChaptersFromResourcesIfNeeded()
+    {
+        if (chapters.Count > 0)
+        {
+            return;
+        }
+
+        ChapterData[] loadedChapters = Resources.LoadAll<ChapterData>("Data/Campaign/Chapters");
+        Array.Sort(loadedChapters, (a, b) => a.chapterNumber.CompareTo(b.chapterNumber));
+        chapters.AddRange(loadedChapters);
     }
 
     private void OnDestroy()
@@ -86,13 +147,33 @@ public class MissionChapterManager : MonoBehaviour
     /// </summary>
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (!awaitingSceneValidation) return;
+        if (!awaitingSceneValidation)
+        {
+            if (ShouldInitializeDirectlyLoadedChapterScene(scene))
+            {
+                Debug.Log($"[MissionChapterManager] Direct chapter scene detected: {scene.name}, validating managers...");
+                StartCoroutine(ValidateSceneAfterDelay());
+            }
+
+            return;
+        }
 
         awaitingSceneValidation = false;
         Debug.Log($"[MissionChapterManager] Scene loaded: {scene.name}, validating managers...");
 
         // Delay validation to allow managers to initialize
         StartCoroutine(ValidateSceneAfterDelay());
+    }
+
+    private bool ShouldInitializeDirectlyLoadedChapterScene(Scene scene)
+    {
+        if (currentChapter == null || string.IsNullOrEmpty(currentChapter.sceneName))
+            return false;
+
+        if (scene.name != currentChapter.sceneName)
+            return false;
+
+        return currentMission == null && !missionActive;
     }
 
     private IEnumerator ValidateSceneAfterDelay()
@@ -103,6 +184,8 @@ public class MissionChapterManager : MonoBehaviour
 
         if (ValidateChapterScene())
         {
+            TutorialGuideManager.EnsureRuntimeObjects();
+
             // Safeguard: Do not initialize if we still don't have a chapter
             if (currentChapter == null)
             {
@@ -127,6 +210,13 @@ public class MissionChapterManager : MonoBehaviour
             return;
         }
 
+        if (chapterStateInitialized)
+        {
+            Debug.Log("[MissionChapterManager] Chapter state already initialized, skipping duplicate initialization");
+            return;
+        }
+        chapterStateInitialized = true;
+
         Debug.Log($"[MissionChapterManager] Initializing chapter state for: {currentChapter.chapterName}");
 
         // Loading from save: RestoreStateFromSave handles resources/workers/pollution/buildings
@@ -137,11 +227,11 @@ public class MissionChapterManager : MonoBehaviour
 
             // Configure pollution limits from chapter (needed before importing pollution values)
             if (PollutionManager.Instance != null)
-                PollutionManager.Instance.ConfigureFromChapter(currentChapter.maxPollution, currentChapter.pollutionDecayRate);
+                PollutionManager.Instance.ConfigureFromChapter(currentChapter.maxPollution, currentChapter.pollutionDecayRate, currentChapter.startingWitherRadius);
 
             // Scene setup that's always needed
             if (TileStateManager.Instance != null)
-                TileStateManager.Instance.SetIntegrationRadius(currentChapter.startingIntegrationRadius);
+                TileStateManager.Instance.ConfigureFromChapter(currentChapter.startingWitherRadius, currentChapter.startingIntegrationRadius);
             if (BuildingManager.Instance != null)
                 BuildingManager.Instance.OnBuildingPlaced += OnBuildingPlaced;
             if (EnemyManager.Instance != null)
@@ -150,8 +240,7 @@ public class MissionChapterManager : MonoBehaviour
             // Music
             if (AudioManager.Instance != null)
             {
-                if (currentChapter.backgroundMusic != null)
-                    AudioManager.Instance.SetNormalMusic(currentChapter.backgroundMusic);
+                SetChapterMusic();
                 if (currentChapter.battleMusic != null)
                     AudioManager.Instance.SetBattleMusic(currentChapter.battleMusic);
             }
@@ -181,14 +270,14 @@ public class MissionChapterManager : MonoBehaviour
         if (PollutionManager.Instance != null)
         {
             PollutionManager.Instance.ResetPollution();
-            PollutionManager.Instance.ConfigureFromChapter(currentChapter.maxPollution, currentChapter.pollutionDecayRate);
+            PollutionManager.Instance.ConfigureFromChapter(currentChapter.maxPollution, currentChapter.pollutionDecayRate, currentChapter.startingWitherRadius);
         }
 
-        // Set starting integration radius
+        // Set authored starting wither and integration radii
         if (TileStateManager.Instance != null)
         {
-            TileStateManager.Instance.SetIntegrationRadius(currentChapter.startingIntegrationRadius);
-            Debug.Log($"[MissionChapterManager] Integration radius set to: {currentChapter.startingIntegrationRadius}");
+            TileStateManager.Instance.ConfigureFromChapter(currentChapter.startingWitherRadius, currentChapter.startingIntegrationRadius);
+            Debug.Log($"[MissionChapterManager] Tile states set from chapter: wither={currentChapter.startingWitherRadius}, integration={currentChapter.startingIntegrationRadius}");
         }
 
         // Subscribe to building events for objectives
@@ -206,11 +295,7 @@ public class MissionChapterManager : MonoBehaviour
         // Play chapter background music
         if (AudioManager.Instance != null)
         {
-            if (currentChapter.backgroundMusic != null)
-            {
-                AudioManager.Instance.SetNormalMusic(currentChapter.backgroundMusic);
-                Debug.Log($"[MissionChapterManager] Playing chapter music: {currentChapter.backgroundMusic.name}");
-            }
+            SetChapterMusic();
             if (currentChapter.battleMusic != null)
             {
                 AudioManager.Instance.SetBattleMusic(currentChapter.battleMusic);
@@ -227,26 +312,82 @@ public class MissionChapterManager : MonoBehaviour
         StartCoroutine(PlayChapterIntroAndStartMission());
     }
 
+    private void SetChapterMusic()
+    {
+        if (AudioManager.Instance == null || currentChapter == null)
+        {
+            return;
+        }
+
+        if (currentChapter.backgroundMusicTracks != null && currentChapter.backgroundMusicTracks.Count > 0)
+        {
+            AudioManager.Instance.SetNormalMusic(currentChapter.backgroundMusicTracks);
+            Debug.Log($"[MissionChapterManager] Playing chapter music playlist ({currentChapter.backgroundMusicTracks.Count} tracks)");
+            return;
+        }
+
+        if (currentChapter.backgroundMusic != null)
+        {
+            AudioManager.Instance.SetNormalMusic(currentChapter.backgroundMusic);
+            Debug.Log($"[MissionChapterManager] Playing chapter music: {currentChapter.backgroundMusic.name}");
+        }
+    }
+
     /// <summary>
     /// Play chapter intro dialogue (if any), then start the first mission
     /// </summary>
     private IEnumerator PlayChapterIntroAndStartMission()
     {
         // Play chapter intro dialogue if set
-        if (currentChapter.introDialogue != null && DialogueManager.Instance != null)
+        DialogueData introDialogue = currentChapter != null ? currentChapter.introDialogue : null;
+        DialogueManager dialogueManager = DialogueManager.Instance;
+        bool missionStarted = false;
+        void StartFirstMissionAfterIntro()
         {
-            Debug.Log($"[MissionChapterManager] Playing chapter intro dialogue: {currentChapter.introDialogue.dialogueName}");
-            DialogueManager.Instance.StartDialogue(currentChapter.introDialogue);
+            if (missionStarted)
+            {
+                return;
+            }
 
-            // Wait for dialogue to finish
-            while (DialogueManager.Instance.IsDialogueActive)
+            missionStarted = true;
+            Debug.Log("[MissionChapterManager] Chapter intro dialogue complete; starting first mission");
+            StartNextMission();
+        }
+
+        if (introDialogue != null && dialogueManager != null)
+        {
+            Action<DialogueData> onDialogueEnded = null;
+            onDialogueEnded = endedDialogue =>
+            {
+                if (endedDialogue == introDialogue)
+                {
+                    dialogueManager.OnDialogueEnded -= onDialogueEnded;
+                    StartFirstMissionAfterIntro();
+                }
+            };
+
+            dialogueManager.OnDialogueEnded += onDialogueEnded;
+            Debug.Log($"[MissionChapterManager] Playing chapter intro dialogue: {introDialogue.dialogueName}");
+            dialogueManager.StartDialogue(introDialogue);
+
+            while (!missionStarted && dialogueManager != null && dialogueManager.IsDialogueActive)
             {
                 yield return null;
             }
+
+            if (!missionStarted)
+            {
+                if (dialogueManager != null)
+                {
+                    dialogueManager.OnDialogueEnded -= onDialogueEnded;
+                }
+
+                StartFirstMissionAfterIntro();
+            }
+            yield break;
         }
 
-        // Start first mission
-        StartNextMission();
+        StartFirstMissionAfterIntro();
     }
 
     private void Start()
@@ -256,6 +397,12 @@ public class MissionChapterManager : MonoBehaviour
         {
             currentChapter = chapters[0];
             currentChapter.isUnlocked = true; // First chapter is always unlocked
+
+            Scene activeScene = SceneManager.GetActiveScene();
+            if (!string.IsNullOrEmpty(currentChapter.sceneName) && activeScene.name == currentChapter.sceneName)
+            {
+                StartCoroutine(ValidateSceneAfterDelay());
+            }
         }
     }
 
@@ -352,6 +499,7 @@ public class MissionChapterManager : MonoBehaviour
         currentChapterIndex = chapterIndex;
         currentChapter = chapter;
         currentMissionIndex = 0;
+        chapterStateInitialized = false;
 
         // Notify listeners that chapter changed
         OnChapterChanged?.Invoke(currentChapterIndex);
@@ -400,7 +548,11 @@ public class MissionChapterManager : MonoBehaviour
     {
         if (building != null)
         {
-            UpdateObjectiveProgress(ObjectiveType.BuildStructures, 1, buildingData: building.BuildingData);
+            UpdateObjectiveProgress(
+                ObjectiveType.BuildStructures,
+                1,
+                buildingData: building.BuildingData,
+                placementCell: building.gridPosition);
         }
     }
 
@@ -599,6 +751,7 @@ public class MissionChapterManager : MonoBehaviour
 
         currentMission = mission;
         missionTimer = 0f;
+        missionActive = false;
 
         // Reset all objectives
         foreach (var objective in currentMission.objectives)
@@ -614,8 +767,18 @@ public class MissionChapterManager : MonoBehaviour
             wave.isTriggered = false;
         }
 
+        if (PollutionManager.Instance != null)
+        {
+            PollutionManager.Instance.SetMissionPollutionLimitPercent(currentMission.pollutionLimitPercent);
+            Debug.Log($"[MissionChapterManager] Pollution limit set to {currentMission.pollutionLimitPercent:F0}% for {currentMission.missionName}");
+        }
+
         // Start coroutine to handle dialogue then activate mission
-        StartCoroutine(PlayMissionIntroAndActivate());
+        if (missionIntroCoroutine != null)
+        {
+            StopCoroutine(missionIntroCoroutine);
+        }
+        missionIntroCoroutine = StartCoroutine(PlayMissionIntroAndActivate());
     }
 
     /// <summary>
@@ -650,6 +813,9 @@ public class MissionChapterManager : MonoBehaviour
         missionActive = true;
 
         OnMissionStarted?.Invoke(currentMission);
+        TutorialGuideManager.EnsureRuntimeObjects();
+        TutorialGuideManager.Instance?.RefreshActiveObjective();
+        TutorialHologramManager.Instance?.Refresh();
         Debug.Log($"Mission Started: {currentMission.missionName}");
 
         // Play mission started voice clip
@@ -657,6 +823,8 @@ public class MissionChapterManager : MonoBehaviour
         {
             AudioManager.Instance.PlayVoice(missionStartedVoice);
         }
+
+        missionIntroCoroutine = null;
     }
 
     private void UpdateTimeBasedObjectives()
@@ -711,29 +879,23 @@ public class MissionChapterManager : MonoBehaviour
         }
     }
 
-    public void UpdateObjectiveProgress(ObjectiveType type, int amount, ResourceType resourceType = null, RaceType? raceType = null, BuildingData buildingData = null, WorkerData workerData = null)
+    public void UpdateObjectiveProgress(
+        ObjectiveType type,
+        int amount,
+        ResourceType resourceType = null,
+        RaceType? raceType = null,
+        BuildingData buildingData = null,
+        WorkerData workerData = null,
+        Vector2Int? placementCell = null,
+        Building assignmentBuilding = null,
+        TechnologyData technologyData = null)
     {
         if (!missionActive || currentMission == null) return;
 
         foreach (var objective in currentMission.objectives)
         {
             if (objective.isCompleted) continue;
-            if (objective.type != type) continue;
-
-            // Check if resource type matches (for resource objectives)
-            if (type == ObjectiveType.CollectResources && objective.requiredResource != resourceType)
-                continue;
-
-            // Check if race type matches (for enemy defeat objectives)
-            if (type == ObjectiveType.DefeatEnemies && raceType.HasValue && objective.targetRace != raceType.Value)
-                continue;
-
-            // Check if building type matches (for build objectives)
-            if (type == ObjectiveType.BuildStructures && buildingData != null && objective.requiredBuilding != buildingData)
-                continue;
-
-            // Check if worker type matches (for worker assembly/assignment objectives)
-            if (type == ObjectiveType.AssignWorkers && objective.requiredWorker != null && objective.requiredWorker != workerData)
+            if (!objective.MatchesProgress(type, resourceType, raceType, buildingData, workerData, placementCell, assignmentBuilding, technologyData))
                 continue;
 
             objective.currentAmount += amount;
@@ -794,6 +956,37 @@ public class MissionChapterManager : MonoBehaviour
         }
     }
 
+    public void ForceCompleteCurrentMission(bool includeOptional = false)
+    {
+        if (currentMission == null)
+        {
+            Debug.LogWarning("[MissionChapterManager] Cannot force-complete mission: no current mission.");
+            return;
+        }
+
+        if (missionIntroCoroutine != null)
+        {
+            StopCoroutine(missionIntroCoroutine);
+            missionIntroCoroutine = null;
+        }
+
+        foreach (var objective in currentMission.objectives)
+        {
+            if (objective == null || objective.isCompleted)
+                continue;
+
+            if (objective.isOptional && !includeOptional)
+                continue;
+
+            objective.currentAmount = objective.targetAmount;
+            objective.currentTime = objective.targetTime;
+            CompleteObjective(objective);
+        }
+
+        missionActive = true;
+        CompleteMission();
+    }
+
     public void FailMission()
     {
         if (!missionActive) return;
@@ -808,6 +1001,10 @@ public class MissionChapterManager : MonoBehaviour
         missionActive = false;
         currentMission = null;
         missionTimer = 0f;
+        if (PollutionManager.Instance != null)
+        {
+            PollutionManager.Instance.SetMissionPollutionLimitPercent(100f);
+        }
     }
     #endregion
 
@@ -893,6 +1090,11 @@ public class MissionChapterManager : MonoBehaviour
                     {
                         currentMission.scriptedWaves[i].isTriggered = data.scriptedWaves[i].isTriggered;
                     }
+                }
+
+                if (PollutionManager.Instance != null)
+                {
+                    PollutionManager.Instance.SetMissionPollutionLimitPercent(currentMission.pollutionLimitPercent);
                 }
             }
         }
