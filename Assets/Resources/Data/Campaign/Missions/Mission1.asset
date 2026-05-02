@@ -41,6 +41,7 @@ MonoBehaviour:
     - {x: -6, y: 0}
     - {x: -6, y: 1}
     requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 11400000, guid: a4ce82139003cca46a9abf6f002f9e7f, type: 2}
     tutorialInstruction: 
     focusCameraOnTarget: 1
@@ -60,6 +61,7 @@ MonoBehaviour:
     gateMode: 0
     allowedPlacementCells: []
     requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 11400000, guid: a4ce82139003cca46a9abf6f002f9e7f, type: 2}
     tutorialInstruction: 
     focusCameraOnTarget: 1
@@ -79,6 +81,7 @@ MonoBehaviour:
     gateMode: 0
     allowedPlacementCells: []
     requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 0}
     tutorialInstruction: 
     focusCameraOnTarget: 1

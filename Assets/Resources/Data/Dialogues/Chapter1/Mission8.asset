@@ -19,25 +19,25 @@ MonoBehaviour:
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: -3924190032742187860, guid: 3a0df9f3b1f8216458b091e954b895e8, type: 3}
     dialogueText: Commander, I am detecting coordinated movement from multiple vectors.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: e5e921401a757094bb5ae0a5f3858d7b, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: -3924190032742187860, guid: 3a0df9f3b1f8216458b091e954b895e8, type: 3}
     dialogueText: North, west, and south simultaneously. This is not a random patrol.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 4e35166a807885847875fb28acea1387, type: 3}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
     dialogueText: A pincer maneuver. These things have actual military tactics.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: c7991d5f227da2f4dad6f64ffb7a4851, type: 3}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
     dialogueText: Shore up every approach, spread our turrets across all fronts.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 51fbddcb2ac0b4143b5c3b5ebb450e41, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: Recommend prioritizing resource production to sustain extended
       multi-front engagement.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 41fec0730970a7f469a33cb1aa7ceb39, type: 3}

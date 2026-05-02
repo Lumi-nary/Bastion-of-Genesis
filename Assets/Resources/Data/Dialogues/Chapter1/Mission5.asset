@@ -19,16 +19,16 @@ MonoBehaviour:
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: Long-range sensors are picking up movement beyond the perimeter.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 86bb5c7571ecede489ee0483d6708599, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: I recommend stockpiling iron reserves and researching defensive
       wall structures.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 406e05d51a0ca4a4da89a059393ccac2, type: 3}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
     dialogueText: Agreed. I want walls up before whatever is out there decides to
       pay us a visit.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 58444b0fa87c31041b0b02098c34fd5b, type: 3}

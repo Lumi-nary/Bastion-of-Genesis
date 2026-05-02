@@ -19,29 +19,29 @@ MonoBehaviour:
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: New contact.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 61ff85a76d6971346a7a2e6abca3ee96, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: A larger force is massing to the west.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 5f3df55e378d8de40a096fa54b686660, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: Estimated twice the size of the previous engagement.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 6268cdb2da85e9d40a4f24a914933072, type: 3}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 621222158458474870, guid: 3ea5501f3c89c1346aae2957352121db, type: 3}
     dialogueText: They are probing our flanks.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 219ab2e6a6d0d154bbe3473c844e20f2, type: 3}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 621222158458474870, guid: 3ea5501f3c89c1346aae2957352121db, type: 3}
     dialogueText: Reinforce the western perimeter, turrets and walls.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 0c61bdf1e18bfd247a8b5b2ba5e1afcd, type: 3}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 621222158458474870, guid: 3ea5501f3c89c1346aae2957352121db, type: 3}
     dialogueText: Nothing gets through.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 0f1037de6edb3a148911e4aa65cca267, type: 3}

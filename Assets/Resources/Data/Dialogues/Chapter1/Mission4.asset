@@ -19,44 +19,44 @@ MonoBehaviour:
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: Commander, our Researchers can develop new structural blueprints.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: f23b2569e797cb742805cc1f5cb52faf, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: Given sufficient energy and time.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 507a893b80ac24343904b344c121e6c6, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: A Laboratory would enable this.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 563de2b788151654384fed438a6abd81, type: 3}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
     dialogueText: Engineering superiority is how we hold this ground. Build it.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 1d26b885b888d224786eb54c017ce6f7, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: Our reserves are capped at baseline capacity.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 8352b69f0e107c446a8dd015844a1168, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: I recommend prioritizing storage infrastructure.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 1204443fd5ce51b4d9b3dc15d9860072, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: Resource Warehouses, Energy Batteries, and a Robot Bay.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: b2d10cbdb776d03419512e9f13990f78, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: Without expanded reserves, further expansion stalls.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 72a6bd048fdb92f4592c4ba2b714afd6, type: 3}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
     dialogueText: A fortress without stockpiles is just a target. Research them all.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 47731b54ef8974e4b83bd1ab09dd5888, type: 3}

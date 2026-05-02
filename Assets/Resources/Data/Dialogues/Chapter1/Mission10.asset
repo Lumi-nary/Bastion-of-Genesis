@@ -19,30 +19,30 @@ MonoBehaviour:
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: -3924190032742187860, guid: 3a0df9f3b1f8216458b091e954b895e8, type: 3}
     dialogueText: Commander, a massive biosignature is approaching from the north.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 55e0c6399682fb04499876571e9da066, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: -3924190032742187860, guid: 3a0df9f3b1f8216458b091e954b895e8, type: 3}
     dialogueText: It dwarfs anything we have encountered. Designating it as a Warden-class
       entity.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: e5e6b49bec2cf7745a8c2c208ca661e1, type: 3}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 621222158458474870, guid: 3ea5501f3c89c1346aae2957352121db, type: 3}
     dialogueText: That is a command unit. They sent their best.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: b16317c1fd0a85e42b074114f0acb6f6, type: 3}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 621222158458474870, guid: 3ea5501f3c89c1346aae2957352121db, type: 3}
     dialogueText: All defenses to maximum, concentrate fire on the big one.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: f97f138b10d171946ba41159fd94584a, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: Warden is accompanied by a full assault wave.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: a65c6c3a7f05668499a7e492417f3698, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: Recommend eliminating the command unit first to break enemy cohesion.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 79056750dc255b946b6172ec23134cc7, type: 3}

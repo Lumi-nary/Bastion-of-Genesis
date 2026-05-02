@@ -20,25 +20,25 @@ MonoBehaviour:
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: Commander, our Robotic Swarm reserves can be converted into specialized
       units.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 3583a5755afff3a4e80a5c8523edf5fc, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: The Builder Factory will repurpose swarm units into dedicated Builders
       for construction.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 263d1203f24ed264b9f24c62b55e3708, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: A Researcher Factory produces units for the Laboratory.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 5ef9fda569e84ff4e8274cacc9b46003, type: 3}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
     dialogueText: Raw swarms are wasted potential.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 52c662e522ed5a24f859a0b59a3a3dab, type: 3}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
     dialogueText: Get those factories running and specialize every last one of them.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: c6902e9eec38c6d4b8ff879533527abf, type: 3}

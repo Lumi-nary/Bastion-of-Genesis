@@ -19,19 +19,19 @@ MonoBehaviour:
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: Commander, energy reserves are at critical levels.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: c69805c2ab534db4397b6c07e1813f1d, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: The reactor alone cannot sustain expansion.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 348a84f88769f9a4980da0eaa08c68f0, type: 3}
   - speakerName: Nexus
     portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
     expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
     dialogueText: A Steam Generator will supplement our power grid.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: ff5f15728a789984e8af51cd5bb0b6c9, type: 3}
   - speakerName: Kyra-Dominia
     portrait: {fileID: 4329407632164072968, guid: ec3af396638fb02499ed390d58ca0309, type: 3}
     expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
     dialogueText: Nothing runs without power. Get a generator online, priority one.
-    voiceClip: {fileID: 0}
+    voiceClip: {fileID: 8300000, guid: 4ea094087de44d44e9961bd75562fdc7, type: 3}
