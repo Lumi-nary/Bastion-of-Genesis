@@ -83,19 +83,4 @@ public class MissionObjectiveSlotUI : MonoBehaviour
             optionalIcon.color = optionalColor;
         }
     }
-
-    private void Update()
-    {
-        // Update progress in real-time for time-based objectives
-        if (objective != null && !objective.isCompleted)
-        {
-            switch (objective.type)
-            {
-                case ObjectiveType.SurviveTime:
-                case ObjectiveType.MaintainPollution:
-                    UpdateObjective(objective);
-                    break;
-            }
-        }
-    }
 }

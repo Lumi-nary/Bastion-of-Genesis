@@ -60,6 +60,7 @@ public class MissionPanel : MonoBehaviour
             MissionChapterManager.Instance.OnMissionCompleted += OnMissionCompleted;
             MissionChapterManager.Instance.OnMissionFailed += OnMissionFailed;
             MissionChapterManager.Instance.OnObjectiveCompleted += OnObjectiveCompleted;
+            MissionChapterManager.Instance.OnObjectiveUpdated += OnObjectiveUpdated;
             MissionChapterManager.Instance.OnMissionTimerUpdate += OnMissionTimerUpdate;
             MissionChapterManager.Instance.OnChapterStarted += OnChapterStarted;
         }
@@ -91,6 +92,7 @@ public class MissionPanel : MonoBehaviour
             MissionChapterManager.Instance.OnMissionCompleted -= OnMissionCompleted;
             MissionChapterManager.Instance.OnMissionFailed -= OnMissionFailed;
             MissionChapterManager.Instance.OnObjectiveCompleted -= OnObjectiveCompleted;
+            MissionChapterManager.Instance.OnObjectiveUpdated -= OnObjectiveUpdated;
             MissionChapterManager.Instance.OnMissionTimerUpdate -= OnMissionTimerUpdate;
             MissionChapterManager.Instance.OnChapterStarted -= OnChapterStarted;
         }
@@ -213,6 +215,14 @@ public class MissionPanel : MonoBehaviour
     }
 
     private void OnObjectiveCompleted(MissionObjective objective)
+    {
+        if (objectiveSlots.ContainsKey(objective))
+        {
+            objectiveSlots[objective].UpdateObjective(objective);
+        }
+    }
+
+    private void OnObjectiveUpdated(MissionObjective objective)
     {
         if (objectiveSlots.ContainsKey(objective))
         {

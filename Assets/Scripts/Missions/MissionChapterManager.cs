@@ -41,6 +41,7 @@ public class MissionChapterManager : MonoBehaviour
     public event Action<MissionData> OnMissionCompleted;
     public event Action<MissionData> OnMissionFailed;
     public event Action<MissionObjective> OnObjectiveCompleted;
+    public event Action<MissionObjective> OnObjectiveUpdated;
     public event Action<float> OnMissionTimerUpdate;
 
     // Chapter Events
@@ -833,10 +834,13 @@ public class MissionChapterManager : MonoBehaviour
         {
             if (objective.isCompleted) continue;
 
+            bool updated = false;
+
             switch (objective.type)
             {
                 case ObjectiveType.SurviveTime:
                     objective.currentTime = missionTimer;
+                    updated = true;
                     if (objective.currentTime >= objective.targetTime)
                     {
                         CompleteObjective(objective);
@@ -851,15 +855,17 @@ public class MissionChapterManager : MonoBehaviour
                         if (pollutionPercent >= objective.targetAmount)
                         {
                             objective.currentTime += Time.deltaTime;
+                            updated = true;
                             if (objective.currentTime >= objective.targetTime)
                             {
                                 CompleteObjective(objective);
                             }
                         }
-                        else
+                        else if (objective.currentTime > 0)
                         {
                             // Reset timer if pollution drops below threshold
                             objective.currentTime = 0f;
+                            updated = true;
                         }
                     }
                     break;
@@ -868,13 +874,24 @@ public class MissionChapterManager : MonoBehaviour
                     if (PollutionManager.Instance != null)
                     {
                         float currentPollutionPercent = PollutionManager.Instance.PollutionNormalized * 100f;
-                        objective.currentAmount = Mathf.RoundToInt(currentPollutionPercent);
+                        int newAmount = Mathf.RoundToInt(currentPollutionPercent);
+                        if (objective.currentAmount != newAmount)
+                        {
+                            objective.currentAmount = newAmount;
+                            updated = true;
+                        }
+                        
                         if (currentPollutionPercent >= objective.targetAmount)
                         {
                             CompleteObjective(objective);
                         }
                     }
                     break;
+            }
+
+            if (updated && !objective.isCompleted)
+            {
+                OnObjectiveUpdated?.Invoke(objective);
             }
         }
     }
@@ -899,6 +916,7 @@ public class MissionChapterManager : MonoBehaviour
                 continue;
 
             objective.currentAmount += amount;
+            OnObjectiveUpdated?.Invoke(objective);
 
             if (objective.currentAmount >= objective.targetAmount)
             {
