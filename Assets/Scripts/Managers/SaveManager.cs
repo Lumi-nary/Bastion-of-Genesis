@@ -103,6 +103,8 @@ public class SaveManager : MonoBehaviour
     /// <summary>
     /// SaveData loaded from file, waiting to be applied after scene loads.
     /// </summary>
+    public float TotalPlaytime => loadedPlaytime + sessionPlaytime;
+
     private SaveData pendingSaveData;
 
     /// <summary>
