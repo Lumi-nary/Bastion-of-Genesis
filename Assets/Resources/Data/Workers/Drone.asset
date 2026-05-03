@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WorkerData
   workerName: Drone
   description: Controls Defenses
-  icon: {fileID: 4688266795139732916, guid: 7a06794e592fc32469f72201e2ebb6c7, type: 3}
+  icon: {fileID: 4112356383579328530, guid: 88d3fdbe7c9c09f46b97ae5ab0fe0950, type: 3}
   cost:
   - resourceType: {fileID: 11400000, guid: 0505f28487f172248a00b967bda2d6d4, type: 2}
     amount: 3
