@@ -187,7 +187,6 @@ These map cleanly to `CutsceneBeat.soundEffect` in `Chapter1_Intro.asset`.
 These are not all directly wired to serialized fields yet, but the project already has `AudioManager` SFX playback methods. Create these as the base gameplay set before wiring.
 
 - [ ] `SFX_UI_ButtonClick.wav` - General button press.
-- [ ] `SFX_UI_ButtonHover.wav` - General hover tick. Existing `hover_click.wav` may already cover this.
 - [ ] `SFX_UI_PanelOpen.wav` - Open building list, options, or info panel.
 - [ ] `SFX_UI_PanelClose.wav` - Close building list, options, or info panel.
 - [ ] `SFX_UI_Deny.wav` - Invalid action or insufficient resources.

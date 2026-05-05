@@ -65,6 +65,14 @@ public class MissionPanel : MonoBehaviour
             MissionChapterManager.Instance.OnChapterStarted += OnChapterStarted;
         }
 
+        if (drawerToggle != null)
+        {
+            drawerToggle.OnShown += OnDrawerShown;
+            drawerToggle.OnHidden += OnDrawerHidden;
+        }
+
+        RefreshCurrentMission();
+
         // Hide panel initially — snap to hidden instantly so the drawer doesn't flash on-screen at scene load.
         HidePanelInstant();
     }
@@ -96,6 +104,12 @@ public class MissionPanel : MonoBehaviour
             MissionChapterManager.Instance.OnMissionTimerUpdate -= OnMissionTimerUpdate;
             MissionChapterManager.Instance.OnChapterStarted -= OnChapterStarted;
         }
+
+        if (drawerToggle != null)
+        {
+            drawerToggle.OnShown -= OnDrawerShown;
+            drawerToggle.OnHidden -= OnDrawerHidden;
+        }
     }
 
     private void OnChapterStarted(ChapterData chapter)
@@ -123,11 +137,7 @@ public class MissionPanel : MonoBehaviour
 
         isVisible = true;
 
-        // Refresh display
-        if (MissionChapterManager.Instance?.CurrentMission != null)
-        {
-            DisplayMission(MissionChapterManager.Instance.CurrentMission);
-        }
+        RefreshCurrentMission();
     }
 
     /// <summary>
@@ -197,9 +207,8 @@ public class MissionPanel : MonoBehaviour
 
     private void OnMissionStarted(MissionData mission)
     {
-        // Don't auto-show, just refresh if visible
-        if (isVisible)
-            DisplayMission(mission);
+        // Keep hidden drawer content current so hovering the chevron shows the active mission immediately.
+        DisplayMission(mission);
     }
 
     private void OnMissionCompleted(MissionData mission)
@@ -235,8 +244,42 @@ public class MissionPanel : MonoBehaviour
         UpdateMissionTimer();
     }
 
+    private void OnDrawerShown()
+    {
+        isVisible = true;
+        RefreshCurrentMission();
+    }
+
+    private void OnDrawerHidden()
+    {
+        isVisible = false;
+    }
+
+    public void RefreshCurrentMission()
+    {
+        MissionChapterManager missionManager = MissionChapterManager.Instance;
+        if (missionManager == null)
+        {
+            return;
+        }
+
+        if (missionManager.CurrentChapter != null)
+        {
+            UpdateChapterInfo(missionManager.CurrentChapter);
+        }
+
+        if (missionManager.CurrentMission != null)
+        {
+            DisplayMission(missionManager.CurrentMission);
+        }
+
+        UpdateMissionTimer();
+    }
+
     private void DisplayMission(MissionData mission)
     {
+        if (mission == null) return;
+
         // Clear previous objectives
         ClearObjectives();
 
@@ -258,6 +301,8 @@ public class MissionPanel : MonoBehaviour
         {
             UpdateChapterInfo(MissionChapterManager.Instance.CurrentChapter);
         }
+
+        UpdateMissionTimer();
     }
 
     private void CreateObjectiveSlot(MissionObjective objective)

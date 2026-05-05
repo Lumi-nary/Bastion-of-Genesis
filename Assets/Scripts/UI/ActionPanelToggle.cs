@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
+using System;
 
 /// <summary>
 /// Slides the ActionPanel on/off screen with an arrow toggle button.
@@ -43,6 +44,9 @@ public class ActionPanelToggle : MonoBehaviour, IPointerEnterHandler, IPointerEx
     /// When true, the auto-hide countdown is paused (e.g., while the building list flyout is open).
     /// </summary>
     public bool SuppressAutoHide { get; set; }
+
+    public event Action OnShown;
+    public event Action OnHidden;
 
     private void Awake()
     {
@@ -86,6 +90,7 @@ public class ActionPanelToggle : MonoBehaviour, IPointerEnterHandler, IPointerEx
         isAnimating = false;
         if (panelRect != null) panelRect.anchoredPosition = hiddenPosition;
         UpdateArrow();
+        OnHidden?.Invoke();
     }
 
     private void Update()
@@ -149,6 +154,7 @@ public class ActionPanelToggle : MonoBehaviour, IPointerEnterHandler, IPointerEx
         isAnimating = true;
 
         UpdateArrow();
+        OnShown?.Invoke();
     }
 
     public void Hide()
@@ -163,6 +169,7 @@ public class ActionPanelToggle : MonoBehaviour, IPointerEnterHandler, IPointerEx
         isAnimating = true;
 
         UpdateArrow();
+        OnHidden?.Invoke();
     }
 
     public void OnPointerEnter(PointerEventData eventData)
