@@ -204,6 +204,10 @@ public class TechDetailPanel : MonoBehaviour
             SetStatus("Available", new Color(0.62f, 0.9f, 1f, 1f));
             researchButton.interactable = true;
         }
+
+        SetTutorialHighlight(researchButton, TutorialGuideManager.Instance != null &&
+            TutorialGuideManager.Instance.IsTargetAction(TutorialTargetAction.ResearchTechnology) &&
+            CanResearchForTutorial());
     }
 
     private void SetStatus(string text, Color color)
@@ -276,5 +280,18 @@ public class TechDetailPanel : MonoBehaviour
     private bool CanResearchForTutorial()
     {
         return TutorialGuideManager.Instance == null || TutorialGuideManager.Instance.CanResearchTechnology(currentTech);
+    }
+
+    private void SetTutorialHighlight(Button button, bool highlighted)
+    {
+        if (button == null)
+            return;
+
+        Image image = button.GetComponent<Image>();
+        if (image == null)
+            return;
+
+        TutorialPulseHighlight pulse = image.GetComponent<TutorialPulseHighlight>() ?? image.gameObject.AddComponent<TutorialPulseHighlight>();
+        pulse.SetHighlighted(highlighted);
     }
 }

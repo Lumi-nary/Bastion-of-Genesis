@@ -96,12 +96,16 @@ public class WorkerSlotUI : MonoBehaviour
             {
                 int typeCapacity = currentBuilding.GetCapacityForWorker(workerData);
                 workerCountText.text = $"{assignedCount} / {typeCapacity}";
-                addButton.interactable = assignedCount < typeCapacity && WorkerManager.Instance.GetAvailableWorkerCount(workerData) > 0 && CanAssignForTutorial();
+                bool tutorialAllowed = CanAssignForTutorial();
+                addButton.interactable = assignedCount < typeCapacity && WorkerManager.Instance.GetAvailableWorkerCount(workerData) > 0 && tutorialAllowed;
+                SetTutorialHighlight(addButton, tutorialAllowed);
             }
             else // Shared Capacity
             {
                 workerCountText.text = $"{assignedCount}"; // For shared, just show the count for this type
-                addButton.interactable = totalAssigned < totalCapacity && WorkerManager.Instance.GetAvailableWorkerCount(workerData) > 0 && CanAssignForTutorial();
+                bool tutorialAllowed = CanAssignForTutorial();
+                addButton.interactable = totalAssigned < totalCapacity && WorkerManager.Instance.GetAvailableWorkerCount(workerData) > 0 && tutorialAllowed;
+                SetTutorialHighlight(addButton, tutorialAllowed);
             }
 
             // Disable remove button if there are no workers of this type to remove
@@ -112,5 +116,22 @@ public class WorkerSlotUI : MonoBehaviour
     private bool CanAssignForTutorial()
     {
         return TutorialGuideManager.Instance == null || TutorialGuideManager.Instance.CanAssignWorker(currentBuilding, workerData);
+    }
+
+    private void SetTutorialHighlight(Button button, bool tutorialAllowed)
+    {
+        bool highlighted = TutorialGuideManager.Instance != null &&
+            TutorialGuideManager.Instance.IsTargetAction(TutorialTargetAction.AssignWorker) &&
+            tutorialAllowed;
+
+        if (button == null)
+            return;
+
+        Image image = button.GetComponent<Image>();
+        if (image == null)
+            return;
+
+        TutorialPulseHighlight pulse = image.GetComponent<TutorialPulseHighlight>() ?? image.gameObject.AddComponent<TutorialPulseHighlight>();
+        pulse.SetHighlighted(highlighted);
     }
 }

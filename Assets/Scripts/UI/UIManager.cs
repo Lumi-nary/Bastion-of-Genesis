@@ -64,6 +64,42 @@ public class UIManager : MonoBehaviour
         EnsureBuildingHoverPopupUI();
     }
 
+    private void OnEnable()
+    {
+        SubscribeTutorialGuide();
+    }
+
+    private void Start()
+    {
+        SubscribeTutorialGuide();
+    }
+
+    private void OnDisable()
+    {
+        if (TutorialGuideManager.Instance != null)
+            TutorialGuideManager.Instance.OnTutorialObjectiveChanged -= OnTutorialObjectiveChanged;
+    }
+
+    private void SubscribeTutorialGuide()
+    {
+        if (TutorialGuideManager.Instance == null)
+            return;
+
+        TutorialGuideManager.Instance.OnTutorialObjectiveChanged -= OnTutorialObjectiveChanged;
+        TutorialGuideManager.Instance.OnTutorialObjectiveChanged += OnTutorialObjectiveChanged;
+    }
+
+    private void OnTutorialObjectiveChanged(MissionObjective objective)
+    {
+        if (ActivePanel != PanelKind.None &&
+            TutorialGuideManager.Instance != null &&
+            !TutorialGuideManager.Instance.CanOpenPanel(ActivePanel))
+        {
+            HideNavPanel(ActivePanel);
+            SetActivePanel(PanelKind.None);
+        }
+    }
+
     private void EnsureGameplayCanvasEnabled()
     {
         if (gameplayCanvasGroup != null)
@@ -325,6 +361,9 @@ public class UIManager : MonoBehaviour
     {
         if (kind == PanelKind.None) return;
 
+        if (TutorialGuideManager.Instance != null && !TutorialGuideManager.Instance.CanOpenPanel(kind))
+            return;
+
         CloseOtherNavPanels(kind);
         Canvas.ForceUpdateCanvases();
 
@@ -363,6 +402,9 @@ public class UIManager : MonoBehaviour
     public void TogglePanel(PanelKind kind, RectTransform anchor)
     {
         if (kind == PanelKind.None) return;
+
+        if (TutorialGuideManager.Instance != null && !TutorialGuideManager.Instance.CanOpenPanel(kind))
+            return;
 
         if (ActivePanel == kind)
         {

@@ -30,6 +30,9 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 1
     gateMode: 0
+    targetPanel: 1
+    targetAction: 2
+    objectiveDialogue: {fileID: 11400000, guid: 09f9167b0f7661048ae20f4da0415290, type: 2}
     allowedPlacementCells:
     - {x: -8, y: -1}
     - {x: -8, y: 0}
@@ -40,11 +43,15 @@ MonoBehaviour:
     - {x: -6, y: -1}
     - {x: -6, y: 0}
     - {x: -6, y: 1}
+    focusWorldCell: {x: -7, y: 0}
+    hasFocusWorldCell: 1
     requiredTechnology: {fileID: 0}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 11400000, guid: a4ce82139003cca46a9abf6f002f9e7f, type: 2}
-    tutorialInstruction: 
+    tutorialInstruction: Click the glowing Buildings button, select Iron Extractor,
+      then place it on the highlighted iron node.
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -59,12 +66,19 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 1
     gateMode: 0
+    targetPanel: 3
+    targetAction: 4
+    objectiveDialogue: {fileID: 11400000, guid: caab0f12e93dc774297dd6fe4c128277, type: 2}
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 0}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 11400000, guid: a4ce82139003cca46a9abf6f002f9e7f, type: 2}
-    tutorialInstruction: 
+    tutorialInstruction: Open Worker Assignment and assign one Extractor to the Iron
+      Extractor.
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -79,12 +93,18 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 0
     gateMode: 0
+    targetPanel: 0
+    targetAction: 0
+    objectiveDialogue: {fileID: 11400000, guid: fa576565986b5cd4aa74becf3cd25279, type: 2}
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 0}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 0}
-    tutorialInstruction: 
+    tutorialInstruction: Wait while the Iron Extractor accumulates 100 iron.
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0

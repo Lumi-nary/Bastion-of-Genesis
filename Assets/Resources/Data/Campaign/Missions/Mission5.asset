@@ -30,12 +30,17 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 0
     gateMode: 0
+    targetPanel: 0
+    targetAction: 0
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 0}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 0}
     tutorialInstruction: 
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -50,12 +55,17 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 1
     gateMode: 0
+    targetPanel: 4
+    targetAction: 6
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 11400000, guid: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9, type: 2}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 0}
-    tutorialInstruction: Research Iron Wall technology to unlock defensive walls.
+    tutorialInstruction: Open Research and start Iron Wall technology.
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0

@@ -29,6 +29,10 @@ public class MissionChapterManager : MonoBehaviour
     private float missionTimer = 0f;
     private bool missionActive = false;
     private Coroutine missionIntroCoroutine;
+    private Coroutine objectiveDialogueCoroutine;
+    private DialogueData activeObjectiveDialogue;
+    private bool objectiveDialoguePending;
+    private readonly HashSet<MissionObjective> playedObjectiveDialogues = new HashSet<MissionObjective>();
 
     // Scene transition tracking
     private bool awaitingSceneValidation = false;
@@ -42,6 +46,7 @@ public class MissionChapterManager : MonoBehaviour
     public event Action<MissionData> OnMissionFailed;
     public event Action<MissionObjective> OnObjectiveCompleted;
     public event Action<MissionObjective> OnObjectiveUpdated;
+    public event Action OnObjectiveDialogueStateChanged;
     public event Action<float> OnMissionTimerUpdate;
 
     // Chapter Events
@@ -56,6 +61,7 @@ public class MissionChapterManager : MonoBehaviour
     public MissionData CurrentMission => currentMission;
     public bool IsMissionActive => missionActive;
     public float MissionTimer => missionTimer;
+    public bool IsObjectiveDialogueBlockingTutorial => objectiveDialoguePending || activeObjectiveDialogue != null;
 
     // Chapter Properties
     public ChapterData CurrentChapter => currentChapter;
@@ -761,6 +767,7 @@ public class MissionChapterManager : MonoBehaviour
             objective.currentAmount = 0;
             objective.currentTime = 0f;
         }
+        playedObjectiveDialogues.Clear();
 
         // Reset scripted waves
         foreach (var wave in currentMission.scriptedWaves)
@@ -813,6 +820,7 @@ public class MissionChapterManager : MonoBehaviour
         // Now activate the mission
         missionActive = true;
 
+        TryPlayCurrentObjectiveDialogue();
         OnMissionStarted?.Invoke(currentMission);
         TutorialGuideManager.EnsureRuntimeObjects();
         TutorialGuideManager.Instance?.RefreshActiveObjective();
@@ -938,6 +946,95 @@ public class MissionChapterManager : MonoBehaviour
         {
             AudioManager.Instance.PlayVoice(objectiveUpdatedVoice);
         }
+
+        TryPlayCurrentObjectiveDialogue();
+    }
+
+    private void TryPlayCurrentObjectiveDialogue()
+    {
+        if (!missionActive || currentMission == null || currentMission.objectives == null)
+            return;
+
+        MissionObjective activeObjective = GetFirstUnfinishedRequiredObjective();
+        if (activeObjective == null ||
+            activeObjective.objectiveDialogue == null ||
+            playedObjectiveDialogues.Contains(activeObjective))
+        {
+            return;
+        }
+
+        playedObjectiveDialogues.Add(activeObjective);
+
+        if (objectiveDialogueCoroutine != null)
+            StopCoroutine(objectiveDialogueCoroutine);
+
+        SetObjectiveDialogueBlock(activeObjective.objectiveDialogue, true);
+        objectiveDialogueCoroutine = StartCoroutine(PlayObjectiveDialogueWhenReady(activeObjective.objectiveDialogue));
+    }
+
+    private MissionObjective GetFirstUnfinishedRequiredObjective()
+    {
+        foreach (MissionObjective objective in currentMission.objectives)
+        {
+            if (objective == null || objective.isOptional || objective.isCompleted)
+                continue;
+
+            return objective;
+        }
+
+        return null;
+    }
+
+    private IEnumerator PlayObjectiveDialogueWhenReady(DialogueData dialogue)
+    {
+        if (dialogue == null || DialogueManager.Instance == null)
+        {
+            ClearObjectiveDialogueBlock();
+            yield break;
+        }
+
+        while (DialogueManager.Instance != null && DialogueManager.Instance.IsDialogueActive)
+            yield return null;
+
+        if (DialogueManager.Instance != null && dialogue.EntryCount > 0)
+        {
+            objectiveDialoguePending = false;
+            activeObjectiveDialogue = dialogue;
+            DialogueManager.Instance.StartDialogue(dialogue);
+
+            while (DialogueManager.Instance != null &&
+                DialogueManager.Instance.IsDialogueActive &&
+                DialogueManager.Instance.CurrentDialogue == dialogue)
+            {
+                yield return null;
+            }
+        }
+
+        ClearObjectiveDialogueBlock();
+        objectiveDialogueCoroutine = null;
+    }
+
+    private void SetObjectiveDialogueBlock(DialogueData dialogue, bool pending)
+    {
+        bool changed = activeObjectiveDialogue != dialogue || objectiveDialoguePending != pending;
+
+        activeObjectiveDialogue = dialogue;
+        objectiveDialoguePending = pending;
+
+        if (changed)
+            OnObjectiveDialogueStateChanged?.Invoke();
+    }
+
+    private void ClearObjectiveDialogueBlock()
+    {
+        bool changed = activeObjectiveDialogue != null || objectiveDialoguePending;
+
+        activeObjectiveDialogue = null;
+        objectiveDialoguePending = false;
+        objectiveDialogueCoroutine = null;
+
+        if (changed)
+            OnObjectiveDialogueStateChanged?.Invoke();
     }
 
     private void CompleteMission()
@@ -986,6 +1083,11 @@ public class MissionChapterManager : MonoBehaviour
         {
             StopCoroutine(missionIntroCoroutine);
             missionIntroCoroutine = null;
+        }
+        if (objectiveDialogueCoroutine != null)
+        {
+            StopCoroutine(objectiveDialogueCoroutine);
+            ClearObjectiveDialogueBlock();
         }
 
         foreach (var objective in currentMission.objectives)

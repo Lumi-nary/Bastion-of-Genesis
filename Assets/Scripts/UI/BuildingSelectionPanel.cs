@@ -289,6 +289,9 @@ public class BuildingSelectionPanel : MonoBehaviour
                 if (btn != null)
                 {
                     btn.interactable = IsBuildingSelectableForTutorial(data);
+                    SetTutorialHighlight(btn, TutorialGuideManager.Instance != null &&
+                        TutorialGuideManager.Instance.IsTargetAction(TutorialTargetAction.SelectBuilding) &&
+                        TutorialGuideManager.Instance.CanSelectBuilding(data));
                     btn.onClick.AddListener(() => OnBuildingSelected(data));
                 }
             }
@@ -520,6 +523,19 @@ public class BuildingSelectionPanel : MonoBehaviour
     {
         Image img = button.GetComponent<Image>();
         if (img != null) img.color = color;
+    }
+
+    private void SetTutorialHighlight(Button button, bool highlighted)
+    {
+        if (button == null)
+            return;
+
+        Image image = button.GetComponent<Image>();
+        if (image == null)
+            return;
+
+        TutorialPulseHighlight pulse = image.GetComponent<TutorialPulseHighlight>() ?? image.gameObject.AddComponent<TutorialPulseHighlight>();
+        pulse.SetHighlighted(highlighted);
     }
 
     private string GetCategoryDisplayName(BuildingCategory category)

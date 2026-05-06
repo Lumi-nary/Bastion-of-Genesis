@@ -124,7 +124,7 @@ public class TechNodeUI : MonoBehaviour
             statusText.text = "LOCKED";
             statusText.color = new Color(0.85f, 0.9f, 0.95f, 1f);
         }
-        if (nodeButton != null) nodeButton.interactable = true; // Still clickable to show info
+        ApplyTutorialGate(true); // Still clickable to show info unless another tutorial tech is required.
     }
 
     private void SetAvailableState()
@@ -138,7 +138,7 @@ public class TechNodeUI : MonoBehaviour
             statusText.text = "AVAILABLE";
             statusText.color = new Color(0.62f, 0.9f, 1f, 1f);
         }
-        if (nodeButton != null) nodeButton.interactable = true;
+        ApplyTutorialGate(true);
     }
 
     private void SetResearchingState()
@@ -152,7 +152,7 @@ public class TechNodeUI : MonoBehaviour
             statusText.text = "RESEARCHING";
             statusText.color = new Color(1f, 0.84f, 0.38f, 1f);
         }
-        if (nodeButton != null) nodeButton.interactable = true;
+        ApplyTutorialGate(true);
     }
 
     private void SetCompletedState()
@@ -166,7 +166,7 @@ public class TechNodeUI : MonoBehaviour
             statusText.text = "COMPLETE";
             statusText.color = new Color(0.45f, 1f, 0.75f, 1f);
         }
-        if (nodeButton != null) nodeButton.interactable = false;
+        ApplyTutorialGate(false);
     }
 
     private void OnDestroy()
@@ -175,5 +175,22 @@ public class TechNodeUI : MonoBehaviour
         {
             nodeButton.onClick.RemoveListener(OnNodeClicked);
         }
+    }
+
+    private void ApplyTutorialGate(bool baseInteractable)
+    {
+        bool tutorialAllowed = TutorialGuideManager.Instance == null ||
+            TutorialGuideManager.Instance.CanResearchTechnology(techData);
+
+        if (nodeButton != null)
+            nodeButton.interactable = baseInteractable && tutorialAllowed;
+
+        if (backgroundImage == null)
+            return;
+
+        TutorialPulseHighlight pulse = backgroundImage.GetComponent<TutorialPulseHighlight>() ?? backgroundImage.gameObject.AddComponent<TutorialPulseHighlight>();
+        pulse.SetHighlighted(TutorialGuideManager.Instance != null &&
+            TutorialGuideManager.Instance.IsTargetAction(TutorialTargetAction.ResearchTechnology) &&
+            tutorialAllowed);
     }
 }

@@ -14,6 +14,10 @@ public class TutorialGuideManager : MonoBehaviour
         SettingsManager.Instance.CurrentSettings.tutorialEnabled;
     public bool HasActiveHardGate => IsTutorialEnabled && ActiveObjective != null && ActiveObjective.isTutorialStep && ActiveObjective.gateMode == TutorialGateMode.HardGate;
     public string CurrentInstruction => IsTutorialEnabled && ActiveObjective != null ? ActiveObjective.tutorialInstruction : string.Empty;
+    public TutorialTargetPanel CurrentTargetPanel => HasActiveHardGate ? ActiveObjective.targetPanel : TutorialTargetPanel.None;
+    public TutorialTargetAction CurrentTargetAction => HasActiveHardGate ? ActiveObjective.targetAction : TutorialTargetAction.None;
+    public bool HasCameraLock => IsTutorialEnabled && ActiveObjective != null && ActiveObjective.isTutorialStep && ActiveObjective.focusCameraOnTarget;
+    public float CurrentCameraZoom => HasCameraLock ? ActiveObjective.tutorialCameraZoom : 0f;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void EnsureRuntimeObjectsBeforeSceneLoad()
@@ -215,6 +219,26 @@ public class TutorialGuideManager : MonoBehaviour
         return ActiveObjective.requiredBuilding == null || ActiveObjective.requiredBuilding == buildingData;
     }
 
+    public bool CanOpenPanel(UIManager.PanelKind panelKind)
+    {
+        if (!HasActiveHardGate || ActiveObjective.targetPanel == TutorialTargetPanel.None)
+            return true;
+
+        return ActiveObjective.targetPanel == ToTutorialTargetPanel(panelKind);
+    }
+
+    public bool IsTargetPanel(UIManager.PanelKind panelKind)
+    {
+        return HasActiveHardGate &&
+            ActiveObjective.targetPanel != TutorialTargetPanel.None &&
+            ActiveObjective.targetPanel == ToTutorialTargetPanel(panelKind);
+    }
+
+    public bool IsTargetAction(TutorialTargetAction action)
+    {
+        return HasActiveHardGate && ActiveObjective.targetAction == action;
+    }
+
     public bool CanPlaceBuilding(BuildingData buildingData, Vector2Int startCell, int width, int height)
     {
         if (!CanSelectBuilding(buildingData))
@@ -273,5 +297,60 @@ public class TutorialGuideManager : MonoBehaviour
             return technologyData != null && ActiveObjective.requiredTechnologies.Contains(technologyData);
 
         return ActiveObjective.requiredTechnology == null || ActiveObjective.requiredTechnology == technologyData;
+    }
+
+    public bool TryGetCameraFocusWorldPosition(out Vector3 worldPosition)
+    {
+        worldPosition = Vector3.zero;
+
+        if (!HasCameraLock)
+            return false;
+
+        MissionObjective objective = ActiveObjective;
+
+        if (objective.hasFocusWorldCell && GridManager.Instance != null)
+        {
+            worldPosition = GridManager.Instance.GridToWorldPosition(objective.focusWorldCell);
+            return true;
+        }
+
+        if (objective.type == ObjectiveType.BuildStructures &&
+            objective.allowedPlacementCells != null &&
+            objective.allowedPlacementCells.Count > 0 &&
+            GridManager.Instance != null)
+        {
+            worldPosition = GridManager.Instance.GridToWorldPosition(objective.allowedPlacementCells[0]);
+            return true;
+        }
+
+        if (objective.type == ObjectiveType.AssignWorkers &&
+            objective.requiredAssignmentBuilding != null &&
+            BuildingManager.Instance != null)
+        {
+            List<Building> buildings = BuildingManager.Instance.GetBuildingsByType(objective.requiredAssignmentBuilding);
+            foreach (Building building in buildings)
+            {
+                if (building != null)
+                {
+                    worldPosition = building.transform.position;
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public static TutorialTargetPanel ToTutorialTargetPanel(UIManager.PanelKind panelKind)
+    {
+        return panelKind switch
+        {
+            UIManager.PanelKind.BuildingSelection => TutorialTargetPanel.BuildingList,
+            UIManager.PanelKind.WorkerAssembly => TutorialTargetPanel.WorkerAssembly,
+            UIManager.PanelKind.WorkerAssign => TutorialTargetPanel.WorkerAssignment,
+            UIManager.PanelKind.Research => TutorialTargetPanel.Research,
+            UIManager.PanelKind.Mission => TutorialTargetPanel.Mission,
+            _ => TutorialTargetPanel.None
+        };
     }
 }

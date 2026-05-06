@@ -34,6 +34,10 @@ public class CameraController : MonoBehaviour
     [Tooltip("Padding around map edges")]
     [SerializeField] private float boundsPadding = 1f;
 
+    [Header("Tutorial Camera Lock")]
+    [SerializeField] private float tutorialFocusMoveSpeed = 8f;
+    [SerializeField] private float tutorialDefaultZoom = 7f;
+
     // Calculated bounds from tilemap
     private Vector2 boundsMin;
     private Vector2 boundsMax;
@@ -46,6 +50,7 @@ public class CameraController : MonoBehaviour
     private Vector2 lastMousePosition;
     private Vector3 moveDirection;
     private float targetOrthographicSize;
+    private bool tutorialCameraLocked;
 
     private void Awake()
     {
@@ -74,6 +79,7 @@ public class CameraController : MonoBehaviour
     private void Start()
     {
         InitializeBounds();
+        SubscribeTutorialGuide();
     }
 
     /// <summary>
@@ -122,6 +128,8 @@ public class CameraController : MonoBehaviour
         dragAction.started += StartDrag;
         dragAction.canceled += EndDrag;
         zoomAction.performed += HandleZoomInput;
+
+        SubscribeTutorialGuide();
     }
 
     private void OnDisable()
@@ -131,6 +139,7 @@ public class CameraController : MonoBehaviour
         zoomAction.performed -= HandleZoomInput;
 
         playerControls.Camera.Disable();
+        UnsubscribeTutorialGuide();
     }
 
     void Update()
@@ -139,12 +148,77 @@ public class CameraController : MonoBehaviour
         if (UIManager.Instance != null && UIManager.Instance.IsPaused)
             return;
 
+        if (HandleTutorialCameraLock())
+            return;
+
         HandleMovement();
         SmoothZoom();
     }
 
+    private void SubscribeTutorialGuide()
+    {
+        if (TutorialGuideManager.Instance == null)
+            return;
+
+        TutorialGuideManager.Instance.OnTutorialObjectiveChanged -= OnTutorialObjectiveChanged;
+        TutorialGuideManager.Instance.OnTutorialObjectiveChanged += OnTutorialObjectiveChanged;
+        RefreshTutorialLock();
+    }
+
+    private void UnsubscribeTutorialGuide()
+    {
+        if (TutorialGuideManager.Instance != null)
+            TutorialGuideManager.Instance.OnTutorialObjectiveChanged -= OnTutorialObjectiveChanged;
+    }
+
+    private void OnTutorialObjectiveChanged(MissionObjective objective)
+    {
+        RefreshTutorialLock();
+    }
+
+    private void RefreshTutorialLock()
+    {
+        tutorialCameraLocked = TutorialGuideManager.Instance != null &&
+            TutorialGuideManager.Instance.HasCameraLock &&
+            TutorialGuideManager.Instance.TryGetCameraFocusWorldPosition(out _);
+
+        if (tutorialCameraLocked)
+            isDragging = false;
+    }
+
+    private bool HandleTutorialCameraLock()
+    {
+        if (TutorialGuideManager.Instance == null)
+        {
+            tutorialCameraLocked = false;
+            return false;
+        }
+
+        Vector3 focusPosition = Vector3.zero;
+        tutorialCameraLocked = TutorialGuideManager.Instance.HasCameraLock &&
+            TutorialGuideManager.Instance.TryGetCameraFocusWorldPosition(out focusPosition);
+
+        if (!tutorialCameraLocked)
+            return false;
+
+        isDragging = false;
+        Vector3 targetPosition = new Vector3(focusPosition.x, focusPosition.y, transform.position.z);
+        transform.position = Vector3.Lerp(transform.position, targetPosition, Time.unscaledDeltaTime * tutorialFocusMoveSpeed);
+
+        float zoom = TutorialGuideManager.Instance.CurrentCameraZoom > 0f
+            ? TutorialGuideManager.Instance.CurrentCameraZoom
+            : tutorialDefaultZoom;
+        targetOrthographicSize = Mathf.Clamp(zoom, minOrthographicSize, maxOrthographicSize);
+        SmoothZoom();
+        ClampToBounds();
+        return true;
+    }
+
     private void HandleMovement()
     {
+        if (Mouse.current == null)
+            return;
+
         // Read mouse position once per frame
         Vector2 currentMousePosition = Mouse.current.position.ReadValue();
 
@@ -236,6 +310,8 @@ public class CameraController : MonoBehaviour
         // Block zoom input when game is paused
         if (UIManager.Instance != null && UIManager.Instance.IsPaused)
             return;
+        if (tutorialCameraLocked)
+            return;
 
         float scrollValue = context.ReadValue<Vector2>().y;
 
@@ -256,6 +332,8 @@ public class CameraController : MonoBehaviour
     {
         // Block drag when game is paused
         if (UIManager.Instance != null && UIManager.Instance.IsPaused)
+            return;
+        if (tutorialCameraLocked || Mouse.current == null)
             return;
 
         isDragging = true;

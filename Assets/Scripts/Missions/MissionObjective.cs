@@ -22,6 +22,27 @@ public enum TutorialGateMode
     HardGate
 }
 
+public enum TutorialTargetPanel
+{
+    None,
+    BuildingList,
+    WorkerAssembly,
+    WorkerAssignment,
+    Research,
+    Mission
+}
+
+public enum TutorialTargetAction
+{
+    None,
+    ClickNavButton,
+    SelectBuilding,
+    PlaceBuilding,
+    AssignWorker,
+    AssembleWorker,
+    ResearchTechnology
+}
+
 [System.Serializable]
 public class MissionObjective
 {
@@ -41,12 +62,18 @@ public class MissionObjective
     [Header("Tutorial Gate")]
     public bool isTutorialStep = false;
     public TutorialGateMode gateMode = TutorialGateMode.HardGate;
+    public TutorialTargetPanel targetPanel = TutorialTargetPanel.None;
+    public TutorialTargetAction targetAction = TutorialTargetAction.None;
+    public DialogueData objectiveDialogue;
     public List<Vector2Int> allowedPlacementCells = new List<Vector2Int>();
+    public Vector2Int focusWorldCell;
+    public bool hasFocusWorldCell = false;
     public TechnologyData requiredTechnology;
     public List<TechnologyData> requiredTechnologies = new List<TechnologyData>();
     public BuildingData requiredAssignmentBuilding;
     [TextArea(2, 4)] public string tutorialInstruction;
     public bool focusCameraOnTarget = true;
+    public float tutorialCameraZoom = 7f;
 
     [Header("Completion Status")]
     [HideInInspector] public int currentAmount;

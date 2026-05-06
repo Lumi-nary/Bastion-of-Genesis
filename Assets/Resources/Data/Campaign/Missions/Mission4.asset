@@ -31,12 +31,18 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 1
     gateMode: 0
+    targetPanel: 1
+    targetAction: 2
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 0}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 0}
-    tutorialInstruction: Build a Laboratory to unlock technology research.
+    tutorialInstruction: Click the glowing Buildings button, select Laboratory, then
+      place it on a valid tile.
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -51,12 +57,17 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 1
     gateMode: 0
+    targetPanel: 3
+    targetAction: 4
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 0}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 11400000, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0, type: 2}
-    tutorialInstruction: Assign one Researcher to the Laboratory.
+    tutorialInstruction: Open Worker Assignment and assign one Researcher to the Laboratory.
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -71,7 +82,11 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 1
     gateMode: 0
+    targetPanel: 4
+    targetAction: 6
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 0}
     requiredTechnologies:
     - {fileID: 11400000, guid: 1b157d4c536444faa6fee78ba097aa94, type: 2}
@@ -81,6 +96,7 @@ MonoBehaviour:
     tutorialInstruction: 'Research the three storage technologies: Resource Warehouse,
       Energy Battery, and Robot Bay.'
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -95,12 +111,18 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 1
     gateMode: 0
+    targetPanel: 1
+    targetAction: 2
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 0}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 0}
-    tutorialInstruction: Build a Resource Warehouse to expand material storage.
+    tutorialInstruction: Click the glowing Buildings button, select Resource Warehouse,
+      then place it on a valid tile.
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -115,12 +137,18 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 1
     gateMode: 0
+    targetPanel: 1
+    targetAction: 2
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 0}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 0}
-    tutorialInstruction: Build an Energy Battery to expand energy storage.
+    tutorialInstruction: Click the glowing Buildings button, select Energy Battery,
+      then place it on a valid tile.
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -135,12 +163,18 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 1
     gateMode: 0
+    targetPanel: 1
+    targetAction: 2
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 0}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 0}
-    tutorialInstruction: Build a Robot Bay to expand robot storage.
+    tutorialInstruction: Click the glowing Buildings button, select Robot Bay, then
+      place it on a valid tile.
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0

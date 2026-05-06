@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 922cbf48982aa4f4ba81c16e6a7c9123, type: 3}
+  m_Name: Mission1_Objective3_CollectIron
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueData
+  dialogueName: Mission1 Objective 3 - Collect Iron
+  pauseGame: 0
+  entries:
+  - speakerName: Nexus
+    portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
+    expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
+    dialogueText: Iron production has started.
+    voiceClip: {fileID: 0}
+  - speakerName: Nexus
+    portrait: {fileID: 4329407632164072968, guid: 768fe4dd8c6c4b24f99cb3ea39d88b98, type: 3}
+    expression: {fileID: 3622792381989719942, guid: df58ce550d446d847ba3ac2c700cb826, type: 3}
+    dialogueText: Wait while the extractor accumulates 100 iron.
+    voiceClip: {fileID: 0}

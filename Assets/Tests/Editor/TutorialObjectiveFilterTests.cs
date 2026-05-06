@@ -156,6 +156,81 @@ public class TutorialObjectiveFilterTests
         Object.DestroyImmediate(mission);
     }
 
+    [Test]
+    public void ActiveTutorialStep_ExposesPanelActionAndBlocksOtherPanels()
+    {
+        TutorialGuideManager guide = CreateGuide();
+        MissionObjective objective = new MissionObjective
+        {
+            type = ObjectiveType.BuildStructures,
+            isTutorialStep = true,
+            gateMode = TutorialGateMode.HardGate,
+            targetPanel = TutorialTargetPanel.BuildingList,
+            targetAction = TutorialTargetAction.SelectBuilding
+        };
+        SetActiveObjective(guide, objective);
+
+        Assert.AreEqual(TutorialTargetPanel.BuildingList, guide.CurrentTargetPanel);
+        Assert.AreEqual(TutorialTargetAction.SelectBuilding, guide.CurrentTargetAction);
+        Assert.IsTrue(guide.CanOpenPanel(UIManager.PanelKind.BuildingSelection));
+        Assert.IsFalse(guide.CanOpenPanel(UIManager.PanelKind.Research));
+        Assert.IsTrue(guide.IsTargetPanel(UIManager.PanelKind.BuildingSelection));
+        Assert.IsTrue(guide.IsTargetAction(TutorialTargetAction.SelectBuilding));
+
+        Object.DestroyImmediate(guide.gameObject);
+    }
+
+    [Test]
+    public void TutorialCameraLock_OnlyActiveForTutorialObjectiveWithFocusEnabled()
+    {
+        TutorialGuideManager guide = CreateGuide();
+        MissionObjective objective = new MissionObjective
+        {
+            type = ObjectiveType.BuildStructures,
+            isTutorialStep = true,
+            focusCameraOnTarget = true,
+            hasFocusWorldCell = true,
+            focusWorldCell = new Vector2Int(5, 6),
+            tutorialCameraZoom = 4f
+        };
+        SetActiveObjective(guide, objective);
+
+        Assert.IsTrue(guide.HasCameraLock);
+        Assert.AreEqual(4f, guide.CurrentCameraZoom);
+
+        objective.focusCameraOnTarget = false;
+        Assert.IsFalse(guide.HasCameraLock);
+
+        objective.focusCameraOnTarget = true;
+        objective.isTutorialStep = false;
+        Assert.IsFalse(guide.HasCameraLock);
+
+        Object.DestroyImmediate(guide.gameObject);
+    }
+
+    [Test]
+    public void NonTutorialObjective_DoesNotGatePanelsOrCamera()
+    {
+        TutorialGuideManager guide = CreateGuide();
+        MissionObjective objective = new MissionObjective
+        {
+            type = ObjectiveType.ResearchTechnology,
+            isTutorialStep = false,
+            targetPanel = TutorialTargetPanel.Research,
+            targetAction = TutorialTargetAction.ResearchTechnology,
+            focusCameraOnTarget = true
+        };
+        SetActiveObjective(guide, objective);
+
+        Assert.IsTrue(guide.CanOpenPanel(UIManager.PanelKind.BuildingSelection));
+        Assert.IsTrue(guide.CanOpenPanel(UIManager.PanelKind.Research));
+        Assert.IsFalse(guide.HasCameraLock);
+        Assert.AreEqual(TutorialTargetPanel.None, guide.CurrentTargetPanel);
+        Assert.AreEqual(TutorialTargetAction.None, guide.CurrentTargetAction);
+
+        Object.DestroyImmediate(guide.gameObject);
+    }
+
     private static Building CreateBuilding(BuildingData buildingData)
     {
         GameObject go = new GameObject("Tutorial Objective Test Building");
@@ -164,5 +239,18 @@ public class TutorialObjectiveFilterTests
             .GetField("buildingData", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
             .SetValue(building, buildingData);
         return building;
+    }
+
+    private static TutorialGuideManager CreateGuide()
+    {
+        GameObject go = new GameObject("Tutorial Guide Test");
+        return go.AddComponent<TutorialGuideManager>();
+    }
+
+    private static void SetActiveObjective(TutorialGuideManager guide, MissionObjective objective)
+    {
+        typeof(TutorialGuideManager)
+            .GetField("<ActiveObjective>k__BackingField", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            .SetValue(guide, objective);
     }
 }

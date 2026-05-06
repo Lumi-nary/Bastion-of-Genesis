@@ -1,6 +1,6 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 /// <summary>
 /// Left-nav button that opens one of the five HUD nav panels via UIManager.
@@ -23,6 +23,10 @@ public class NavButton : MonoBehaviour
     [SerializeField] private Color normalText = Color.white;
     [SerializeField] private Color selectedText = Color.black;
 
+    private bool subscribed;
+    private bool tutorialSubscribed;
+    private TutorialPulseHighlight pulseHighlight;
+
     private void Reset()
     {
         button = GetComponent<Button>();
@@ -32,48 +36,77 @@ public class NavButton : MonoBehaviour
 
     private void Awake()
     {
-        if (button == null) button = GetComponent<Button>();
-        if (background == null) background = GetComponent<Image>();
-        if (label == null) label = GetComponentInChildren<TMP_Text>();
+        if (button == null)
+            button = GetComponent<Button>();
+        if (background == null)
+            background = GetComponent<Image>();
+        if (label == null)
+            label = GetComponentInChildren<TMP_Text>();
+        if (background != null)
+            pulseHighlight = background.GetComponent<TutorialPulseHighlight>();
     }
-
-    private bool subscribed;
 
     private void OnEnable()
     {
-        if (button != null) button.onClick.AddListener(OnClicked);
+        if (button != null)
+            button.onClick.AddListener(OnClicked);
+
         TrySubscribe();
+        TrySubscribeTutorial();
     }
 
     private void OnDisable()
     {
-        if (button != null) button.onClick.RemoveListener(OnClicked);
+        if (button != null)
+            button.onClick.RemoveListener(OnClicked);
+
         if (subscribed && UIManager.Instance != null)
         {
             UIManager.Instance.OnActivePanelChanged -= OnActivePanelChanged;
             subscribed = false;
         }
+
+        if (tutorialSubscribed && TutorialGuideManager.Instance != null)
+        {
+            TutorialGuideManager.Instance.OnTutorialObjectiveChanged -= OnTutorialObjectiveChanged;
+            tutorialSubscribed = false;
+        }
+
+        SetTutorialHighlight(false);
     }
 
     private void Start()
     {
-        // Retry subscription in Start — UIManager.Instance may not have existed in OnEnable
-        // due to Script Execution Order (Awake of all scripts before any OnEnable is typical,
-        // but singleton assignment order can still leave Instance null at that point).
         TrySubscribe();
+        TrySubscribeTutorial();
+        ApplyTutorialGate();
     }
 
     private void TrySubscribe()
     {
-        if (subscribed) return;
-        if (UIManager.Instance == null) return;
+        if (subscribed || UIManager.Instance == null)
+            return;
+
         UIManager.Instance.OnActivePanelChanged += OnActivePanelChanged;
         subscribed = true;
         ApplyHighlight(UIManager.Instance.ActivePanel);
     }
 
+    private void TrySubscribeTutorial()
+    {
+        if (tutorialSubscribed || TutorialGuideManager.Instance == null)
+            return;
+
+        TutorialGuideManager.Instance.OnTutorialObjectiveChanged += OnTutorialObjectiveChanged;
+        tutorialSubscribed = true;
+        ApplyTutorialGate();
+    }
+
     private void OnClicked()
     {
+        if (TutorialGuideManager.Instance != null && !TutorialGuideManager.Instance.CanOpenPanel(targetPanel))
+            return;
+
         if (UIManager.Instance != null)
             UIManager.Instance.TogglePanel(targetPanel, transform as RectTransform);
     }
@@ -83,21 +116,51 @@ public class NavButton : MonoBehaviour
         ApplyHighlight(kind);
     }
 
+    private void OnTutorialObjectiveChanged(MissionObjective objective)
+    {
+        ApplyTutorialGate();
+    }
+
     private void ApplyHighlight(UIManager.PanelKind active)
     {
         bool selected = active == targetPanel;
-        var bgColor = selected ? selectedBg : normalBg;
+        Color bgColor = selected ? selectedBg : normalBg;
 
-        if (background != null) background.color = bgColor;
-        if (label != null) label.color = selected ? selectedText : normalText;
+        if (background != null)
+            background.color = bgColor;
+        if (label != null)
+            label.color = selected ? selectedText : normalText;
 
-        // The Button's ColorBlock overrides Image.color on state changes, so sync its normalColor too.
         if (button != null)
         {
-            var colors = button.colors;
+            ColorBlock colors = button.colors;
             colors.normalColor = bgColor;
             colors.selectedColor = bgColor;
             button.colors = colors;
         }
+
+        ApplyTutorialGate();
+    }
+
+    private void ApplyTutorialGate()
+    {
+        bool allowed = TutorialGuideManager.Instance == null || TutorialGuideManager.Instance.CanOpenPanel(targetPanel);
+        bool highlighted = TutorialGuideManager.Instance != null && TutorialGuideManager.Instance.IsTargetPanel(targetPanel);
+
+        if (button != null)
+            button.interactable = allowed;
+
+        SetTutorialHighlight(highlighted);
+    }
+
+    private void SetTutorialHighlight(bool highlighted)
+    {
+        if (background == null)
+            return;
+
+        if (pulseHighlight == null)
+            pulseHighlight = background.gameObject.GetComponent<TutorialPulseHighlight>() ?? background.gameObject.AddComponent<TutorialPulseHighlight>();
+
+        pulseHighlight.SetHighlighted(highlighted);
     }
 }

@@ -141,6 +141,9 @@ public class FactoryRowUI : MonoBehaviour
         if (assembleButton != null)
         {
             assembleButton.interactable = hasRoom && canAfford && !atCapacity && tutorialAllowed;
+            SetTutorialHighlight(assembleButton, TutorialGuideManager.Instance != null &&
+                TutorialGuideManager.Instance.IsTargetAction(TutorialTargetAction.AssembleWorker) &&
+                tutorialAllowed);
         }
         if (cancelButton != null)
         {
@@ -644,6 +647,19 @@ public class FactoryRowUI : MonoBehaviour
             label.fontStyle = FontStyles.Bold;
             label.color = Color.white;
         }
+    }
+
+    private void SetTutorialHighlight(Button button, bool highlighted)
+    {
+        if (button == null)
+            return;
+
+        Image image = button.GetComponent<Image>();
+        if (image == null)
+            return;
+
+        TutorialPulseHighlight pulse = image.GetComponent<TutorialPulseHighlight>() ?? image.gameObject.AddComponent<TutorialPulseHighlight>();
+        pulse.SetHighlighted(highlighted);
     }
 
     private void Stretch(RectTransform rect)

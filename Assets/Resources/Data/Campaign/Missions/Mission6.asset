@@ -30,12 +30,18 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 1
     gateMode: 0
+    targetPanel: 1
+    targetAction: 2
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 0}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 0}
-    tutorialInstruction: Build four Iron Walls at your chosen defensive line.
+    tutorialInstruction: Click the glowing Buildings button, select Iron Wall, then
+      place four walls on valid tiles.
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -50,12 +56,17 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 1
     gateMode: 0
+    targetPanel: 4
+    targetAction: 6
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 11400000, guid: b98401c7a0d37b44e9d0af36edc2a041, type: 2}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 0}
-    tutorialInstruction: Research Starter Turret technology.
+    tutorialInstruction: Open Research and start Starter Turret technology.
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -70,12 +81,18 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 1
     gateMode: 0
+    targetPanel: 1
+    targetAction: 2
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 0}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 0}
-    tutorialInstruction: Build a Gun Turret to defend the base.
+    tutorialInstruction: Click the glowing Buildings button, select Gun Turret, then
+      place it on a valid tile.
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -90,12 +107,17 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 0
     gateMode: 0
+    targetPanel: 0
+    targetAction: 0
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 0}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 0}
     tutorialInstruction: 
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0

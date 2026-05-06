@@ -30,13 +30,18 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 1
     gateMode: 0
+    targetPanel: 1
+    targetAction: 2
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 0}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 0}
-    tutorialInstruction: Build a Builder Factory so the colony can produce more robotic
-      workers.
+    tutorialInstruction: Click the glowing Buildings button, select Builder Factory,
+      then place it on a valid tile.
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -51,12 +56,17 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 0
     gateMode: 0
+    targetPanel: 0
+    targetAction: 0
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 0}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 0}
     tutorialInstruction: 
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
@@ -71,12 +81,17 @@ MonoBehaviour:
     targetRace: 0
     isTutorialStep: 1
     gateMode: 0
+    targetPanel: 2
+    targetAction: 5
     allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
     requiredTechnology: {fileID: 0}
     requiredTechnologies: []
     requiredAssignmentBuilding: {fileID: 0}
-    tutorialInstruction: Assemble two Researchers for the next research step.
+    tutorialInstruction: Open Worker Assembly and click Assemble on Researcher.
     focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
     currentAmount: 0
     currentTime: 0
     isCompleted: 0

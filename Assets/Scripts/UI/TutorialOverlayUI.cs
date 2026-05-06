@@ -8,8 +8,13 @@ public class TutorialOverlayUI : MonoBehaviour
     private const int OverlaySortingOrder = 900;
     private const float DisableButtonWidth = 180f;
     private const float DisableButtonHeight = 36f;
+    private const string InstructionPanelResourcePath = "Prefabs/UI/TutorialInstructionPanel";
+    private const float InstructionWidth = 520f;
+    private const float InstructionHeight = 104f;
+    private const float InstructionMargin = 50f;
 
     [Header("Instruction")]
+    [SerializeField] private GameObject instructionPanelPrefab;
     [SerializeField] private GameObject instructionPanel;
     [SerializeField] private TextMeshProUGUI instructionText;
 
@@ -26,7 +31,10 @@ public class TutorialOverlayUI : MonoBehaviour
     private void OnEnable()
     {
         if (TutorialGuideManager.CanShowTutorialOverlay())
+        {
+            EnsureInstructionPanel();
             EnsureDisableTutorialButton();
+        }
 
         Subscribe();
         Refresh();
@@ -35,7 +43,10 @@ public class TutorialOverlayUI : MonoBehaviour
     private void Start()
     {
         if (TutorialGuideManager.CanShowTutorialOverlay())
+        {
+            EnsureInstructionPanel();
             EnsureDisableTutorialButton();
+        }
 
         Subscribe();
         Refresh();
@@ -45,6 +56,9 @@ public class TutorialOverlayUI : MonoBehaviour
     {
         if (TutorialGuideManager.Instance != null)
             TutorialGuideManager.Instance.OnTutorialObjectiveChanged -= OnTutorialObjectiveChanged;
+
+        if (MissionChapterManager.Instance != null)
+            MissionChapterManager.Instance.OnObjectiveDialogueStateChanged -= OnObjectiveDialogueStateChanged;
 
         ClearHighlights();
     }
@@ -56,9 +70,20 @@ public class TutorialOverlayUI : MonoBehaviour
 
         TutorialGuideManager.Instance.OnTutorialObjectiveChanged -= OnTutorialObjectiveChanged;
         TutorialGuideManager.Instance.OnTutorialObjectiveChanged += OnTutorialObjectiveChanged;
+
+        if (MissionChapterManager.Instance != null)
+        {
+            MissionChapterManager.Instance.OnObjectiveDialogueStateChanged -= OnObjectiveDialogueStateChanged;
+            MissionChapterManager.Instance.OnObjectiveDialogueStateChanged += OnObjectiveDialogueStateChanged;
+        }
     }
 
     private void OnTutorialObjectiveChanged(MissionObjective objective)
+    {
+        Refresh();
+    }
+
+    private void OnObjectiveDialogueStateChanged()
     {
         Refresh();
     }
@@ -68,12 +93,14 @@ public class TutorialOverlayUI : MonoBehaviour
         MissionObjective objective = TutorialGuideManager.Instance != null ? TutorialGuideManager.Instance.ActiveObjective : null;
         bool tutorialEnabled = TutorialGuideManager.CanShowTutorialOverlay();
         bool hasObjective = tutorialEnabled && objective != null;
+        bool objectiveDialogueBlocking = MissionChapterManager.Instance != null &&
+            MissionChapterManager.Instance.IsObjectiveDialogueBlockingTutorial;
 
         if (instructionPanel != null)
-            instructionPanel.SetActive(hasObjective && !string.IsNullOrWhiteSpace(objective.tutorialInstruction));
+            instructionPanel.SetActive(hasObjective && !objectiveDialogueBlocking && !string.IsNullOrWhiteSpace(objective.tutorialInstruction));
 
         if (instructionText != null)
-            instructionText.text = hasObjective ? objective.tutorialInstruction : string.Empty;
+            instructionText.text = hasObjective && !objectiveDialogueBlocking ? objective.tutorialInstruction : string.Empty;
 
         if (disableTutorialButton != null)
             disableTutorialButton.gameObject.SetActive(tutorialEnabled);
@@ -143,6 +170,93 @@ public class TutorialOverlayUI : MonoBehaviour
         disableTutorialButtonText.alignment = TextAlignmentOptions.Center;
         disableTutorialButtonText.color = new Color(0.86f, 0.98f, 1f, 1f);
         disableTutorialButtonText.raycastTarget = false;
+    }
+
+    private void EnsureInstructionPanel()
+    {
+        if (!TutorialGuideManager.CanShowTutorialOverlay())
+            return;
+
+        if (instructionPanel != null && instructionText != null)
+            return;
+
+        Canvas canvas = GetOrCreateOverlayCanvas();
+
+        GameObject prefab = instructionPanelPrefab != null ? instructionPanelPrefab : Resources.Load<GameObject>(InstructionPanelResourcePath);
+        if (prefab != null)
+        {
+            instructionPanel = Instantiate(prefab, canvas.transform, false);
+            instructionPanel.name = "TutorialInstructionPanel";
+            instructionText = instructionPanel.GetComponentInChildren<TextMeshProUGUI>(true);
+            ApplyInstructionPanelLayout(instructionPanel.GetComponent<RectTransform>());
+            return;
+        }
+
+        CreateFallbackInstructionPanel(canvas);
+    }
+
+    private void CreateFallbackInstructionPanel(Canvas canvas)
+    {
+        GameObject panelObject = new GameObject("TutorialInstructionPanel", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        panelObject.transform.SetParent(canvas.transform, false);
+
+        RectTransform panelRect = panelObject.GetComponent<RectTransform>();
+        ApplyInstructionPanelLayout(panelRect);
+
+        Image panelImage = panelObject.GetComponent<Image>();
+        panelImage.color = new Color(0.025f, 0.055f, 0.1f, 0.92f);
+
+        GameObject textObject = new GameObject("InstructionText", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+        textObject.transform.SetParent(panelObject.transform, false);
+
+        RectTransform textRect = textObject.GetComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.offsetMin = new Vector2(22f, 14f);
+        textRect.offsetMax = new Vector2(-22f, -14f);
+
+        instructionText = textObject.GetComponent<TextMeshProUGUI>();
+        instructionText.fontSize = 24f;
+        instructionText.fontStyle = FontStyles.Bold;
+        instructionText.alignment = TextAlignmentOptions.Center;
+        instructionText.color = new Color(0.9f, 0.98f, 1f, 1f);
+        instructionText.enableWordWrapping = true;
+        instructionText.raycastTarget = false;
+
+        instructionPanel = panelObject;
+    }
+
+    private void ApplyInstructionPanelLayout(RectTransform panelRect)
+    {
+        if (panelRect == null)
+            return;
+
+        panelRect.anchorMin = Vector2.zero;
+        panelRect.anchorMax = Vector2.zero;
+        panelRect.pivot = Vector2.zero;
+        panelRect.anchoredPosition = new Vector2(InstructionMargin, InstructionMargin);
+        panelRect.sizeDelta = new Vector2(InstructionWidth, InstructionHeight);
+    }
+
+    private Canvas GetOrCreateOverlayCanvas()
+    {
+        Canvas canvas = GetComponentInChildren<Canvas>();
+        if (canvas != null)
+            return canvas;
+
+        GameObject canvasObject = new GameObject("TutorialOverlayCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+        canvasObject.transform.SetParent(transform, false);
+
+        canvas = canvasObject.GetComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = OverlaySortingOrder;
+
+        CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        scaler.matchWidthOrHeight = 1f;
+
+        return canvas;
     }
 
     private void OnDisableTutorialClicked()

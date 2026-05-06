@@ -208,7 +208,11 @@ public class WorkerAssignRowUI : MonoBehaviour
         // Add button - enabled if capacity available and workers exist
         if (addButton != null)
         {
-            addButton.interactable = assigned < capacity && HasAvailableWorkers() && HasTutorialAllowedAssignment();
+            bool tutorialAllowed = HasTutorialAllowedAssignment();
+            addButton.interactable = assigned < capacity && HasAvailableWorkers() && tutorialAllowed;
+            SetTutorialHighlight(addButton, TutorialGuideManager.Instance != null &&
+                TutorialGuideManager.Instance.IsTargetAction(TutorialTargetAction.AssignWorker) &&
+                tutorialAllowed);
         }
 
         // Remove button - enabled if any workers assigned
@@ -377,5 +381,18 @@ public class WorkerAssignRowUI : MonoBehaviour
     private bool CanAssignForTutorial(Building building, WorkerData workerData)
     {
         return TutorialGuideManager.Instance == null || TutorialGuideManager.Instance.CanAssignWorker(building, workerData);
+    }
+
+    private void SetTutorialHighlight(Button button, bool highlighted)
+    {
+        if (button == null)
+            return;
+
+        Image image = button.GetComponent<Image>();
+        if (image == null)
+            return;
+
+        TutorialPulseHighlight pulse = image.GetComponent<TutorialPulseHighlight>() ?? image.gameObject.AddComponent<TutorialPulseHighlight>();
+        pulse.SetHighlighted(highlighted);
     }
 }
