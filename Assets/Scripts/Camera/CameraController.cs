@@ -28,6 +28,10 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float maxOrthographicSize = 15f;
     [SerializeField] private float zoomSmoothing = 5f;
 
+    [Header("UI Input Blocking")]
+    [SerializeField] private bool blockZoomOverObjectiveScroll = true;
+    [SerializeField] private RectTransform objectiveScrollBlocker;
+
     [Header("Camera Bounds")]
     [Tooltip("Limit camera panning and zoom to map bounds")]
     [SerializeField] private bool useCameraBounds = true;
@@ -310,7 +314,7 @@ public class CameraController : MonoBehaviour
         // Block zoom input when game is paused
         if (UIManager.Instance != null && UIManager.Instance.IsPaused)
             return;
-        if (tutorialCameraLocked)
+        if (tutorialCameraLocked || IsPointerOverObjectiveScroll())
             return;
 
         float scrollValue = context.ReadValue<Vector2>().y;
@@ -326,6 +330,31 @@ public class CameraController : MonoBehaviour
 
         // Clamp the target size
         targetOrthographicSize = Mathf.Clamp(targetOrthographicSize, minOrthographicSize, maxOrthographicSize);
+    }
+
+    private bool IsPointerOverObjectiveScroll()
+    {
+        if (!blockZoomOverObjectiveScroll || Mouse.current == null)
+            return false;
+
+        if (objectiveScrollBlocker == null || !objectiveScrollBlocker.gameObject.activeInHierarchy)
+            return false;
+
+        Vector2 mousePosition = Mouse.current.position.ReadValue();
+        return RectTransformUtility.RectangleContainsScreenPoint(
+            objectiveScrollBlocker,
+            mousePosition,
+            GetUiCamera(objectiveScrollBlocker)
+        );
+    }
+
+    private Camera GetUiCamera(RectTransform rectTransform)
+    {
+        Canvas canvas = rectTransform.GetComponentInParent<Canvas>();
+        if (canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            return null;
+
+        return canvas.worldCamera;
     }
 
     private void StartDrag(InputAction.CallbackContext context)

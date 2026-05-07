@@ -25,16 +25,16 @@ Source images:
 
 ## Ordered Actions
 
-1. Rework the tutorial structure into smaller bite-sized steps.
-2. Divide the first part of the game into multiple short introductions to the core mechanics.
-3. Make the tutorial more direct and hard to miss, especially for non-RTS players.
-4. Ensure the tutorial is actually implemented as described in the paper.
-5. Use visual novel storytelling to explain mechanics naturally during the tutorial.
-6. Highlight each important mechanic when it is introduced.
-7. Add clear visual feedback for player actions, objectives, and tutorial steps.
-8. Add or improve animations that support the tutorial and mechanic explanations.
-9. Review and fix UI elements that are not placed correctly.
-10. Reduce early information overload by avoiding too many mechanics or objectives at once.
-11. Study accessible RTS tutorials and apply relevant patterns to the tutorial flow.
+1. Rework the tutorial structure into smaller bite-sized steps. `Done`
+2. Divide the first part of the game into multiple short introductions to the core mechanics. `Done`
+3. Make the tutorial more direct and hard to miss, especially for non-RTS players. `Done`
+4. Ensure the tutorial is actually implemented as described in the paper. `Done`
+5. Use visual novel storytelling to explain mechanics naturally during the tutorial. `Done`
+6. Highlight each important mechanic when it is introduced. `Done`
+7. Add clear visual feedback for player actions, objectives, and tutorial steps. `Done`
+8. Add or improve animations that support the tutorial and mechanic explanations. `Done`
+9. Review and fix UI elements that are not placed correctly. `Done`
+10. Reduce early information overload by avoiding too many mechanics or objectives at once. `Done`
+11. Study accessible RTS tutorials and apply relevant patterns to the tutorial flow. `Done`
 12. Rebalance early difficulty for players who have no RTS strategy or blueprint knowledge.
 13. Validate that simple mechanics are still explained clearly and do not assume player familiarity.

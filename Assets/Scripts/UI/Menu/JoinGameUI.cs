@@ -103,6 +103,8 @@ public class JoinGameUI : MonoBehaviour
             string capturedIP = info.ip;
             int capturedPort = info.port;
             joinBtn.onClick.AddListener(() => JoinServer(capturedIP, capturedPort));
+            if (MenuManager.Instance != null)
+                MenuManager.Instance.RegisterButtonClickSfx(joinBtn);
         }
 
         SetStatus($"Found {serverItems.Count} server(s)");

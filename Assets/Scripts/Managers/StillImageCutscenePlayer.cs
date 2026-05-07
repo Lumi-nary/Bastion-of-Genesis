@@ -20,6 +20,7 @@ public class StillImageCutscenePlayer : MonoBehaviour
     [Header("Audio")]
     [SerializeField] private AudioSource voicelineSource;
     [SerializeField] private AudioSource soundEffectSource;
+    [SerializeField] private AudioSource ambienceLoopSource;
     [SerializeField] private AudioSource musicSource;
     [SerializeField] private float cutsceneMusicBaselineDb = -9f;
 
@@ -31,6 +32,7 @@ public class StillImageCutscenePlayer : MonoBehaviour
     private CutsceneData currentCutscene;
     private Vector2 shakeRootStartPosition;
     private AudioClip currentBeatMusic;
+    private AudioClip currentAmbienceLoop;
 
     private void Awake()
     {
@@ -56,6 +58,14 @@ public class StillImageCutscenePlayer : MonoBehaviour
             soundEffectSource.playOnAwake = false;
         }
 
+        if (ambienceLoopSource == null)
+        {
+            ambienceLoopSource = gameObject.AddComponent<AudioSource>();
+            ambienceLoopSource.playOnAwake = false;
+            ambienceLoopSource.loop = true;
+            ambienceLoopSource.spatialBlend = 0f;
+        }
+
         if (musicSource == null)
         {
             musicSource = gameObject.AddComponent<AudioSource>();
@@ -63,6 +73,8 @@ public class StillImageCutscenePlayer : MonoBehaviour
             musicSource.loop = true;
             musicSource.spatialBlend = 0f;
         }
+
+        RouteAudioSources();
     }
 
     public void Play(CutsceneData cutsceneData, Action completed)
@@ -74,6 +86,7 @@ public class StillImageCutscenePlayer : MonoBehaviour
             return;
         }
 
+        RouteAudioSources();
         Stop();
         currentCutscene = cutsceneData;
         onComplete = completed;
@@ -110,12 +123,18 @@ public class StillImageCutscenePlayer : MonoBehaviour
             soundEffectSource.Stop();
         }
 
+        if (ambienceLoopSource != null)
+        {
+            ambienceLoopSource.Stop();
+        }
+
         if (musicSource != null)
         {
             musicSource.Stop();
         }
 
         currentBeatMusic = null;
+        currentAmbienceLoop = null;
         IsPlaying = false;
     }
 
@@ -332,7 +351,34 @@ public class StillImageCutscenePlayer : MonoBehaviour
             soundEffectSource.PlayOneShot(beat.soundEffect);
         }
 
+        PlayAmbienceLoop(beat.loopAmbience ? beat.ambienceLoop : null);
         PlayBeatMusic(beat.backgroundMusic);
+    }
+
+    private void PlayAmbienceLoop(AudioClip ambienceClip)
+    {
+        if (currentAmbienceLoop == ambienceClip)
+        {
+            return;
+        }
+
+        currentAmbienceLoop = ambienceClip;
+
+        if (ambienceLoopSource == null)
+        {
+            return;
+        }
+
+        if (ambienceClip == null)
+        {
+            ambienceLoopSource.Stop();
+            ambienceLoopSource.clip = null;
+            return;
+        }
+
+        ambienceLoopSource.clip = ambienceClip;
+        ambienceLoopSource.loop = true;
+        ambienceLoopSource.Play();
     }
 
     private void PlayBeatMusic(AudioClip musicClip)
@@ -360,6 +406,19 @@ public class StillImageCutscenePlayer : MonoBehaviour
         musicSource.loop = true;
         musicSource.volume = DecibelsToLinear(cutsceneMusicBaselineDb);
         musicSource.Play();
+    }
+
+    private void RouteAudioSources()
+    {
+        if (AudioManager.Instance == null)
+        {
+            return;
+        }
+
+        AudioManager.Instance.RouteAudioSource(voicelineSource, AudioManager.AudioBus.Voice);
+        AudioManager.Instance.RouteAudioSource(soundEffectSource, AudioManager.AudioBus.SFX);
+        AudioManager.Instance.RouteAudioSource(ambienceLoopSource, AudioManager.AudioBus.Ambience);
+        AudioManager.Instance.RouteAudioSource(musicSource, AudioManager.AudioBus.Music);
     }
 
     private static float DecibelsToLinear(float decibels)

@@ -14,6 +14,14 @@ using UnityEngine.Audio;
 /// </summary>
 public class AudioManager : MonoBehaviour
 {
+    public enum AudioBus
+    {
+        Music,
+        SFX,
+        Voice,
+        Ambience
+    }
+
     public static AudioManager Instance { get; private set; }
 
     [Header("Audio Mixer")]
@@ -209,6 +217,51 @@ public class AudioManager : MonoBehaviour
                 source.outputAudioMixerGroup = sfxGroup;
             }
             sfxPool.Add(source);
+        }
+    }
+
+    // ============================================================================
+    // AUDIO ROUTING
+    // ============================================================================
+
+    public bool RouteAudioSource(AudioSource source, AudioBus bus)
+    {
+        if (source == null || audioMixer == null)
+        {
+            return false;
+        }
+
+        AudioMixerGroup group = GetMixerGroup(bus);
+        if (group == null)
+        {
+            return false;
+        }
+
+        source.outputAudioMixerGroup = group;
+        return true;
+    }
+
+    private AudioMixerGroup GetMixerGroup(AudioBus bus)
+    {
+        string groupName = GetMixerGroupName(bus);
+        AudioMixerGroup[] groups = audioMixer.FindMatchingGroups(groupName);
+        return groups.Length > 0 ? groups[0] : null;
+    }
+
+    private static string GetMixerGroupName(AudioBus bus)
+    {
+        switch (bus)
+        {
+            case AudioBus.Music:
+                return "Music";
+            case AudioBus.SFX:
+                return "SFX";
+            case AudioBus.Voice:
+                return "Voice";
+            case AudioBus.Ambience:
+                return "Ambience";
+            default:
+                return string.Empty;
         }
     }
 

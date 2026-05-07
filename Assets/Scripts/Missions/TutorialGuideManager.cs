@@ -12,12 +12,15 @@ public class TutorialGuideManager : MonoBehaviour
     public static bool IsTutorialEnabled => SettingsManager.Instance == null ||
         SettingsManager.Instance.CurrentSettings == null ||
         SettingsManager.Instance.CurrentSettings.tutorialEnabled;
-    public bool HasActiveHardGate => IsTutorialEnabled && ActiveObjective != null && ActiveObjective.isTutorialStep && ActiveObjective.gateMode == TutorialGateMode.HardGate;
-    public string CurrentInstruction => IsTutorialEnabled && ActiveObjective != null ? ActiveObjective.tutorialInstruction : string.Empty;
+    public bool HasActiveHardGate => IsTutorialEnabled && !IsTutorialGuidanceBlocked && ActiveObjective != null && ActiveObjective.isTutorialStep && ActiveObjective.gateMode == TutorialGateMode.HardGate;
+    public string CurrentInstruction => IsTutorialEnabled && !IsTutorialGuidanceBlocked && ActiveObjective != null ? ActiveObjective.tutorialInstruction : string.Empty;
     public TutorialTargetPanel CurrentTargetPanel => HasActiveHardGate ? ActiveObjective.targetPanel : TutorialTargetPanel.None;
     public TutorialTargetAction CurrentTargetAction => HasActiveHardGate ? ActiveObjective.targetAction : TutorialTargetAction.None;
-    public bool HasCameraLock => IsTutorialEnabled && ActiveObjective != null && ActiveObjective.isTutorialStep && ActiveObjective.focusCameraOnTarget;
+    public bool HasCameraLock => IsTutorialEnabled && !IsTutorialGuidanceBlocked && ActiveObjective != null && ActiveObjective.isTutorialStep && ActiveObjective.focusCameraOnTarget;
     public float CurrentCameraZoom => HasCameraLock ? ActiveObjective.tutorialCameraZoom : 0f;
+    public bool IsTutorialGuidanceBlocked => MissionChapterManager.Instance != null &&
+        (!MissionChapterManager.Instance.IsMissionActive ||
+        MissionChapterManager.Instance.IsObjectiveDialogueBlockingTutorial);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void EnsureRuntimeObjectsBeforeSceneLoad()
@@ -100,6 +103,8 @@ public class TutorialGuideManager : MonoBehaviour
             MissionChapterManager.Instance.OnMissionStarted += OnMissionStarted;
             MissionChapterManager.Instance.OnObjectiveCompleted -= OnObjectiveCompleted;
             MissionChapterManager.Instance.OnObjectiveCompleted += OnObjectiveCompleted;
+            MissionChapterManager.Instance.OnObjectiveDialogueStateChanged -= OnObjectiveDialogueStateChanged;
+            MissionChapterManager.Instance.OnObjectiveDialogueStateChanged += OnObjectiveDialogueStateChanged;
         }
 
         if (BuildingManager.Instance != null)
@@ -124,6 +129,7 @@ public class TutorialGuideManager : MonoBehaviour
         {
             MissionChapterManager.Instance.OnMissionStarted -= OnMissionStarted;
             MissionChapterManager.Instance.OnObjectiveCompleted -= OnObjectiveCompleted;
+            MissionChapterManager.Instance.OnObjectiveDialogueStateChanged -= OnObjectiveDialogueStateChanged;
         }
 
         if (BuildingManager.Instance != null)
@@ -145,6 +151,11 @@ public class TutorialGuideManager : MonoBehaviour
         RefreshActiveObjective();
     }
 
+    private void OnObjectiveDialogueStateChanged()
+    {
+        RefreshActiveObjective();
+    }
+
     private void OnBuildingPlaced(Building building)
     {
         RefreshActiveObjective();
@@ -162,7 +173,7 @@ public class TutorialGuideManager : MonoBehaviour
 
     public void RefreshActiveObjective()
     {
-        MissionObjective nextObjective = IsTutorialEnabled ? FindActiveTutorialObjective() : null;
+        MissionObjective nextObjective = IsTutorialEnabled && !IsTutorialGuidanceBlocked ? FindActiveTutorialObjective() : null;
         if (ActiveObjective == nextObjective)
             return;
 

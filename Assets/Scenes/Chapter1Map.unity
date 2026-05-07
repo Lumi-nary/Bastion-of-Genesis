@@ -4265,15 +4265,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.12, g: 0.12, b: 0.17, a: 0.92}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 21300000, guid: 2ec70b2ca7a0d664895333bc6b6f8e1e, type: 3}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -4433,10 +4433,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1589453538}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 1}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -158, y: -79.719}
-  m_SizeDelta: {x: 296.9206, y: 19.4371}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -148.4603, y: 9.718567}
+  m_SizeDelta: {x: 296.9206, y: 19.437134}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &345648148
 MonoBehaviour:
@@ -4805,10 +4805,10 @@ MonoBehaviour:
   button: {fileID: 441820889}
   background: {fileID: 441820890}
   label: {fileID: 1797524641}
-  normalBg: {r: 0, g: 0, b: 0, a: 1}
+  normalBg: {r: 1, g: 1, b: 1, a: 1}
   selectedBg: {r: 1, g: 1, b: 1, a: 1}
   normalText: {r: 1, g: 1, b: 1, a: 1}
-  selectedText: {r: 0, g: 0, b: 0, a: 1}
+  selectedText: {r: 0.6, g: 0.6431373, b: 1, a: 1}
 --- !u!1 &472203937
 GameObject:
   m_ObjectHideFlags: 0
@@ -5348,10 +5348,10 @@ MonoBehaviour:
   button: {fileID: 509673922}
   background: {fileID: 509673923}
   label: {fileID: 1392345240}
-  normalBg: {r: 0, g: 0, b: 0, a: 1}
+  normalBg: {r: 1, g: 1, b: 1, a: 1}
   selectedBg: {r: 1, g: 1, b: 1, a: 1}
   normalText: {r: 1, g: 1, b: 1, a: 1}
-  selectedText: {r: 0, g: 0, b: 0, a: 1}
+  selectedText: {r: 0.6, g: 0.6431373, b: 1, a: 1}
 --- !u!1 &515231555
 GameObject:
   m_ObjectHideFlags: 0
@@ -6965,11 +6965,11 @@ MonoBehaviour:
   m_Content: {fileID: 776589347}
   m_Horizontal: 0
   m_Vertical: 1
-  m_MovementType: 1
+  m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 1
+  m_ScrollSensitivity: 40
   m_Viewport: {fileID: 2113354391}
   m_HorizontalScrollbar: {fileID: 0}
   m_VerticalScrollbar: {fileID: 0}
@@ -8774,10 +8774,10 @@ MonoBehaviour:
   button: {fileID: 978788937}
   background: {fileID: 978788938}
   label: {fileID: 977526963}
-  normalBg: {r: 0, g: 0, b: 0, a: 1}
+  normalBg: {r: 1, g: 1, b: 1, a: 1}
   selectedBg: {r: 1, g: 1, b: 1, a: 1}
   normalText: {r: 1, g: 1, b: 1, a: 1}
-  selectedText: {r: 0, g: 0, b: 0, a: 1}
+  selectedText: {r: 0.6, g: 0.6431373, b: 1, a: 1}
 --- !u!1 &993541163
 GameObject:
   m_ObjectHideFlags: 0
@@ -9439,23 +9439,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1636217522771786025, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1636217522771786025, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1636217522771786025, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 58
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1636217522771786025, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 26
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1636217522771786025, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -154
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1833712382137603248, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchorMax.x
@@ -9527,23 +9527,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2084368144156024587, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2084368144156024587, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2084368144156024587, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 58
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2084368144156024587, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 26
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2084368144156024587, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -298
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2185070379522715187, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_Enabled
@@ -9575,23 +9575,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3188637436544733450, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3188637436544733450, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3188637436544733450, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 58
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3188637436544733450, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 26
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3188637436544733450, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -226
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3548511313344142749, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchorMax.x
@@ -9599,23 +9599,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3548511313344142749, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3548511313344142749, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3548511313344142749, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 58
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3548511313344142749, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 26
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3548511313344142749, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -82
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4221524521274894701, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchorMax.x
@@ -9667,7 +9667,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6137619744120026360, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6137619744120026360, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchorMin.x
@@ -9675,7 +9675,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6137619744120026360, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6137619744120026360, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_SizeDelta.x
@@ -9683,15 +9683,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6137619744120026360, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 48
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6137619744120026360, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 26
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6137619744120026360, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -44
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7135707000437917056, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_SizeDelta.y
@@ -9723,7 +9723,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7848256491746411869, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 376
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7848256491746411869, guid: 3cdd29e785c99d04bb7f4145b72f3f93, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -434661,6 +434661,8 @@ MonoBehaviour:
   minOrthographicSize: 1
   maxOrthographicSize: 15
   zoomSmoothing: 5
+  blockZoomOverObjectiveScroll: 1
+  objectiveScrollBlocker: {fileID: 699144379}
   useCameraBounds: 1
   boundsPadding: 1
   tutorialFocusMoveSpeed: 8
@@ -437795,10 +437797,10 @@ MonoBehaviour:
   button: {fileID: 2044672385}
   background: {fileID: 2044672386}
   label: {fileID: 31767627}
-  normalBg: {r: 0, g: 0, b: 0, a: 1}
+  normalBg: {r: 1, g: 1, b: 1, a: 1}
   selectedBg: {r: 1, g: 1, b: 1, a: 1}
   normalText: {r: 1, g: 1, b: 1, a: 1}
-  selectedText: {r: 0, g: 0, b: 0, a: 1}
+  selectedText: {r: 0.6, g: 0.6431373, b: 1, a: 1}
 --- !u!1 &2048660789
 GameObject:
   m_ObjectHideFlags: 0
@@ -438118,10 +438120,10 @@ MonoBehaviour:
   button: {fileID: 2074343048}
   background: {fileID: 2074343049}
   label: {fileID: 1039120778}
-  normalBg: {r: 0, g: 0, b: 0, a: 1}
+  normalBg: {r: 1, g: 1, b: 1, a: 1}
   selectedBg: {r: 1, g: 1, b: 1, a: 1}
   normalText: {r: 1, g: 1, b: 1, a: 1}
-  selectedText: {r: 0, g: 0, b: 0, a: 1}
+  selectedText: {r: 0.5990566, g: 0.6416491, b: 1, a: 1}
 --- !u!1 &2094626195
 GameObject:
   m_ObjectHideFlags: 0

@@ -21,6 +21,9 @@ public class DialogueUI : MonoBehaviour
     [SerializeField] private bool blurBackground = true;
     [SerializeField] private Canvas blurCanvas;
 
+    [Header("Advance Input")]
+    [SerializeField] private RectTransform[] ignoredAdvanceAreas;
+
     [Header("Typewriter Settings")]
     [Tooltip("Delay between each word appearing")]
     [SerializeField] private float wordDelay = 0.05f;
@@ -80,7 +83,9 @@ public class DialogueUI : MonoBehaviour
             // New Input System
             if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             {
-                OnClickAdvance();
+                Vector2 pointerPosition = Mouse.current.position.ReadValue();
+                if (!IsPointerOverIgnoredAdvanceArea(pointerPosition))
+                    OnClickAdvance();
             }
             else if (Keyboard.current != null &&
                     (Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.enterKey.wasPressedThisFrame))
@@ -105,6 +110,33 @@ public class DialogueUI : MonoBehaviour
             // Advance to next entry
             DialogueManager.Instance?.AdvanceDialogue();
         }
+    }
+
+    private bool IsPointerOverIgnoredAdvanceArea(Vector2 screenPosition)
+    {
+        if (ignoredAdvanceAreas == null || ignoredAdvanceAreas.Length == 0)
+            return false;
+
+        Camera eventCamera = GetEventCamera();
+        foreach (RectTransform ignoredArea in ignoredAdvanceAreas)
+        {
+            if (ignoredArea != null && ignoredArea.gameObject.activeInHierarchy &&
+                RectTransformUtility.RectangleContainsScreenPoint(ignoredArea, screenPosition, eventCamera))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private Camera GetEventCamera()
+    {
+        Canvas canvas = blurCanvas != null ? blurCanvas : GetComponentInParent<Canvas>();
+        if (canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            return null;
+
+        return canvas.worldCamera;
     }
 
     /// <summary>

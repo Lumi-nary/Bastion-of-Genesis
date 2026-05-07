@@ -596,6 +596,14 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void HideBuildingHoverPopup()
+    {
+        if (buildingHoverPopupUI != null)
+        {
+            buildingHoverPopupUI.Hide();
+        }
+    }
+
     #endregion
 
     #region Tooltip System

@@ -323,6 +323,8 @@ public class ModalDialog : MonoBehaviour
         // Wire up button click callback
         int buttonIndex = index; // Capture index for lambda
         button.onClick.AddListener(() => OnButtonClick(buttonIndex));
+        if (MenuManager.Instance != null)
+            MenuManager.Instance.RegisterButtonClickSfx(button);
 
         // Add to current buttons list
         currentButtons.Add(button);

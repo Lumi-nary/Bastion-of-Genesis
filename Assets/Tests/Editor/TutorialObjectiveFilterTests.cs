@@ -157,6 +157,90 @@ public class TutorialObjectiveFilterTests
     }
 
     [Test]
+    public void ActiveTutorialObjective_WaitsUntilMissionIsActive()
+    {
+        MissionChapterManager manager = CreateMissionManager();
+        TutorialGuideManager guide = CreateGuide();
+        MissionData mission = ScriptableObject.CreateInstance<MissionData>();
+
+        MissionObjective tutorialObjective = new MissionObjective
+        {
+            type = ObjectiveType.BuildStructures,
+            isTutorialStep = true,
+            isCompleted = false
+        };
+        mission.objectives.Add(tutorialObjective);
+
+        try
+        {
+            SetPrivateField(manager, "currentMission", mission);
+            SetPrivateField(manager, "missionActive", false);
+
+            guide.RefreshActiveObjective();
+
+            Assert.IsNull(guide.ActiveObjective);
+
+            SetPrivateField(manager, "missionActive", true);
+
+            guide.RefreshActiveObjective();
+
+            Assert.AreSame(tutorialObjective, guide.ActiveObjective);
+        }
+        finally
+        {
+            Object.DestroyImmediate(mission);
+            Object.DestroyImmediate(guide.gameObject);
+            Object.DestroyImmediate(manager.gameObject);
+        }
+    }
+
+    [Test]
+    public void ObjectiveDialogue_BlocksTutorialGuidanceUntilCleared()
+    {
+        MissionChapterManager manager = CreateMissionManager();
+        TutorialGuideManager guide = CreateGuide();
+        MissionData mission = ScriptableObject.CreateInstance<MissionData>();
+        DialogueData dialogue = ScriptableObject.CreateInstance<DialogueData>();
+
+        MissionObjective tutorialObjective = new MissionObjective
+        {
+            type = ObjectiveType.BuildStructures,
+            isTutorialStep = true,
+            focusCameraOnTarget = true,
+            hasFocusWorldCell = true,
+            focusWorldCell = new Vector2Int(5, 6),
+            tutorialCameraZoom = 4f
+        };
+        mission.objectives.Add(tutorialObjective);
+
+        try
+        {
+            SetPrivateField(manager, "currentMission", mission);
+            SetPrivateField(manager, "missionActive", true);
+            InvokePrivate(manager, "SetObjectiveDialogueBlock", dialogue, true);
+
+            guide.RefreshActiveObjective();
+
+            Assert.IsNull(guide.ActiveObjective);
+            Assert.IsFalse(guide.HasCameraLock);
+
+            InvokePrivate(manager, "ClearObjectiveDialogueBlock");
+
+            guide.RefreshActiveObjective();
+
+            Assert.AreSame(tutorialObjective, guide.ActiveObjective);
+            Assert.IsTrue(guide.HasCameraLock);
+        }
+        finally
+        {
+            Object.DestroyImmediate(dialogue);
+            Object.DestroyImmediate(mission);
+            Object.DestroyImmediate(guide.gameObject);
+            Object.DestroyImmediate(manager.gameObject);
+        }
+    }
+
+    [Test]
     public void ActiveTutorialStep_ExposesPanelActionAndBlocksOtherPanels()
     {
         TutorialGuideManager guide = CreateGuide();
@@ -243,8 +327,20 @@ public class TutorialObjectiveFilterTests
 
     private static TutorialGuideManager CreateGuide()
     {
+        SetStaticPropertyBackingField(typeof(TutorialGuideManager), "Instance", null);
         GameObject go = new GameObject("Tutorial Guide Test");
-        return go.AddComponent<TutorialGuideManager>();
+        TutorialGuideManager guide = go.AddComponent<TutorialGuideManager>();
+        SetStaticPropertyBackingField(typeof(TutorialGuideManager), "Instance", guide);
+        return guide;
+    }
+
+    private static MissionChapterManager CreateMissionManager()
+    {
+        SetStaticPropertyBackingField(typeof(MissionChapterManager), "Instance", null);
+        GameObject go = new GameObject("Mission Chapter Manager Test");
+        MissionChapterManager manager = go.AddComponent<MissionChapterManager>();
+        SetStaticPropertyBackingField(typeof(MissionChapterManager), "Instance", manager);
+        return manager;
     }
 
     private static void SetActiveObjective(TutorialGuideManager guide, MissionObjective objective)
@@ -252,5 +348,25 @@ public class TutorialObjectiveFilterTests
         typeof(TutorialGuideManager)
             .GetField("<ActiveObjective>k__BackingField", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
             .SetValue(guide, objective);
+    }
+
+    private static void SetPrivateField(object target, string fieldName, object value)
+    {
+        target.GetType()
+            .GetField(fieldName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            .SetValue(target, value);
+    }
+
+    private static void InvokePrivate(object target, string methodName, params object[] arguments)
+    {
+        target.GetType()
+            .GetMethod(methodName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            .Invoke(target, arguments);
+    }
+
+    private static void SetStaticPropertyBackingField(System.Type type, string propertyName, object value)
+    {
+        type.GetField($"<{propertyName}>k__BackingField", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)
+            .SetValue(null, value);
     }
 }

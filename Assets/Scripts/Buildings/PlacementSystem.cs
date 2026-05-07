@@ -187,6 +187,7 @@ public class PlacementSystem : MonoBehaviour
     {
         buildingToPlace = null;
         if (resourceRequirementUI != null) resourceRequirementUI.Hide();
+        if (UIManager.Instance != null) UIManager.Instance.HideBuildingHoverPopup();
         if (buildingPreview != null) Destroy(buildingPreview);
 
         // Clear drag previews

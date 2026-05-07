@@ -96,16 +96,18 @@ public class TutorialOverlayUI : MonoBehaviour
         bool objectiveDialogueBlocking = MissionChapterManager.Instance != null &&
             MissionChapterManager.Instance.IsObjectiveDialogueBlockingTutorial;
 
+        bool showObjectiveGuidance = hasObjective && !objectiveDialogueBlocking;
+
         if (instructionPanel != null)
-            instructionPanel.SetActive(hasObjective && !objectiveDialogueBlocking && !string.IsNullOrWhiteSpace(objective.tutorialInstruction));
+            instructionPanel.SetActive(showObjectiveGuidance && !string.IsNullOrWhiteSpace(objective.tutorialInstruction));
 
         if (instructionText != null)
-            instructionText.text = hasObjective && !objectiveDialogueBlocking ? objective.tutorialInstruction : string.Empty;
+            instructionText.text = showObjectiveGuidance ? objective.tutorialInstruction : string.Empty;
 
         if (disableTutorialButton != null)
             disableTutorialButton.gameObject.SetActive(tutorialEnabled);
 
-        RebuildWorldHighlights(hasObjective ? objective : null);
+        RebuildWorldHighlights(showObjectiveGuidance ? objective : null);
     }
 
     private void EnsureDisableTutorialButton()

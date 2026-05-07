@@ -42,6 +42,8 @@ public class CutsceneBeat
     [Header("Audio")]
     public AudioClip voiceline;
     public AudioClip soundEffect;
+    public AudioClip ambienceLoop;
+    public bool loopAmbience;
     public AudioClip backgroundMusic;
 
     [Header("Visual")]

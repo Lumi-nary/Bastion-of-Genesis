@@ -143,6 +143,11 @@ public class BuildingHoverPopupUI : MonoBehaviour
         }
     }
 
+    public void Hide()
+    {
+        HideImmediate();
+    }
+
     public static string BuildRequirementSummary(BuildingData data)
     {
         if (data == null)

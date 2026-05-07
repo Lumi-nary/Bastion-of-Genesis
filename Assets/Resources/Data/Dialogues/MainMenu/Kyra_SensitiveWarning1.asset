@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 922cbf48982aa4f4ba81c16e6a7c9123, type: 3}
+  m_Name: Kyra_SensitiveWarning1
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueData
+  dialogueName: Kyra_SensitiveWarning1
+  pauseGame: 0
+  entries:
+  - speakerName: Kyra-Dominia
+    portrait: {fileID: 0}
+    expression: {fileID: 953542714929456169, guid: 8b5528fb754dcb141acd29f2c86b5900, type: 3}
+    dialogueText: Careful. Some boundaries exist for your continued employment.
+    voiceClip: {fileID: 8300000, guid: 9e706d1f5567da74da7c9e8a971f9b67, type: 3}

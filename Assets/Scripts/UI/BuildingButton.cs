@@ -21,10 +21,12 @@ public class BuildingButton : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     public BuildingData BuildingData => buildingData;
 
     private Button button;
+    private Image backgroundImage;
 
     private void Awake()
     {
         button = GetComponent<Button>();
+        backgroundImage = GetComponent<Image>();
 
         // Auto-find references if not assigned
         if (iconImage == null)
@@ -43,6 +45,7 @@ public class BuildingButton : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     public void Configure(BuildingData data)
     {
         buildingData = data;
+        ResetVisualTint();
 
         if (data == null) return;
 
@@ -50,6 +53,7 @@ public class BuildingButton : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         if (iconImage != null && data.icon != null)
         {
             iconImage.sprite = data.icon;
+            iconImage.color = Color.white;
             iconImage.enabled = true;
         }
         else if (iconImage != null)
@@ -69,6 +73,18 @@ public class BuildingButton : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         if (button == null)
             button = GetComponent<Button>();
         return button;
+    }
+
+    private void ResetVisualTint()
+    {
+        if (backgroundImage == null)
+            backgroundImage = GetComponent<Image>();
+
+        if (backgroundImage != null)
+            backgroundImage.color = Color.white;
+
+        if (iconImage != null)
+            iconImage.color = Color.white;
     }
 
     public void OnPointerEnter(PointerEventData eventData)

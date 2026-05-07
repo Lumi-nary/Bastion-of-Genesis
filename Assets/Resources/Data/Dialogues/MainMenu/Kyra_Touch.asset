@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 922cbf48982aa4f4ba81c16e6a7c9123, type: 3}
+  m_Name: Kyra_Touch
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueData
+  dialogueName: Kyra_Touch
+  pauseGame: 0
+  entries:
+  - speakerName: Kyra-Dominia
+    portrait: {fileID: 0}
+    expression: {fileID: -6504533043834447420, guid: d696bb1620849b84895ff6fdb8830226, type: 3}
+    dialogueText: If this is your idea of a status report, keep it brief.
+    voiceClip: {fileID: 8300000, guid: e0ddf5b124dc8414382fa7b434f58a96, type: 3}

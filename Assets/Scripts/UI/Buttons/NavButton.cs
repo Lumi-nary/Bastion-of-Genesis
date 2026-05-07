@@ -18,10 +18,10 @@ public class NavButton : MonoBehaviour
     [SerializeField] private TMP_Text label;
 
     [Header("Colors")]
-    [SerializeField] private Color normalBg = Color.black;
+    [SerializeField] private Color normalBg = Color.white;
     [SerializeField] private Color selectedBg = Color.white;
     [SerializeField] private Color normalText = Color.white;
-    [SerializeField] private Color selectedText = Color.black;
+    [SerializeField] private Color selectedText = new Color32(0x99, 0xA4, 0xFF, 0xFF);
 
     private bool subscribed;
     private bool tutorialSubscribed;

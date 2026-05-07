@@ -82,86 +82,86 @@ That includes:
 
 ### Chapter 1 Mission 1
 
-- [ ] `CH1_M01_01_Nexus_EnergyScan.wav` - Nexus: "Energy reserves are low. Scanning for local energy sources... Detected." Existing asset reference is stale or missing in checkout.
-- [ ] `CH1_M01_02_Nexus_IronNodes.wav` - Nexus: "The locals ignore these high-yield Iron Nodes." Existing asset reference is stale or missing in checkout.
-- [ ] `CH1_M01_03_Kyra_HarvestIt.wav` - Kyra-Dominia: "Their ignorance is our gain. Harvest it."
-- [ ] `CH1_M01_04_Kyra_PowerAndResources.wav` - Kyra-Dominia: "We need power and resources. Now."
+- [x] `CH1_M01_01_Nexus_EnergyScan.wav` - Nexus: "Energy reserves are low. Scanning for local energy sources... Detected." Existing asset reference is stale or missing in checkout.
+- [x] `CH1_M01_02_Nexus_IronNodes.wav` - Nexus: "The locals ignore these high-yield Iron Nodes." Existing asset reference is stale or missing in checkout.
+- [X] `CH1_M01_03_Kyra_HarvestIt.wav` - Kyra-Dominia: "Their ignorance is our gain. Harvest it."
+- [x] `CH1_M01_04_Kyra_PowerAndResources.wav` - Kyra-Dominia: "We need power and resources. Now."
 
 ### Chapter 1 Mission 2
 
-- [ ] `CH1_M02_01_Nexus_EnergyCritical.wav` - Nexus: "Commander, energy reserves are at critical levels."
-- [ ] `CH1_M02_02_Nexus_ReactorInsufficient.wav` - Nexus: "The reactor alone cannot sustain expansion."
-- [ ] `CH1_M02_03_Nexus_SteamGenerator.wav` - Nexus: "A Steam Generator will supplement our power grid."
-- [ ] `CH1_M02_04_Kyra_GeneratorPriority.wav` - Kyra-Dominia: "Nothing runs without power. Get a generator online, priority one."
+- [x] `CH1_M02_01_Nexus_EnergyCritical.wav` - Nexus: "Commander, energy reserves are at critical levels."
+- [x] `CH1_M02_02_Nexus_ReactorInsufficient.wav` - Nexus: "The reactor alone cannot sustain expansion."
+- [x] `CH1_M02_03_Nexus_SteamGenerator.wav` - Nexus: "A Steam Generator will supplement our power grid."
+- [x] `CH1_M02_04_Kyra_GeneratorPriority.wav` - Kyra-Dominia: "Nothing runs without power. Get a generator online, priority one."
 
 ### Chapter 1 Mission 3
 
-- [ ] `CH1_M03_01_Nexus_SwarmConversion.wav` - Nexus: "Commander, our Robotic Swarm reserves can be converted into specialized units."
-- [ ] `CH1_M03_02_Nexus_BuilderFactory.wav` - Nexus: "The Builder Factory will repurpose swarm units into dedicated Builders for construction."
-- [ ] `CH1_M03_03_Nexus_ResearcherFactory.wav` - Nexus: "A Researcher Factory produces units for the Laboratory."
-- [ ] `CH1_M03_04_Kyra_WastedPotential.wav` - Kyra-Dominia: "Raw swarms are wasted potential."
-- [ ] `CH1_M03_05_Kyra_SpecializeThem.wav` - Kyra-Dominia: "Get those factories running and specialize every last one of them."
+- [x] `CH1_M03_01_Nexus_SwarmConversion.wav` - Nexus: "Commander, our Robotic Swarm reserves can be converted into specialized units."
+- [x] `CH1_M03_02_Nexus_BuilderFactory.wav` - Nexus: "The Builder Factory will repurpose swarm units into dedicated Builders for construction."
+- [x] `CH1_M03_03_Nexus_ResearcherFactory.wav` - Nexus: "A Researcher Factory produces units for the Laboratory."
+- [x] `CH1_M03_04_Kyra_WastedPotential.wav` - Kyra-Dominia: "Raw swarms are wasted potential."
+- [x] `CH1_M03_05_Kyra_SpecializeThem.wav` - Kyra-Dominia: "Get those factories running and specialize every last one of them."
 
 ### Chapter 1 Mission 4
 
-- [ ] `CH1_M04_01_Nexus_Blueprints.wav` - Nexus: "Commander, our Researchers can develop new structural blueprints."
-- [ ] `CH1_M04_02_Nexus_EnergyAndTime.wav` - Nexus: "Given sufficient energy and time."
-- [ ] `CH1_M04_03_Nexus_Laboratory.wav` - Nexus: "A Laboratory would enable this."
-- [ ] `CH1_M04_04_Kyra_BuildLaboratory.wav` - Kyra-Dominia: "Engineering superiority is how we hold this ground. Build it."
-- [ ] `CH1_M04_05_Nexus_BaselineCapacity.wav` - Nexus: "Our reserves are capped at baseline capacity."
-- [ ] `CH1_M04_06_Nexus_StorageInfrastructure.wav` - Nexus: "I recommend prioritizing storage infrastructure."
-- [ ] `CH1_M04_07_Nexus_StorageList.wav` - Nexus: "Resource Warehouses, Energy Batteries, and a Robot Bay."
-- [ ] `CH1_M04_08_Nexus_ExpansionStalls.wav` - Nexus: "Without expanded reserves, further expansion stalls."
-- [ ] `CH1_M04_09_Kyra_ResearchStorage.wav` - Kyra-Dominia: "A fortress without stockpiles is just a target. Research them all."
+- [x] `CH1_M04_01_Nexus_Blueprints.wav` - Nexus: "Commander, our Researchers can develop new structural blueprints."
+- [x] `CH1_M04_02_Nexus_EnergyAndTime.wav` - Nexus: "Given sufficient energy and time."
+- [x] `CH1_M04_03_Nexus_Laboratory.wav` - Nexus: "A Laboratory would enable this."
+- [x] `CH1_M04_04_Kyra_BuildLaboratory.wav` - Kyra-Dominia: "Engineering superiority is how we hold this ground. Build it."
+- [x] `CH1_M04_05_Nexus_BaselineCapacity.wav` - Nexus: "Our reserves are capped at baseline capacity."
+- [x] `CH1_M04_06_Nexus_StorageInfrastructure.wav` - Nexus: "I recommend prioritizing storage infrastructure."
+- [x] `CH1_M04_07_Nexus_StorageList.wav` - Nexus: "Resource Warehouses, Energy Batteries, and a Robot Bay."
+- [x] `CH1_M04_08_Nexus_ExpansionStalls.wav` - Nexus: "Without expanded reserves, further expansion stalls."
+- [x] `CH1_M04_09_Kyra_ResearchStorage.wav` - Kyra-Dominia: "A fortress without stockpiles is just a target. Research them all."
 
 ### Chapter 1 Mission 5
 
-- [ ] `CH1_M05_01_Nexus_MovementBeyondPerimeter.wav` - Nexus: "Long-range sensors are picking up movement beyond the perimeter."
-- [ ] `CH1_M05_02_Nexus_DefensiveWalls.wav` - Nexus: "I recommend stockpiling iron reserves and researching defensive wall structures."
-- [ ] `CH1_M05_03_Kyra_WallsBeforeVisit.wav` - Kyra-Dominia: "Agreed. I want walls up before whatever is out there decides to pay us a visit."
+- [x] `CH1_M05_01_Nexus_MovementBeyondPerimeter.wav` - Nexus: "Long-range sensors are picking up movement beyond the perimeter."
+- [x] `CH1_M05_02_Nexus_DefensiveWalls.wav` - Nexus: "I recommend stockpiling iron reserves and researching defensive wall structures."
+- [x] `CH1_M05_03_Kyra_WallsBeforeVisit.wav` - Kyra-Dominia: "Agreed. I want walls up before whatever is out there decides to pay us a visit."
 
 ### Chapter 1 Mission 6
 
-- [ ] `CH1_M06_01_Nexus_HostilesNorth.wav` - Nexus: "Hostile biosignatures confirmed, approaching from the north."
-- [ ] `CH1_M06_02_Nexus_SmallPatrol.wav` - Nexus: "Small patrol, six to eight contacts. They are not friendly, Commander."
-- [ ] `CH1_M06_03_Kyra_PrepareEngagement.wav` - Kyra-Dominia: "Walls up, turrets online. This is our ground now. Prepare for engagement."
+- [x] `CH1_M06_01_Nexus_HostilesNorth.wav` - Nexus: "Hostile biosignatures confirmed, approaching from the north."
+- [x] `CH1_M06_02_Nexus_SmallPatrol.wav` - Nexus: "Small patrol, six to eight contacts. They are not friendly, Commander."
+- [x] `CH1_M06_03_Kyra_PrepareEngagement.wav` - Kyra-Dominia: "Walls up, turrets online. This is our ground now. Prepare for engagement."
 
 ### Chapter 1 Mission 7
 
-- [ ] `CH1_M07_01_Nexus_NewContact.wav` - Nexus: "New contact."
-- [ ] `CH1_M07_02_Nexus_WestForce.wav` - Nexus: "A larger force is massing to the west."
-- [ ] `CH1_M07_03_Nexus_TwicePrevious.wav` - Nexus: "Estimated twice the size of the previous engagement."
-- [ ] `CH1_M07_04_Kyra_ProbingFlanks.wav` - Kyra-Dominia: "They are probing our flanks."
-- [ ] `CH1_M07_05_Kyra_WesternPerimeter.wav` - Kyra-Dominia: "Reinforce the western perimeter, turrets and walls."
-- [ ] `CH1_M07_06_Kyra_NothingGetsThrough.wav` - Kyra-Dominia: "Nothing gets through."
+- [x] `CH1_M07_01_Nexus_NewContact.wav` - Nexus: "New contact."
+- [x] `CH1_M07_02_Nexus_WestForce.wav` - Nexus: "A larger force is massing to the west."
+- [x] `CH1_M07_03_Nexus_TwicePrevious.wav` - Nexus: "Estimated twice the size of the previous engagement."
+- [x] `CH1_M07_04_Kyra_ProbingFlanks.wav` - Kyra-Dominia: "They are probing our flanks."
+- [x] `CH1_M07_05_Kyra_WesternPerimeter.wav` - Kyra-Dominia: "Reinforce the western perimeter, turrets and walls."
+- [x] `CH1_M07_06_Kyra_NothingGetsThrough.wav` - Kyra-Dominia: "Nothing gets through."
 
 ### Chapter 1 Mission 8
 
-- [ ] `CH1_M08_01_Nexus_MultipleVectors.wav` - Nexus: "Commander, I am detecting coordinated movement from multiple vectors."
-- [ ] `CH1_M08_02_Nexus_ThreeFronts.wav` - Nexus: "North, west, and south simultaneously. This is not a random patrol."
-- [ ] `CH1_M08_03_Kyra_PincerManeuver.wav` - Kyra-Dominia: "A pincer maneuver. These things have actual military tactics."
-- [ ] `CH1_M08_04_Kyra_AllFronts.wav` - Kyra-Dominia: "Shore up every approach, spread our turrets across all fronts."
-- [ ] `CH1_M08_05_Nexus_SustainEngagement.wav` - Nexus: "Recommend prioritizing resource production to sustain extended multi-front engagement."
+- [x] `CH1_M08_01_Nexus_MultipleVectors.wav` - Nexus: "Commander, I am detecting coordinated movement from multiple vectors."
+- [x] `CH1_M08_02_Nexus_ThreeFronts.wav` - Nexus: "North, west, and south simultaneously. This is not a random patrol."
+- [x] `CH1_M08_03_Kyra_PincerManeuver.wav` - Kyra-Dominia: "A pincer maneuver. These things have actual military tactics."
+- [x] `CH1_M08_04_Kyra_AllFronts.wav` - Kyra-Dominia: "Shore up every approach, spread our turrets across all fronts."
+- [x] `CH1_M08_05_Nexus_SustainEngagement.wav` - Nexus: "Recommend prioritizing resource production to sustain extended multi-front engagement."
 
 ### Chapter 1 Mission 9
 
-- [ ] `CH1_M09_01_Nexus_AnalysisComplete.wav` - Nexus: "Analysis complete."
-- [ ] `CH1_M09_02_Nexus_EmissionsProvoke.wav` - Nexus: "Our terraforming emissions are directly provoking the indigenous population."
-- [ ] `CH1_M09_03_Nexus_TheyResist.wav` - Nexus: "The more we reshape this environment, the more aggressively they resist."
-- [ ] `CH1_M09_04_Kyra_PointIsReshape.wav` - Kyra-Dominia: "The whole point is to reshape this environment."
-- [ ] `CH1_M09_05_Kyra_DoNotStop.wav` - Kyra-Dominia: "We do not stop."
-- [ ] `CH1_M09_06_Kyra_HoldLine.wav` - Kyra-Dominia: "Push output, reinforce defenses, and hold the line."
-- [ ] `CH1_M09_07_Nexus_MonitoringTerraform.wav` - Nexus: "Understood. Monitoring terraforming levels."
-- [ ] `CH1_M09_08_Nexus_EscalatingHostility.wav` - Nexus: "Expect escalating hostility with each expansion cycle."
+- [x] `CH1_M09_01_Nexus_AnalysisComplete.wav` - Nexus: "Analysis complete."
+- [x] `CH1_M09_02_Nexus_EmissionsProvoke.wav` - Nexus: "Our terraforming emissions are directly provoking the indigenous population."
+- [x] `CH1_M09_03_Nexus_TheyResist.wav` - Nexus: "The more we reshape this environment, the more aggressively they resist."
+- [x] `CH1_M09_04_Kyra_PointIsReshape.wav` - Kyra-Dominia: "The whole point is to reshape this environment."
+- [x] `CH1_M09_05_Kyra_DoNotStop.wav` - Kyra-Dominia: "We do not stop."
+- [x] `CH1_M09_06_Kyra_HoldLine.wav` - Kyra-Dominia: "Push output, reinforce defenses, and hold the line."
+- [x] `CH1_M09_07_Nexus_MonitoringTerraform.wav` - Nexus: "Understood. Monitoring terraforming levels."
+- [x] `CH1_M09_08_Nexus_EscalatingHostility.wav` - Nexus: "Expect escalating hostility with each expansion cycle."
 
 ### Chapter 1 Mission 10
 
-- [ ] `CH1_M10_01_Nexus_MassiveBiosignature.wav` - Nexus: "Commander, a massive biosignature is approaching from the north."
-- [ ] `CH1_M10_02_Nexus_WardenClass.wav` - Nexus: "It dwarfs anything we have encountered. Designating it as a Warden-class entity."
-- [ ] `CH1_M10_03_Kyra_CommandUnit.wav` - Kyra-Dominia: "That is a command unit. They sent their best."
-- [ ] `CH1_M10_04_Kyra_ConcentrateFire.wav` - Kyra-Dominia: "All defenses to maximum, concentrate fire on the big one."
-- [ ] `CH1_M10_05_Nexus_AssaultWave.wav` - Nexus: "Warden is accompanied by a full assault wave."
-- [ ] `CH1_M10_06_Nexus_BreakCohesion.wav` - Nexus: "Recommend eliminating the command unit first to break enemy cohesion."
+- [x] `CH1_M10_01_Nexus_MassiveBiosignature.wav` - Nexus: "Commander, a massive biosignature is approaching from the north."
+- [x] `CH1_M10_02_Nexus_WardenClass.wav` - Nexus: "It dwarfs anything we have encountered. Designating it as a Warden-class entity."
+- [x] `CH1_M10_03_Kyra_CommandUnit.wav` - Kyra-Dominia: "That is a command unit. They sent their best."
+- [x] `CH1_M10_04_Kyra_ConcentrateFire.wav` - Kyra-Dominia: "All defenses to maximum, concentrate fire on the big one."
+- [x] `CH1_M10_05_Nexus_AssaultWave.wav` - Nexus: "Warden is accompanied by a full assault wave."
+- [x] `CH1_M10_06_Nexus_BreakCohesion.wav` - Nexus: "Recommend eliminating the command unit first to break enemy cohesion."
 
 ## Sound Effects To Create
 
@@ -170,17 +170,17 @@ That includes:
 These map cleanly to `CutsceneBeat.soundEffect` in `Chapter1_Intro.asset`.
 
 - [ ] `SFX_CH1_INT_01_DeepSpaceAmbience.wav` - Low ship/space ambience for the first establishing image.
-- [ ] `SFX_CH1_INT_02_CockpitLowHum.wav` - Quiet cockpit hum under Kyra and Nexus' calm approach exchange.
+- [x] `SFX_CH1_INT_02_CockpitLowHum.wav` - Quiet cockpit hum under Kyra and Nexus' calm approach exchange. Imported as `.mp3`.
 - [ ] `SFX_CH1_INT_03_SurfaceScanPing.wav` - Soft sensor ping while Nexus reports atmosphere, minerals, and distant movement.
-- [ ] `SFX_CH1_INT_04_CommandConsoleIdle.wav` - Subtle console activity while Kyra gives landing instructions.
-- [ ] `SFX_CH1_INT_05_AnomalyPulse.wav` - Low, sudden gravitational distortion pulse as the tone shifts.
-- [ ] `SFX_CH1_INT_06_NavigationWarning.wav` - Warning chirps and UI error pulses as navigation starts degrading.
-- [ ] `SFX_CH1_INT_07_ThrusterStrain.wav` - Straining thrusters and ship vibration under Kyra's manual correction order.
-- [ ] `SFX_CH1_INT_08_ReactorShieldingAlarm.wav` - Heavier reactor warning alarm when override is denied.
-- [ ] `SFX_CH1_INT_09_CrashImpact.wav` - Main crash impact for the black-screen beat.
-- [ ] `SFX_CH1_INT_10_SystemReboot.wav` - Computer reboot, static, and power-up layer.
+- [x] `SFX_CH1_INT_04_CommandConsoleIdle.wav` - Subtle console activity while Kyra gives landing instructions.
+- [x] `SFX_CH1_INT_05_AnomalyPulse.wav` - Low, sudden gravitational distortion pulse as the tone shifts. Imported as `.mp3`.
+- [x] `SFX_CH1_INT_06_NavigationWarning.wav` - Warning chirps and UI error pulses as navigation starts degrading. Imported as `.mp3`.
+- [x] `SFX_CH1_INT_07_ThrusterStrain.wav` - Straining thrusters and ship vibration under Kyra's manual correction order. Imported as `.mp3`.
+- [x] `SFX_CH1_INT_08_ReactorShieldingAlarm.wav` - Heavier reactor warning alarm when override is denied. Imported as `.mp3`.
+- [x] `SFX_CH1_INT_09_CrashImpact.wav` - Main crash impact for the black-screen beat. Imported as `.mp3`.
+- [x] `SFX_CH1_INT_10_SystemReboot.wav` - Computer reboot, static, and power-up layer. Imported as `.mp3`.
 - [ ] `SFX_CH1_INT_11_HullIntegrityWarning.wav` - Damaged system warning pulse after reboot.
-- [ ] `SFX_CH1_INT_12_GroundedSting.wav` - Short, restrained final sting after Nexus confirms they are grounded.
+- [x] `SFX_CH1_INT_12_GroundedSting.wav` - Short, restrained final sting after Nexus confirms they are grounded. Imported as `.mp3`.
 
 ### Gameplay SFX
 
@@ -210,6 +210,53 @@ These are not all directly wired to serialized fields yet, but the project alrea
 - [ ] `SFX_Pollution_Spread.wav` - Pollution/wither spread event.
 - [ ] `SFX_Tile_Integrate.wav` - Tile integration/buildable-zone conversion.
 
+## ElevenLabs SFX Generation Prompts
+
+Use this shared style rule for every ElevenLabs SFX generation:
+
+`Cinematic sci-fi colony survival game sound effect, clean game-ready mix, no music, no vocals, no dialogue, no recognizable melody, no background hiss, centered stereo, short tail, suitable for Unity UI/gameplay, WAV export.`
+
+### Cutscene SFX Prompts
+
+- `SFX_CH1_INT_01_DeepSpaceAmbience.wav` - Low cinematic deep-space ambience, distant ship hull resonance, subtle sub-bass drone, cold vacuum mood, slow and restrained, loopable 8-12 seconds, no music, no voices.
+- `SFX_CH1_INT_02_CockpitLowHum.wav` - Quiet futuristic cockpit hum, soft electronics, stable ship engine vibration, calm command-deck atmosphere, loopable 8-12 seconds, no alarms, no voices.
+- `SFX_CH1_INT_03_SurfaceScanPing.wav` - Soft sci-fi sensor scan ping, clean holographic radar blip, gentle digital sweep, atmospheric planetary scan tone, 1-2 seconds, no harsh alarm.
+- `SFX_CH1_INT_04_CommandConsoleIdle.wav` - Subtle command console idle activity, quiet data chirps, tiny interface beeps, low electronic texture, futuristic but restrained, loopable 6-10 seconds.
+- `SFX_CH1_INT_05_AnomalyPulse.wav` - Sudden low gravitational anomaly pulse, deep warped bass impact, distorted pressure wave, ominous sci-fi energy ripple, 2-4 seconds, no explosion.
+- `SFX_CH1_INT_06_NavigationWarning.wav` - Sci-fi navigation failure warning, repeating urgent UI chirps, digital error pulses, cockpit alert tone, tense but not deafening, 4-6 seconds.
+- `SFX_CH1_INT_07_ThrusterStrain.wav` - Spaceship thrusters straining under stress, heavy vibration, metallic hull rumble, unstable engine pressure, rising tension, 5-8 seconds.
+- `SFX_CH1_INT_08_ReactorShieldingAlarm.wav` - Heavy reactor warning alarm, deep mechanical klaxon, unstable energy hum, emergency cockpit beeps layered underneath, serious sci-fi danger, 5-8 seconds.
+- `SFX_CH1_INT_09_CrashImpact.wav` - Massive spaceship crash impact on black screen, violent metal collision, deep sub-bass slam, debris, hull tearing, short aftermath rumble, 4-6 seconds, no voices.
+- `SFX_CH1_INT_10_SystemReboot.wav` - Damaged computer system reboot, static crackle, power flicker, digital startup tones, electronics coming back online, 4-6 seconds.
+- `SFX_CH1_INT_11_HullIntegrityWarning.wav` - Damaged hull integrity warning pulse, broken computer alert, distorted low beeps, unstable system tone, restrained emergency ambience, 4-6 seconds.
+- `SFX_CH1_INT_12_GroundedSting.wav` - Short restrained cinematic sci-fi final sting, low metallic tone, subtle impact swell, bleak stranded mood, 2-3 seconds, no melody, no orchestra.
+
+### Gameplay SFX Prompts
+
+- `SFX_UI_ButtonClick.wav` - Clean futuristic UI button click, crisp digital tap, soft mechanical confirmation, short and satisfying, 0.2-0.5 seconds.
+- `SFX_UI_PanelOpen.wav` - Sci-fi UI panel opening sound, smooth holographic whoosh, soft digital unfold, clean confirmation accent, 0.5-1 second.
+- `SFX_UI_PanelClose.wav` - Sci-fi UI panel closing sound, reverse holographic whoosh, compact digital collapse, soft ending click, 0.5-1 second.
+- `SFX_UI_Deny.wav` - Invalid action deny sound, short futuristic error beep, low negative pulse, clear but not annoying, 0.5-1 second.
+- `SFX_Build_PlacementPreview.wav` - Enter building placement mode, holographic construction blueprint materializing, soft energy grid activation, futuristic UI scan, 1-2 seconds.
+- `SFX_Build_Placed.wav` - Building successfully placed, solid sci-fi construction confirmation, metal foundation lock, energy snap, satisfying but short, 1-2 seconds.
+- `SFX_Build_Cancel.wav` - Building placement canceled, holographic blueprint dissipates, soft digital shutdown, clean negative action sound, 0.5-1 second.
+- `SFX_Build_ConstructionComplete.wav` - Construction finished, futuristic machinery stops, structure powers online, brief positive confirmation chime, industrial sci-fi, 2-3 seconds.
+- `SFX_Build_Damaged.wav` - Building takes damage, metal impact, sparks, shieldless structure hit, short debris rattle, sci-fi colony base, 1-2 seconds.
+- `SFX_Build_Destroyed.wav` - Building destroyed, medium sci-fi structure collapse, metal tearing, debris crash, power failure burst, 3-5 seconds.
+- `SFX_Resource_IronExtract.wav` - Iron extraction tick, mining drill bite, metallic scrape, ore collected, compact industrial resource sound, 0.8-1.5 seconds.
+- `SFX_Resource_EnergyGenerator.wav` - Steam generator energy production pulse, mechanical turbine, steam pressure burst, electrical hum, loopable or pulsing 3-6 seconds.
+- `SFX_Research_Start.wav` - Research begins, clean laboratory interface activation, data stream beep, subtle sci-fi calculation startup, 1-2 seconds.
+- `SFX_Research_Complete.wav` - Research complete, futuristic unlock sound, bright digital confirmation, restrained success chime, no melody, 1-2 seconds.
+- `SFX_Worker_Assign.wav` - Worker assigned to task, robotic unit confirmation beep, small servo movement, clean command acknowledgment, 0.5-1 second.
+- `SFX_Turret_Fire.wav` - Starter gun turret firing, sharp sci-fi ballistic shot, compact mechanical recoil, no huge explosion, 0.5-1 second.
+- `SFX_Turret_Hit.wav` - Projectile impact on enemy, wet armored hit, small kinetic impact, brief splatter and thud, 0.5-1 second.
+- `SFX_Enemy_Hit.wav` - Enemy takes damage, organic creature hit reaction, fleshy impact, short pained non-vocal texture, no human voice, 0.5-1 second.
+- `SFX_Enemy_Death.wav` - Enemy death sound, organic collapse, wet body impact, hostile creature disintegrating or falling, no voice, 1-2 seconds.
+- `SFX_Wave_Incoming.wav` - Incoming enemy wave alert, urgent sci-fi warning siren, tactical radar alarm, clear priority notification, 3-5 seconds.
+- `SFX_Base_UnderAttack.wav` - Base under attack priority alert, serious command warning tone, pulsing red-alert style sci-fi alarm, intense but clean, 3-5 seconds.
+- `SFX_Pollution_Spread.wav` - Pollution or wither spreading, corrupted organic creep, dark energy hiss, bubbling decay, unsettling but subtle, 2-4 seconds.
+- `SFX_Tile_Integrate.wav` - Tile integration conversion, terrain grid becoming buildable, sci-fi terraforming pulse, clean energy spread, satisfying transformation, 1-2 seconds.
+
 ## Voice Direction Notes
 
 - Nexus: controlled AI assistant, precise, calm, mostly neutral. Alert lines can become sharper but should not sound emotional.
@@ -220,10 +267,10 @@ These are not all directly wired to serialized fields yet, but the project alrea
 
 - [x] Import cutscene VO clips into `Assets/Audios/Voices/Chapter1/Cutscene/`.
 - [ ] Import mission VO clips into the recommended `Assets/Audios/Voices/Chapter1/MissionXX/` folders.
-- [ ] Import SFX clips into `Assets/Audios/SFX/...`.
+- [ ] Import SFX clips into `Assets/Audios/SFX/...`. Available Chapter 1 cutscene SFX are imported; missing cutscene SFX remain pending.
 - [ ] Preserve generated `.meta` files.
 - [x] Assign intro VO clips in `Assets/Resources/Data/Cutscenes/Chapter1_Intro.asset`.
-- [ ] Assign intro SFX clips in `Assets/Resources/Data/Cutscenes/Chapter1_Intro.asset`.
+- [ ] Assign intro SFX clips in `Assets/Resources/Data/Cutscenes/Chapter1_Intro.asset`. Available Chapter 1 cutscene SFX are assigned; missing cutscene SFX remain pending.
 - [ ] Assign mission dialogue VO clips in `Assets/Resources/Data/Dialogues/Chapter1/Mission*.asset`.
 - [ ] Recheck `Mission1.asset` stale voice GUIDs after importing or recreating the first two clips.
 - [ ] In Unity, confirm no missing audio references in the Inspector.

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 922cbf48982aa4f4ba81c16e6a7c9123, type: 3}
+  m_Name: Kyra_NewPlayerIntro
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueData
+  dialogueName: Kyra_NewPlayerIntro
+  pauseGame: 0
+  entries:
+  - speakerName: Kyra-Dominia
+    portrait: {fileID: 0}
+    expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
+    dialogueText: Fresh command signature detected. Good. We will begin with discipline.
+    voiceClip: {fileID: 8300000, guid: 3f1f177cd0c0c1f46a8ad76907c28a76, type: 3}
+  - speakerName: Kyra-Dominia
+    portrait: {fileID: 0}
+    expression: {fileID: 3622792381989719942, guid: fcfdf3b0b75479b45ac4992a42f44486, type: 3}
+    dialogueText: I am Kyra-Dominia. Build carefully, obey the mission brief, and
+      this planet may yet be useful.
+    voiceClip: {fileID: 0}

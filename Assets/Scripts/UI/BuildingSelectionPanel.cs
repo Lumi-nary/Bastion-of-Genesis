@@ -379,6 +379,9 @@ public class BuildingSelectionPanel : MonoBehaviour
 
     private void HideBuildingListForPlacement()
     {
+        if (UIManager.Instance != null)
+            UIManager.Instance.HideBuildingHoverPopup();
+
         if (slideRoutine != null) { StopCoroutine(slideRoutine); slideRoutine = null; }
         if (buildingListPanel != null) buildingListPanel.SetActive(false);
         foreach (GameObject btn in buildingButtons) Destroy(btn);
@@ -534,8 +537,20 @@ public class BuildingSelectionPanel : MonoBehaviour
         if (image == null)
             return;
 
-        TutorialPulseHighlight pulse = image.GetComponent<TutorialPulseHighlight>() ?? image.gameObject.AddComponent<TutorialPulseHighlight>();
-        pulse.SetHighlighted(highlighted);
+        TutorialPulseHighlight pulse = image.GetComponent<TutorialPulseHighlight>();
+        if (highlighted)
+        {
+            if (pulse == null)
+                pulse = image.gameObject.AddComponent<TutorialPulseHighlight>();
+
+            pulse.SetHighlighted(true);
+            return;
+        }
+
+        if (pulse != null)
+            pulse.SetHighlighted(false);
+
+        image.color = Color.white;
     }
 
     private string GetCategoryDisplayName(BuildingCategory category)

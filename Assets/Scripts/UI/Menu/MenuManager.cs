@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 /// <summary>
 /// MenuManager handles canvas-based navigation for the main menu system.
@@ -22,6 +23,10 @@ public class MenuManager : MonoBehaviour
     [Header("Modal Blur")]
     [SerializeField] private bool blurModalCanvases = true;
     [SerializeField] private int modalCanvasSortingOrder = 100;
+
+    [Header("UI SFX")]
+    [SerializeField] private AudioClip buttonClickSfx;
+    [SerializeField, Range(0f, 1f)] private float buttonClickVolume = 1f;
 
     // Track currently active canvas
     private Canvas currentCanvas;
@@ -198,9 +203,42 @@ public class MenuManager : MonoBehaviour
 
         // Update current canvas reference
         currentCanvas = targetCanvas;
+        RegisterButtonClickSfx(targetCanvas);
+
+        if (keepMainMenuBehind)
+            RegisterButtonClickSfx(mainMenuCanvas);
 
         // Log canvas switch (AC4.6: Pattern 4 - Logging Strategy)
         Debug.Log($"[MenuManager] Canvas switched: {targetCanvas.name}");
+    }
+
+    public void RegisterButtonClickSfx(Button button)
+    {
+        if (button == null)
+            return;
+
+        if (button.GetComponent<MenuButtonClickSfx>() == null)
+            button.gameObject.AddComponent<MenuButtonClickSfx>();
+    }
+
+    public void RegisterButtonClickSfx(Canvas canvas)
+    {
+        if (canvas == null)
+            return;
+
+        Button[] buttons = canvas.GetComponentsInChildren<Button>(true);
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            RegisterButtonClickSfx(buttons[i]);
+        }
+    }
+
+    public void PlayButtonClickSfx()
+    {
+        if (buttonClickSfx == null || AudioManager.Instance == null)
+            return;
+
+        AudioManager.Instance.PlaySFX2D(buttonClickSfx, buttonClickVolume);
     }
 
     // ============================================================================
@@ -247,6 +285,8 @@ public class MenuManager : MonoBehaviour
             LoadGameUI loadGameUI = loadGameCanvas.GetComponentInChildren<LoadGameUI>();
             if (loadGameUI != null)
                 loadGameUI.RefreshSaveList();
+
+            RegisterButtonClickSfx(loadGameCanvas);
         }
     }
 

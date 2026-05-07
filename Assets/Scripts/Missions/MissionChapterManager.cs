@@ -955,6 +955,9 @@ public class MissionChapterManager : MonoBehaviour
         if (!missionActive || currentMission == null || currentMission.objectives == null)
             return;
 
+        if (!TutorialGuideManager.IsTutorialEnabled)
+            return;
+
         MissionObjective activeObjective = GetFirstUnfinishedRequiredObjective();
         if (activeObjective == null ||
             activeObjective.objectiveDialogue == null ||

@@ -26,6 +26,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 8c22891853fca0243974ac56e732677b, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 8300000, guid: f1dbd1e8d4ac8ee49a01b5df5dc549d8, type: 3}
+    loopAmbience: 1
     backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
     image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
     clearImage: 0
@@ -45,6 +47,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: f5697acfbe76d6e46a961c70bac573be, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 8300000, guid: f1dbd1e8d4ac8ee49a01b5df5dc549d8, type: 3}
+    loopAmbience: 1
     backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
     image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
     clearImage: 0
@@ -64,6 +68,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: cc05f3ad0c83dd34eb1e2723b0b06f89, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 8300000, guid: f1dbd1e8d4ac8ee49a01b5df5dc549d8, type: 3}
+    loopAmbience: 1
     backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
     image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
     clearImage: 0
@@ -83,6 +89,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 401719e259b2210429da1983ae10d474, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 8300000, guid: f1dbd1e8d4ac8ee49a01b5df5dc549d8, type: 3}
+    loopAmbience: 1
     backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
     image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
     clearImage: 0
@@ -102,6 +110,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: d84438aeb5ffe2e41b0e208f28dc270d, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 8300000, guid: f1dbd1e8d4ac8ee49a01b5df5dc549d8, type: 3}
+    loopAmbience: 1
     backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
     image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
     clearImage: 0
@@ -120,6 +130,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 0a0f2d69df56db049a0733a56eb15539, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 8300000, guid: f1dbd1e8d4ac8ee49a01b5df5dc549d8, type: 3}
+    loopAmbience: 1
     backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
     image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
     clearImage: 0
@@ -139,6 +151,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 7bfbdb30b8a049049a303b990f17eb5b, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 8300000, guid: f1dbd1e8d4ac8ee49a01b5df5dc549d8, type: 3}
+    loopAmbience: 1
     backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
     image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
     clearImage: 0
@@ -157,6 +171,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 43ed1da6fb4e11346b19297447f453d7, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 8300000, guid: 40d0780651965ee41b816af25d4472ef, type: 3}
+    loopAmbience: 1
     backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
     image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
     clearImage: 0
@@ -175,6 +191,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 9eb75abafb105994fb4aa804e011df27, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 8300000, guid: 40d0780651965ee41b816af25d4472ef, type: 3}
+    loopAmbience: 1
     backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
     image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
     clearImage: 0
@@ -193,6 +211,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 57d20fccc774c4a46af12163ce144c15, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 8300000, guid: 40d0780651965ee41b816af25d4472ef, type: 3}
+    loopAmbience: 1
     backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
     image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
     clearImage: 0
@@ -211,6 +231,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 0}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 8300000, guid: 40d0780651965ee41b816af25d4472ef, type: 3}
+    loopAmbience: 1
     backgroundMusic: {fileID: 8300000, guid: b69d8c229f2d9064dbc055a9b5f708f3, type: 3}
     image: {fileID: 21300000, guid: f65eb074ac56a394895c3cee618a4fc2, type: 3}
     clearImage: 0
@@ -228,7 +250,9 @@ MonoBehaviour:
     overrideTypewriterSpeed: 0
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 82b8c3c6ac1fbfc4e9bbec94f56cd962, type: 3}
-    soundEffect: {fileID: 0}
+    soundEffect: {fileID: 8300000, guid: c837e3340baa20c45965f34f03404fff, type: 3}
+    ambienceLoop: {fileID: 0}
+    loopAmbience: 0
     backgroundMusic: {fileID: 8300000, guid: 075b1a3d8362d26489c5810b43685e2f, type: 3}
     image: {fileID: 21300000, guid: 465b3515f07495d4d957400749bbc309, type: 3}
     clearImage: 0
@@ -247,6 +271,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 537bf5ec73d732941bcdd0bfc4d57535, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 0}
+    loopAmbience: 0
     backgroundMusic: {fileID: 8300000, guid: 075b1a3d8362d26489c5810b43685e2f, type: 3}
     image: {fileID: 21300000, guid: 465b3515f07495d4d957400749bbc309, type: 3}
     clearImage: 0
@@ -265,7 +291,9 @@ MonoBehaviour:
     overrideTypewriterSpeed: 0
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 4bef3e18d5e8f4e49a080b152890b8ac, type: 3}
-    soundEffect: {fileID: 0}
+    soundEffect: {fileID: 8300000, guid: 747749cdb3ad2c247a11e5f8e0a5ac7f, type: 3}
+    ambienceLoop: {fileID: 0}
+    loopAmbience: 0
     backgroundMusic: {fileID: 8300000, guid: 075b1a3d8362d26489c5810b43685e2f, type: 3}
     image: {fileID: 21300000, guid: 465b3515f07495d4d957400749bbc309, type: 3}
     clearImage: 0
@@ -283,7 +311,9 @@ MonoBehaviour:
     overrideTypewriterSpeed: 0
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: d68d0a30bb231854891261e3e5b870e9, type: 3}
-    soundEffect: {fileID: 0}
+    soundEffect: {fileID: 8300000, guid: 52a58f1da46dcf542b58b3513f2d6405, type: 3}
+    ambienceLoop: {fileID: 0}
+    loopAmbience: 0
     backgroundMusic: {fileID: 8300000, guid: 075b1a3d8362d26489c5810b43685e2f, type: 3}
     image: {fileID: 21300000, guid: 465b3515f07495d4d957400749bbc309, type: 3}
     clearImage: 0
@@ -301,7 +331,9 @@ MonoBehaviour:
     overrideTypewriterSpeed: 0
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 891e5e741e59a534b875c03eb19eab3b, type: 3}
-    soundEffect: {fileID: 0}
+    soundEffect: {fileID: 8300000, guid: 2ce725255e69a554d9be4423a7bc18a7, type: 3}
+    ambienceLoop: {fileID: 0}
+    loopAmbience: 0
     backgroundMusic: {fileID: 8300000, guid: 075b1a3d8362d26489c5810b43685e2f, type: 3}
     image: {fileID: 21300000, guid: 465b3515f07495d4d957400749bbc309, type: 3}
     clearImage: 0
@@ -319,7 +351,9 @@ MonoBehaviour:
     overrideTypewriterSpeed: 0
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 0}
-    soundEffect: {fileID: 0}
+    soundEffect: {fileID: 8300000, guid: 67fdf7d9750bdb448b74c00e39d39921, type: 3}
+    ambienceLoop: {fileID: 0}
+    loopAmbience: 0
     backgroundMusic: {fileID: 0}
     image: {fileID: 0}
     clearImage: 1
@@ -338,7 +372,9 @@ MonoBehaviour:
     overrideTypewriterSpeed: 0
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: ef9cae1b3ebe0964386c812934e9ed92, type: 3}
-    soundEffect: {fileID: 0}
+    soundEffect: {fileID: 8300000, guid: 9299bbd910096ed499c16840a4afd1cf, type: 3}
+    ambienceLoop: {fileID: 8300000, guid: 9299bbd910096ed499c16840a4afd1cf, type: 3}
+    loopAmbience: 1
     backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
     image: {fileID: 21300000, guid: 3089a2c5dbe607748b21e7280db183c5, type: 3}
     clearImage: 0
@@ -358,6 +394,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: f8e4156e5cd063a4099d857dcb4f8ad9, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 0}
+    loopAmbience: 0
     backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
     image: {fileID: 21300000, guid: 3089a2c5dbe607748b21e7280db183c5, type: 3}
     clearImage: 0
@@ -377,6 +415,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 6e75b5d84d02b0d4f9398264dfa82cc3, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 0}
+    loopAmbience: 0
     backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
     image: {fileID: 21300000, guid: 3089a2c5dbe607748b21e7280db183c5, type: 3}
     clearImage: 0
@@ -395,7 +435,9 @@ MonoBehaviour:
     overrideTypewriterSpeed: 0
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 62d3ea5b7155e744b964ac69142af808, type: 3}
-    soundEffect: {fileID: 0}
+    soundEffect: {fileID: 8300000, guid: 826d54c224107a64daf3fadfcd8c82ba, type: 3}
+    ambienceLoop: {fileID: 0}
+    loopAmbience: 0
     backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
     image: {fileID: 21300000, guid: 3089a2c5dbe607748b21e7280db183c5, type: 3}
     clearImage: 0
@@ -415,6 +457,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 447a97afdc560424bbfd0ce9603709b0, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 0}
+    loopAmbience: 0
     backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
     image: {fileID: 21300000, guid: ecc2a28163f4892419a2c9eb63359232, type: 3}
     clearImage: 0
@@ -433,6 +477,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 7b4239603cb2bbc40a02efc40b5930c7, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 0}
+    loopAmbience: 0
     backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
     image: {fileID: 21300000, guid: ecc2a28163f4892419a2c9eb63359232, type: 3}
     clearImage: 0
@@ -452,6 +498,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 5afe577d1aa92314e9647f4b024b85dc, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 0}
+    loopAmbience: 0
     backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
     image: {fileID: 21300000, guid: ecc2a28163f4892419a2c9eb63359232, type: 3}
     clearImage: 0
@@ -471,6 +519,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 92ec398bcdcbb1640a7a2016b118d7a9, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 0}
+    loopAmbience: 0
     backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
     image: {fileID: 21300000, guid: ecc2a28163f4892419a2c9eb63359232, type: 3}
     clearImage: 0
@@ -490,6 +540,8 @@ MonoBehaviour:
     typewriterWordsPerSecond: 6
     voiceline: {fileID: 8300000, guid: 2c4f51f247d7fdc4a837d7ecf276aeb6, type: 3}
     soundEffect: {fileID: 0}
+    ambienceLoop: {fileID: 0}
+    loopAmbience: 0
     backgroundMusic: {fileID: 8300000, guid: 430e73090460d3642a5c8d67957249da, type: 3}
     image: {fileID: 21300000, guid: ecc2a28163f4892419a2c9eb63359232, type: 3}
     clearImage: 0

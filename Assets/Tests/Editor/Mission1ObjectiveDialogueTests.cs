@@ -48,6 +48,48 @@ public class Mission1ObjectiveDialogueTests
     }
 
     [Test]
+    public void ObjectiveDialogue_WhenTutorialDisabled_DoesNotQueue()
+    {
+        SettingsManager originalSettingsManager = SettingsManager.Instance;
+        GameObject settingsObject = new GameObject("SettingsManager_ObjectiveDialogue_Test");
+        settingsObject.SetActive(false);
+        SettingsManager settingsManager = settingsObject.AddComponent<SettingsManager>();
+        SetStaticPropertyBackingField(typeof(SettingsManager), "Instance", settingsManager);
+        SetPrivateField(settingsManager, "currentSettings", new SettingsData { tutorialEnabled = false });
+
+        GameObject managerObject = new GameObject("MissionChapterManager_ObjectiveDialogue_Test");
+        MissionChapterManager manager = managerObject.AddComponent<MissionChapterManager>();
+        MissionData mission = ScriptableObject.CreateInstance<MissionData>();
+        DialogueData dialogue = ScriptableObject.CreateInstance<DialogueData>();
+        dialogue.entries.Add(new DialogueEntry { speakerName = "Nexus", dialogueText = "Build guidance." });
+        mission.objectives.Add(new MissionObjective
+        {
+            objectiveDescription = "Build something",
+            type = ObjectiveType.BuildStructures,
+            isTutorialStep = true,
+            objectiveDialogue = dialogue
+        });
+
+        try
+        {
+            SetPrivateField(manager, "currentMission", mission);
+            SetPrivateField(manager, "missionActive", true);
+
+            InvokePrivate(manager, "TryPlayCurrentObjectiveDialogue");
+
+            Assert.IsFalse(manager.IsObjectiveDialogueBlockingTutorial);
+        }
+        finally
+        {
+            Object.DestroyImmediate(dialogue);
+            Object.DestroyImmediate(mission);
+            Object.DestroyImmediate(managerObject);
+            Object.DestroyImmediate(settingsObject);
+            SetStaticPropertyBackingField(typeof(SettingsManager), "Instance", originalSettingsManager);
+        }
+    }
+
+    [Test]
     public void TutorialInstructionPanelPrefab_IsEditableAndBottomLeftAnchored()
     {
         GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
@@ -82,5 +124,18 @@ public class Mission1ObjectiveDialogueTests
         typeof(MissionChapterManager)
             .GetMethod(methodName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
             .Invoke(manager, arguments);
+    }
+
+    private static void SetPrivateField(object target, string fieldName, object value)
+    {
+        target.GetType()
+            .GetField(fieldName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            .SetValue(target, value);
+    }
+
+    private static void SetStaticPropertyBackingField(System.Type type, string propertyName, object value)
+    {
+        type.GetField($"<{propertyName}>k__BackingField", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)
+            .SetValue(null, value);
     }
 }

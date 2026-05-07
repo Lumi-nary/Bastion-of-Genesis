@@ -271,13 +271,18 @@ public class CutscenePreviewWindow : EditorWindow
             PlayEditorAudioClip(beat.soundEffect);
         }
 
+        if (beat.loopAmbience && beat.ambienceLoop != null)
+        {
+            PlayEditorAudioClip(beat.ambienceLoop, true);
+        }
+
         if (beat.voiceline != null)
         {
             PlayEditorAudioClip(beat.voiceline);
         }
     }
 
-    private static void PlayEditorAudioClip(AudioClip clip)
+    private static void PlayEditorAudioClip(AudioClip clip, bool loop = false)
     {
         Type audioUtilType = typeof(AudioImporter).Assembly.GetType("UnityEditor.AudioUtil");
         MethodInfo playMethod = audioUtilType?.GetMethod(
@@ -293,7 +298,7 @@ public class CutscenePreviewWindow : EditorWindow
             new[] { typeof(AudioClip), typeof(int), typeof(bool) },
             null);
 
-        playMethod?.Invoke(null, new object[] { clip, 0, false });
+        playMethod?.Invoke(null, new object[] { clip, 0, loop });
     }
 
     private static void StopPreviewAudio()
