@@ -240,11 +240,11 @@ Use this shared style rule for every ElevenLabs SFX generation:
 - `SFX_Build_PlacementPreview.wav` - Enter building placement mode, holographic construction blueprint materializing, soft energy grid activation, futuristic UI scan, 1-2 seconds.
 - `SFX_Build_Placed.wav` - Building successfully placed, solid sci-fi construction confirmation, metal foundation lock, energy snap, satisfying but short, 1-2 seconds.
 - `SFX_Build_Cancel.wav` - Building placement canceled, holographic blueprint dissipates, soft digital shutdown, clean negative action sound, 0.5-1 second.
-- `SFX_Build_ConstructionComplete.wav` - Construction finished, futuristic machinery stops, structure powers online, brief positive confirmation chime, industrial sci-fi, 2-3 seconds.
 - `SFX_Build_Damaged.wav` - Building takes damage, metal impact, sparks, shieldless structure hit, short debris rattle, sci-fi colony base, 1-2 seconds.
 - `SFX_Build_Destroyed.wav` - Building destroyed, medium sci-fi structure collapse, metal tearing, debris crash, power failure burst, 3-5 seconds.
-- `SFX_Resource_IronExtract.wav` - Iron extraction tick, mining drill bite, metallic scrape, ore collected, compact industrial resource sound, 0.8-1.5 seconds.
-- `SFX_Resource_EnergyGenerator.wav` - Steam generator energy production pulse, mechanical turbine, steam pressure burst, electrical hum, loopable or pulsing 3-6 seconds.
+- `SFX_Resource_IronExtract.wav` - Iron extraction tick, mining drill bite, metallic scrape, ore collected, compact industrial resource sound, 0.8-1.5 seconds. LOOP
+- `SFX_Resource_EnergyGenerator.wav` - Steam generator energy production pulse, mechanical turbine, steam pressure burst, electrical hum, loopable or pulsing 3-6 seconds. LOOP
+- `SFX_Building_Factory.wav` - Factory production pulse, mechanical arms, humming robots, electrical hum, loopable or pulsing 3-6 seconds.
 - `SFX_Research_Start.wav` - Research begins, clean laboratory interface activation, data stream beep, subtle sci-fi calculation startup, 1-2 seconds.
 - `SFX_Research_Complete.wav` - Research complete, futuristic unlock sound, bright digital confirmation, restrained success chime, no melody, 1-2 seconds.
 - `SFX_Worker_Assign.wav` - Worker assigned to task, robotic unit confirmation beep, small servo movement, clean command acknowledgment, 0.5-1 second.

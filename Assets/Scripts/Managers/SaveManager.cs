@@ -560,9 +560,17 @@ public class SaveManager : MonoBehaviour
         if (BuildingManager.Instance != null && data.buildings != null)
             BuildingManager.Instance.ImportState(data.buildings);
 
+        // Buildings are destroyed/recreated during import, so the tile system must
+        // rebind to the restored Command Center before pollution and integration repaint.
+        if (TileStateManager.Instance != null)
+            TileStateManager.Instance.RefreshPollutionCenter();
+
         // 5. Pollution
         if (PollutionManager.Instance != null && data.pollution != null)
             PollutionManager.Instance.ImportState(data.pollution);
+
+        if (TileStateManager.Instance != null)
+            TileStateManager.Instance.RefreshAllTiles();
 
         // 6. Mission state (restore objective progress)
         if (MissionChapterManager.Instance != null && data.mission != null)

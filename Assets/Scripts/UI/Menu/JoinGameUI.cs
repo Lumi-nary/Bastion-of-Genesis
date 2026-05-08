@@ -158,7 +158,7 @@ public class JoinGameUI : MonoBehaviour
 
         // Listen for scene load to unload MenuScene after gameplay scene arrives
         InstanceFinder.SceneManager.OnLoadEnd += OnFishNetSceneLoaded;
-
+        LoadingScreenManager.EnsureInstance().ShowIndeterminate("Connecting...");
         InstanceFinder.ClientManager.StartConnection();
     }
 
@@ -175,6 +175,8 @@ public class JoinGameUI : MonoBehaviour
             UnitySceneManager.UnloadSceneAsync(menuScene);
             Debug.Log("[JoinGameUI] Unloaded MenuScene after joining server");
         }
+
+        LoadingScreenManager.Instance?.Hide();
     }
 
     private void OnManualConnectClicked()

@@ -9788,7 +9788,7 @@ MonoBehaviour:
   pollutionCenter: {fileID: 1403062857}
   pollutionRadius: 6
   witherBorderWidth: 2
-  buildingIntegrationRadius: 3
+  buildingIntegrationRadius: 5
   commandCenterBaseRadius: 3
   grassWitherTileset: {fileID: 11400000, guid: e76c1468ede4b3048a6faa0d35830789, type: 2}
   witherIntegratedTileset: {fileID: 11400000, guid: 8153fd21d8495534bb2ebfd9182747b0, type: 2}

@@ -27,6 +27,7 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float minOrthographicSize = 2f;
     [SerializeField] private float maxOrthographicSize = 15f;
     [SerializeField] private float zoomSmoothing = 5f;
+    [SerializeField, Range(0.01f, 1f)] private float ambienceSilentZoomFraction = 0.25f;
 
     [Header("UI Input Blocking")]
     [SerializeField] private bool blockZoomOverObjectiveScroll = true;
@@ -307,6 +308,23 @@ public class CameraController : MonoBehaviour
             targetOrthographicSize,
             Time.deltaTime * zoomSmoothing
         );
+    }
+
+    public float GetZoomVolumeMultiplier()
+    {
+        if (m_CMCamera == null || maxOrthographicSize <= minOrthographicSize)
+        {
+            return 1f;
+        }
+
+        float currentZoom = m_CMCamera.Lens.OrthographicSize;
+        float t = Mathf.InverseLerp(minOrthographicSize, maxOrthographicSize, currentZoom);
+        if (t >= ambienceSilentZoomFraction)
+        {
+            return 0f;
+        }
+
+        return Mathf.Clamp01(1f - (t / ambienceSilentZoomFraction));
     }
 
     private void HandleZoomInput(InputAction.CallbackContext context)

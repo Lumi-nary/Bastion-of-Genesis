@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// LoadGameButton navigates to the Load Game browser screen.
@@ -61,7 +60,7 @@ public class LoadGameButton : MonoBehaviour
                 sceneName = MissionChapterManager.Instance.CurrentChapter.sceneName;
             }
 
-            SceneManager.LoadSceneAsync(sceneName);
+            LoadingScreenManager.EnsureInstance().LoadSceneAsync(sceneName);
         }
         else
         {

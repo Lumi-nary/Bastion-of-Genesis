@@ -30,6 +30,10 @@ MonoBehaviour:
   workerRequirements: []
   features:
   - {fileID: 11400000, guid: b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4, type: 2}
+  ambienceLoop: {fileID: 8300000, guid: 2ff69af0152f5c647955346ca4afe624, type: 3}
+  ambienceVolume: 0.25
+  ambienceMaxDistance: 14
+  playAmbienceWhenOperational: 1
   maxPlacementCount: 0
   width: 3
   height: 3

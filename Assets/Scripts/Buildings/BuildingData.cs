@@ -83,6 +83,19 @@ public class BuildingData : ScriptableObject
     [Tooltip("List of features this building has (energy, combat, pollution, etc.)")]
     public List<BuildingFeature> features = new List<BuildingFeature>();
 
+    [Header("Building Audio")]
+    [Tooltip("Optional loop played from this building while it is active.")]
+    public AudioClip ambienceLoop;
+
+    [Range(0f, 1f)]
+    public float ambienceVolume = 0.35f;
+
+    [Min(0f)]
+    public float ambienceMaxDistance = 12f;
+
+    [Tooltip("If true, ambience only plays while worker requirements are satisfied.")]
+    public bool playAmbienceWhenOperational = true;
+
     [Header("Placement Cap")]
     [Tooltip("Maximum number of this building that can be placed (0 = unlimited)")]
     public int maxPlacementCount = 0;

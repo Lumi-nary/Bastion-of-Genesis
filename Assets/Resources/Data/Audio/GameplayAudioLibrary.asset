@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4527bebb8bc64d468c0dc357586a6a2, type: 3}
+  m_Name: GameplayAudioLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::GameplayAudioLibrary
+  uiButtonClick: {fileID: 0}
+  uiPanelOpen: {fileID: 8300000, guid: 06f981eea50e8564da336d8f0a584f92, type: 3}
+  uiPanelClose: {fileID: 0}
+  uiDeny: {fileID: 8300000, guid: ab52ca080f3ef0440a7e062edbca7294, type: 3}
+  buildPlacementPreview: {fileID: 0}
+  buildPlaced: {fileID: 8300000, guid: bee0e57c224e6774f9dd55f46046b798, type: 3}
+  buildCancel: {fileID: 0}
+  buildConstructionComplete: {fileID: 8300000, guid: 1f3ba6db43d93d547bae9056c4807046, type: 3}
+  buildDamaged: {fileID: 8300000, guid: d4be3a5777bc13243b6ac9fd789746e0, type: 3}
+  buildDestroyed: {fileID: 8300000, guid: 70a1d1c8c17fb4b49986bcfc7901149b, type: 3}
+  researchStart: {fileID: 0}
+  researchComplete: {fileID: 0}
+  workerAssign: {fileID: 0}
+  turretFire: {fileID: 8300000, guid: 604fd53bf67a42f469165e0dc1c3cdfe, type: 3}
+  turretHit: {fileID: 8300000, guid: eda7787f839dd86449ca498fe7084852, type: 3}
+  enemyHit: {fileID: 0}
+  enemyDeath: {fileID: 8300000, guid: 3bed5278bc4f746448d540a23861a986, type: 3}
+  waveIncoming: {fileID: 8300000, guid: 316a3520d61f86148b04c649ad8d4fbd, type: 3}
+  baseUnderAttack: {fileID: 8300000, guid: e5562fde6d2707f4c82321d7ecbc93d2, type: 3}
+  pollutionSpread: {fileID: 0}
+  tileIntegrate: {fileID: 0}

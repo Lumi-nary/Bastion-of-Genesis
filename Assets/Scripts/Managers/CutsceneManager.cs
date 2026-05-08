@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.Playables;
-using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
 using System;
 
@@ -312,7 +311,7 @@ public class CutsceneManager : MonoBehaviour
         {
             string sceneName = $"Chapter{chapterIndex + 1}Map";
             Debug.LogWarning($"[CutsceneManager] MissionChapterManager not found, loading {sceneName} directly");
-            SceneManager.LoadSceneAsync(sceneName);
+            LoadingScreenManager.EnsureInstance().LoadSceneAsync(sceneName);
         }
     }
 }

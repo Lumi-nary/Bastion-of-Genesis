@@ -27,6 +27,9 @@ public class Building : MonoBehaviour
     public event Action<Building> OnBuildingDestroyed;
     public event Action OnWorkersChanged;
 
+    private AudioSource ambienceSource;
+    private float lastDamageSfxTime = -1f;
+
     private void Awake()
     {
         // Ensure BoxCollider2D exists for physics-based click detection
@@ -111,6 +114,8 @@ public class Building : MonoBehaviour
                 feature.OnBuilt(this);
             }
         }
+
+        ConfigureAmbience();
     }
 
     private void Update()
@@ -129,6 +134,8 @@ public class Building : MonoBehaviour
                 }
             }
         }
+
+        UpdateAmbienceState();
     }
 
     public int GetTotalAssignedWorkerCount()
@@ -227,6 +234,7 @@ public class Building : MonoBehaviour
         CurrentHealth -= damage;
 
         OnBuildingDamaged?.Invoke(this, damage);
+        PlayDamageAudio();
 
         // Notify features about damage
         foreach (var feature in buildingData.features)
@@ -252,6 +260,8 @@ public class Building : MonoBehaviour
         if (isDestroyed) return;
 
         isDestroyed = true;
+        StopAmbience();
+        GameplayAudio.PlayBuildDestroyed(transform.position);
 
         // Notify features about destruction
         foreach (var feature in buildingData.features)
@@ -313,6 +323,89 @@ public class Building : MonoBehaviour
     public void Repair()
     {
         CurrentHealth = buildingData.maxHealth;
+    }
+
+    private void ConfigureAmbience()
+    {
+        if (buildingData == null || buildingData.ambienceLoop == null)
+        {
+            return;
+        }
+
+        ambienceSource = gameObject.AddComponent<AudioSource>();
+        ambienceSource.clip = buildingData.ambienceLoop;
+        ambienceSource.loop = true;
+        ambienceSource.playOnAwake = false;
+        ambienceSource.volume = GetAmbienceVolume();
+        ambienceSource.spatialBlend = 1f;
+        ambienceSource.rolloffMode = AudioRolloffMode.Linear;
+        ambienceSource.minDistance = 1f;
+        ambienceSource.maxDistance = Mathf.Max(1f, buildingData.ambienceMaxDistance);
+
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.RouteAudioSource(ambienceSource, AudioManager.AudioBus.Ambience);
+        }
+
+        UpdateAmbienceState();
+    }
+
+    private void UpdateAmbienceState()
+    {
+        if (ambienceSource == null)
+        {
+            return;
+        }
+
+        bool shouldPlay = !isDestroyed && (!buildingData.playAmbienceWhenOperational || IsOperational);
+        ambienceSource.volume = shouldPlay ? GetAmbienceVolume() : 0f;
+
+        if (shouldPlay && !ambienceSource.isPlaying)
+        {
+            ambienceSource.Play();
+        }
+        else if (!shouldPlay && ambienceSource.isPlaying)
+        {
+            ambienceSource.Stop();
+        }
+    }
+
+    private float GetAmbienceVolume()
+    {
+        float zoomMultiplier = AudioManager.Instance != null
+            ? AudioManager.Instance.GetZoomVolumeMultiplier()
+            : 1f;
+
+        return buildingData.ambienceVolume * zoomMultiplier;
+    }
+
+    private void StopAmbience()
+    {
+        if (ambienceSource != null)
+        {
+            ambienceSource.Stop();
+        }
+    }
+
+    private void PlayDamageAudio()
+    {
+        if (Time.time - lastDamageSfxTime < 0.25f)
+        {
+            return;
+        }
+
+        lastDamageSfxTime = Time.time;
+        GameplayAudio.PlayBuildDamaged(transform.position);
+
+        if (buildingData != null && buildingData.category == BuildingCategory.Command)
+        {
+            GameplayAudio.PlayBaseUnderAttack(transform.position);
+        }
+    }
+
+    private void OnDisable()
+    {
+        StopAmbience();
     }
 
     /// <summary>

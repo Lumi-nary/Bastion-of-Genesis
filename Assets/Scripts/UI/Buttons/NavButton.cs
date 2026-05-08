@@ -26,6 +26,7 @@ public class NavButton : MonoBehaviour
     private bool subscribed;
     private bool tutorialSubscribed;
     private TutorialPulseHighlight pulseHighlight;
+    private TutorialPulseHighlight labelPulseHighlight;
 
     private void Reset()
     {
@@ -44,6 +45,8 @@ public class NavButton : MonoBehaviour
             label = GetComponentInChildren<TMP_Text>();
         if (background != null)
             pulseHighlight = background.GetComponent<TutorialPulseHighlight>();
+        if (label != null)
+            labelPulseHighlight = label.GetComponent<TutorialPulseHighlight>();
     }
 
     private void OnEnable()
@@ -155,12 +158,20 @@ public class NavButton : MonoBehaviour
 
     private void SetTutorialHighlight(bool highlighted)
     {
-        if (background == null)
-            return;
+        if (background != null)
+        {
+            if (pulseHighlight == null)
+                pulseHighlight = background.gameObject.GetComponent<TutorialPulseHighlight>() ?? background.gameObject.AddComponent<TutorialPulseHighlight>();
 
-        if (pulseHighlight == null)
-            pulseHighlight = background.gameObject.GetComponent<TutorialPulseHighlight>() ?? background.gameObject.AddComponent<TutorialPulseHighlight>();
+            pulseHighlight.SetHighlighted(highlighted);
+        }
 
-        pulseHighlight.SetHighlighted(highlighted);
+        if (label != null)
+        {
+            if (labelPulseHighlight == null)
+                labelPulseHighlight = label.gameObject.GetComponent<TutorialPulseHighlight>() ?? label.gameObject.AddComponent<TutorialPulseHighlight>();
+
+            labelPulseHighlight.SetHighlighted(highlighted);
+        }
     }
 }

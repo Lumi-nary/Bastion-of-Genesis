@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
 public class GameOverPanelUI : MonoBehaviour
@@ -95,7 +94,7 @@ public class GameOverPanelUI : MonoBehaviour
     {
         Debug.Log("[GameOverPanelUI] Main Menu button clicked.");
         Time.timeScale = 1f;
-        SceneManager.LoadScene(menuSceneName);
+        LoadingScreenManager.EnsureInstance().LoadSceneAsync(menuSceneName);
     }
 
     private void OnShareClicked()

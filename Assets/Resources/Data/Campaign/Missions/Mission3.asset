@@ -70,6 +70,31 @@ MonoBehaviour:
     currentAmount: 0
     currentTime: 0
     isCompleted: 0
+  - objectiveDescription: Assemble 5 Builders
+    type: 6
+    isOptional: 0
+    targetAmount: 5
+    targetTime: 0
+    requiredResource: {fileID: 0}
+    requiredBuilding: {fileID: 0}
+    requiredWorker: {fileID: 11400000, guid: 91c98282305e56e4ebff8c175e677795, type: 2}
+    targetRace: 0
+    isTutorialStep: 1
+    gateMode: 0
+    targetPanel: 2
+    targetAction: 5
+    allowedPlacementCells: []
+    focusWorldCell: {x: 0, y: 0}
+    hasFocusWorldCell: 0
+    requiredTechnology: {fileID: 0}
+    requiredTechnologies: []
+    requiredAssignmentBuilding: {fileID: 0}
+    tutorialInstruction: Open Worker Assembly and click Assemble on Builders.
+    focusCameraOnTarget: 1
+    tutorialCameraZoom: 7
+    currentAmount: 0
+    currentTime: 0
+    isCompleted: 0
   - objectiveDescription: Assemble 2 Researchers
     type: 6
     isOptional: 0

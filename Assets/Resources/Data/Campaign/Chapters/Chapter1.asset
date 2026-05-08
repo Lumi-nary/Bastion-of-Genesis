@@ -53,7 +53,7 @@ MonoBehaviour:
   - workerData: {fileID: 11400000, guid: 216587715e5a72f4dafb90fd6b71cd1b, type: 2}
     initialCount: 0
   startingWitherRadius: 10
-  startingIntegrationRadius: 7
+  startingIntegrationRadius: 9
   maxPollution: 5000
   pollutionDecayRate: 0.5
   missions:

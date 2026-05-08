@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class MainMenuButton : MonoBehaviour
 {
@@ -28,6 +27,6 @@ public class MainMenuButton : MonoBehaviour
         }
 
         // Load main menu scene
-        SceneManager.LoadSceneAsync(mainMenuSceneName);
+        LoadingScreenManager.EnsureInstance().LoadSceneAsync(mainMenuSceneName);
     }
 }

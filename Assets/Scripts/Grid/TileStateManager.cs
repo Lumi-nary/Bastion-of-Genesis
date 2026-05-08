@@ -19,7 +19,7 @@ public class TileStateManager : MonoBehaviour
     [SerializeField] private float pollutionRadius = 10f; // How far Polluted (wither) zone extends
 
     [Header("Building Integration Settings")]
-    [SerializeField] private int buildingIntegrationRadius = 3; // Tiles around each building that become integrated
+    [SerializeField] private int buildingIntegrationRadius = 5; // Tiles around each building that become integrated
     [SerializeField] private float commandCenterBaseRadius = 5f; // Starter integrated zone around Command Center
 
     [Header("Pollution Spread Animation")]

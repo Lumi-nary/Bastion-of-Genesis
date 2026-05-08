@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// WakeUpButton finalizes save file creation and transitions to GameWorld scene.
@@ -59,7 +58,7 @@ public class WakeUpButton : MonoBehaviour
             // Fallback: Direct scene load if MissionChapterManager not available
             Debug.LogWarning("[WakeUpButton] MissionChapterManager not found! Loading scene directly (chapter data won't be applied)");
             string sceneToLoad = GetChapterSceneName(chapter);
-            SceneManager.LoadSceneAsync(sceneToLoad);
+            LoadingScreenManager.EnsureInstance().LoadSceneAsync(sceneToLoad);
         }
     }
 

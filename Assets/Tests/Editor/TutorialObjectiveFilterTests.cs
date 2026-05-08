@@ -241,6 +241,60 @@ public class TutorialObjectiveFilterTests
     }
 
     [Test]
+    public void TutorialOverlay_DoesNotCreateInstructionPanelWhileObjectiveDialogueBlocksGuidance()
+    {
+        SettingsManager originalSettingsManager = SettingsManager.Instance;
+        SetStaticPropertyBackingField(typeof(SettingsManager), "Instance", null);
+
+        MissionChapterManager manager = CreateMissionManager();
+        TutorialGuideManager guide = CreateGuide();
+        MissionData mission = ScriptableObject.CreateInstance<MissionData>();
+        DialogueData dialogue = ScriptableObject.CreateInstance<DialogueData>();
+        MissionObjective tutorialObjective = new MissionObjective
+        {
+            type = ObjectiveType.BuildStructures,
+            isTutorialStep = true,
+            isCompleted = false,
+            tutorialInstruction = "Build here."
+        };
+        mission.objectives.Add(tutorialObjective);
+
+        GameObject overlayObject = null;
+
+        try
+        {
+            SetPrivateField(manager, "currentMission", mission);
+            SetPrivateField(manager, "missionActive", true);
+            InvokePrivate(manager, "SetObjectiveDialogueBlock", dialogue, true);
+
+            guide.RefreshActiveObjective();
+
+            overlayObject = new GameObject("Tutorial Overlay Test");
+            TutorialOverlayUI overlay = overlayObject.AddComponent<TutorialOverlayUI>();
+
+            Assert.IsNull(FindChild(overlayObject.transform, "TutorialInstructionPanel"));
+
+            InvokePrivate(manager, "ClearObjectiveDialogueBlock");
+            guide.RefreshActiveObjective();
+            overlay.Refresh();
+
+            Transform instructionPanel = FindChild(overlayObject.transform, "TutorialInstructionPanel");
+            Assert.IsNotNull(instructionPanel);
+            Assert.IsTrue(instructionPanel.gameObject.activeSelf);
+        }
+        finally
+        {
+            if (overlayObject != null)
+                Object.DestroyImmediate(overlayObject);
+            Object.DestroyImmediate(dialogue);
+            Object.DestroyImmediate(mission);
+            Object.DestroyImmediate(guide.gameObject);
+            Object.DestroyImmediate(manager.gameObject);
+            SetStaticPropertyBackingField(typeof(SettingsManager), "Instance", originalSettingsManager);
+        }
+    }
+
+    [Test]
     public void ActiveTutorialStep_ExposesPanelActionAndBlocksOtherPanels()
     {
         TutorialGuideManager guide = CreateGuide();
@@ -362,6 +416,17 @@ public class TutorialObjectiveFilterTests
         target.GetType()
             .GetMethod(methodName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
             .Invoke(target, arguments);
+    }
+
+    private static Transform FindChild(Transform root, string childName)
+    {
+        foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
+        {
+            if (child.name == childName)
+                return child;
+        }
+
+        return null;
     }
 
     private static void SetStaticPropertyBackingField(System.Type type, string propertyName, object value)

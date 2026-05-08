@@ -347,7 +347,7 @@ public class PollutionManager : MonoBehaviour
     /// <summary>
     /// Update tile states (only when radius changes by 1+ unit)
     /// </summary>
-    private void UpdateTileStates()
+    private void UpdateTileStates(bool instant = false)
     {
         float currentRadius = GetIntegrationRadius();
 
@@ -358,7 +358,7 @@ public class PollutionManager : MonoBehaviour
 
             if (TileStateManager.Instance != null)
             {
-                TileStateManager.Instance.SetPollutionRadius(currentRadius);
+                TileStateManager.Instance.SetPollutionRadius(currentRadius, instant);
             }
         }
     }
@@ -422,7 +422,7 @@ public class PollutionManager : MonoBehaviour
 
         OnPollutionChanged?.Invoke(currentPollution, maxPollution);
         OnDifficultyTierChanged?.Invoke(currentTier);
-        UpdateTileStates();
+        UpdateTileStates(instant: true);
 
         Debug.Log($"[PollutionManager] State imported: pollution={currentPollution}, tier={currentTier}, menuDifficulty={menuDifficulty}");
     }

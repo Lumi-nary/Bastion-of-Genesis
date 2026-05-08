@@ -17,6 +17,7 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 4d044c6a188f3104db0ebe9403655847, type: 3}
   category: 2
   prefab: {fileID: 2606344867460193498, guid: 9c2d7ca2e6f192b4f8c7f6946686a388, type: 3}
+  isPlayerBuildable: 1
   requiredTech: {fileID: 0}
   maxHealth: 100
   resourceCost:
@@ -33,5 +34,11 @@ MonoBehaviour:
   features:
   - {fileID: 11400000, guid: 21af3974ab9d9704699134e94ddbc5fc, type: 2}
   - {fileID: 11400000, guid: b53ada442e8dc4d46a673f572da4aa09, type: 2}
+  ambienceLoop: {fileID: 8300000, guid: 49e7542e20dc5564da6680ef54849e61, type: 3}
+  ambienceVolume: 0.28
+  ambienceMaxDistance: 14
+  playAmbienceWhenOperational: 1
+  maxPlacementCount: 0
   width: 3
   height: 3
+  spreadsIntegration: 1

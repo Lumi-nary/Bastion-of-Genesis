@@ -280,6 +280,8 @@ public class Turret : MonoBehaviour
 
         // Deal damage to primary target
         enemy.TakeDamage(damage);
+        GameplayAudio.PlayTurretFire(transform.position);
+        GameplayAudio.PlayTurretHit(enemy.transform.position);
 
         Debug.Log($"[Turret] {building.BuildingData.buildingName} dealt {damage} damage to {enemy.Data.GetDisplayName()}");
 

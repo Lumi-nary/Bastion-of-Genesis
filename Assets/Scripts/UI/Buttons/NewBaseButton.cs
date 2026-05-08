@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// NewBaseButton navigates to the New Base creation screen.
@@ -36,6 +35,6 @@ public class NewBaseButton : MonoBehaviour
         }
 
         // Load game scene
-        SceneManager.LoadSceneAsync(gameSceneName);
+        LoadingScreenManager.EnsureInstance().LoadSceneAsync(gameSceneName);
     }
 }

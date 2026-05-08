@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// CreateBaseButton triggers the New Base creation flow.
@@ -47,6 +46,6 @@ public class CreateBaseButton : MonoBehaviour
         SaveManager.Instance.pendingChapter = 1;
 
         Debug.Log("[CreateBaseButton] Loading CutsceneScene");
-        SceneManager.LoadSceneAsync("CutsceneScene");
+        LoadingScreenManager.EnsureInstance().LoadSceneAsync("CutsceneScene");
     }
 }

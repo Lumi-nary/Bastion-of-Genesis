@@ -156,6 +156,7 @@ public class PlacementSystem : MonoBehaviour
         if (TutorialGuideManager.Instance != null && !TutorialGuideManager.Instance.CanSelectBuilding(building))
         {
             Debug.Log($"[TutorialGuide] BLOCKED: {building.buildingName} is not the required building for the active tutorial step.");
+            GameplayAudio.PlayUIDeny();
             return false;
         }
 
@@ -179,6 +180,7 @@ public class PlacementSystem : MonoBehaviour
         }
 
         ShowResourceRequirementUI();
+        GameplayAudio.PlayBuildPlacementPreview();
 
         return true;
     }
@@ -213,6 +215,7 @@ public class PlacementSystem : MonoBehaviour
     {
         if (buildingToPlace != null)
         {
+            GameplayAudio.PlayBuildCancel();
             ExitBuildMode();
             BuildingPlacementEnded?.Invoke();
         }
@@ -241,10 +244,16 @@ public class PlacementSystem : MonoBehaviour
             else
                 BuildingManager.Instance.PlaceBuilding(buildingToPlace, worldPos);
 
+            GameplayAudio.PlayBuildPlaced(worldPos);
+
             // After placing, we exit build mode. The click has been consumed by this action,
             // so the SelectBuilding() logic in Update() won't run in the same frame.
             ExitBuildMode();
             BuildingPlacementEnded?.Invoke();
+        }
+        else
+        {
+            GameplayAudio.PlayUIDeny();
         }
     }
 
@@ -583,6 +592,9 @@ public class PlacementSystem : MonoBehaviour
     private void PlaceWallLine(Vector2Int start, Vector2Int end)
     {
         List<Vector2Int> line = GetWallLinePositions(start, end);
+        bool placedAny = false;
+        Vector3 lastPlacedPosition = Vector3.zero;
+
         foreach (Vector2Int pos in line)
         {
             if (CanPlaceBuilding(pos, buildingToPlace.width, buildingToPlace.height))
@@ -593,12 +605,24 @@ public class PlacementSystem : MonoBehaviour
                     CoopManager.Instance.CmdPlaceBuilding(buildingToPlace.buildingName, worldPos);
                 else
                     BuildingManager.Instance.PlaceBuilding(buildingToPlace, worldPos);
+
+                placedAny = true;
+                lastPlacedPosition = worldPos;
             }
             else
             {
                 // Stop building if we hit an invalid position
                 break;
             }
+        }
+
+        if (placedAny)
+        {
+            GameplayAudio.PlayBuildPlaced(lastPlacedPosition);
+        }
+        else
+        {
+            GameplayAudio.PlayUIDeny();
         }
     }
 

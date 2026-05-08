@@ -1019,6 +1019,7 @@ public class Enemy : MonoBehaviour
         currentHealth -= finalDamage;
 
         OnEnemyDamaged?.Invoke(this, finalDamage, currentHealth);
+        GameplayAudio.PlayEnemyHit(transform.position);
 
         if (currentHealth <= 0)
         {
@@ -1044,6 +1045,7 @@ public class Enemy : MonoBehaviour
         if (isDead) return;
 
         isDead = true;
+        GameplayAudio.PlayEnemyDeath(transform.position);
 
         // Execute ability death effects
         foreach (var ability in enemyData.specialAbilities)

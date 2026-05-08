@@ -288,6 +288,7 @@ public class WaveController : MonoBehaviour
         }
 
         Debug.Log($"[WaveController] === WAVE {currentWave} === Spawning {enemyCount} enemies from {edges.Count} edge(s)");
+        GameplayAudio.PlayWaveIncoming();
 
         // Spawn enemies across selected edges
         SpawnEnemiesOnEdges(edges, enemyCount);
@@ -556,6 +557,7 @@ public class WaveController : MonoBehaviour
         }
 
         Debug.Log($"[WaveController] === SCRIPTED WAVE {currentWave} === Spawning {enemyCount} enemies from {edges.Count} edge(s)");
+        GameplayAudio.PlayWaveIncoming();
 
         // Spawn enemies across selected edges
         SpawnEnemiesOnEdges(edges, enemyCount);
@@ -599,6 +601,7 @@ public class WaveController : MonoBehaviour
             }
 
             Debug.Log($"[WaveController] === SCRIPTED WAVE {currentWave} === Spawning {totalCount} specific enemies from {edges.Count} edge(s)");
+            GameplayAudio.PlayWaveIncoming();
             SpawnSpecificEnemiesOnEdges(edges, spawnList);
         }
         else
@@ -607,6 +610,7 @@ public class WaveController : MonoBehaviour
             int enemyCount = overrideCount > 0 ? overrideCount : GetEnemyCountForWave();
 
             Debug.Log($"[WaveController] === SCRIPTED WAVE {currentWave} === Spawning {enemyCount} enemies from {edges.Count} edge(s)");
+            GameplayAudio.PlayWaveIncoming();
             SpawnEnemiesOnEdges(edges, enemyCount);
         }
 

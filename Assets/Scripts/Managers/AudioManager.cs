@@ -47,6 +47,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private Camera mainCamera;
     [SerializeField] private float minZoom = 5f;   // Closest zoom (full volume)
     [SerializeField] private float maxZoom = 20f;  // Farthest zoom (reduced volume)
+    private CameraController cameraController;
 
     // Mixer parameter names (must match AudioMixer exposed parameters)
     private const string MASTER_VOLUME = "MasterVolume";
@@ -671,11 +672,26 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     public float GetZoomVolumeMultiplier()
     {
+        if (cameraController == null)
+        {
+            cameraController = FindFirstObjectByType<CameraController>();
+        }
+
+        if (cameraController != null)
+        {
+            return cameraController.GetZoomVolumeMultiplier();
+        }
+
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+        }
+
         if (mainCamera == null) return 1f;
 
         float currentZoom = mainCamera.orthographicSize;
         float t = Mathf.InverseLerp(minZoom, maxZoom, currentZoom);
-        return Mathf.Lerp(1f, 0.3f, t); // Full volume at min zoom, 30% at max zoom
+        return Mathf.Lerp(1f, 0f, t); // Full volume at min zoom, silent at max zoom
     }
 
     /// <summary>
@@ -684,5 +700,6 @@ public class AudioManager : MonoBehaviour
     public void SetCamera(Camera cam)
     {
         mainCamera = cam;
+        cameraController = cam != null ? cam.GetComponentInParent<CameraController>() : null;
     }
 }

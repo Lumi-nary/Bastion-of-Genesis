@@ -32,7 +32,6 @@ public class TutorialOverlayUI : MonoBehaviour
     {
         if (TutorialGuideManager.CanShowTutorialOverlay())
         {
-            EnsureInstructionPanel();
             EnsureDisableTutorialButton();
         }
 
@@ -44,7 +43,6 @@ public class TutorialOverlayUI : MonoBehaviour
     {
         if (TutorialGuideManager.CanShowTutorialOverlay())
         {
-            EnsureInstructionPanel();
             EnsureDisableTutorialButton();
         }
 
@@ -97,9 +95,13 @@ public class TutorialOverlayUI : MonoBehaviour
             MissionChapterManager.Instance.IsObjectiveDialogueBlockingTutorial;
 
         bool showObjectiveGuidance = hasObjective && !objectiveDialogueBlocking;
+        bool showInstructionPanel = showObjectiveGuidance && !string.IsNullOrWhiteSpace(objective.tutorialInstruction);
+
+        if (showInstructionPanel)
+            EnsureInstructionPanel();
 
         if (instructionPanel != null)
-            instructionPanel.SetActive(showObjectiveGuidance && !string.IsNullOrWhiteSpace(objective.tutorialInstruction));
+            instructionPanel.SetActive(showInstructionPanel);
 
         if (instructionText != null)
             instructionText.text = showObjectiveGuidance ? objective.tutorialInstruction : string.Empty;
@@ -189,6 +191,7 @@ public class TutorialOverlayUI : MonoBehaviour
         {
             instructionPanel = Instantiate(prefab, canvas.transform, false);
             instructionPanel.name = "TutorialInstructionPanel";
+            instructionPanel.SetActive(false);
             instructionText = instructionPanel.GetComponentInChildren<TextMeshProUGUI>(true);
             ApplyInstructionPanelLayout(instructionPanel.GetComponent<RectTransform>());
             return;
@@ -201,6 +204,7 @@ public class TutorialOverlayUI : MonoBehaviour
     {
         GameObject panelObject = new GameObject("TutorialInstructionPanel", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
         panelObject.transform.SetParent(canvas.transform, false);
+        panelObject.SetActive(false);
 
         RectTransform panelRect = panelObject.GetComponent<RectTransform>();
         ApplyInstructionPanelLayout(panelRect);

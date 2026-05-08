@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
 /// <summary>
@@ -214,7 +213,7 @@ public class LoadGameUI : MonoBehaviour
             {
                 // Old save format or no pending data — just load scene directly
                 Debug.Log("[LoadGameUI] Save loaded (no world state), loading scene");
-                SceneManager.LoadSceneAsync("GameWorld");
+                LoadingScreenManager.EnsureInstance().LoadSceneAsync("GameWorld");
             }
         }
         else

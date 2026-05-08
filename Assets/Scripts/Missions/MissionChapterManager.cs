@@ -520,7 +520,7 @@ public class MissionChapterManager : MonoBehaviour
         if (!string.IsNullOrEmpty(chapter.sceneName))
         {
             awaitingSceneValidation = true;
-            SceneManager.LoadScene(chapter.sceneName);
+            LoadingScreenManager.EnsureInstance().LoadSceneAsync(chapter.sceneName);
         }
 
         OnChapterStarted?.Invoke(currentChapter);

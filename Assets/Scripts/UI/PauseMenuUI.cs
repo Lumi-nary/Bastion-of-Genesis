@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using TMPro;
 
 /// <summary>
@@ -214,7 +213,7 @@ public class PauseMenuUI : MonoBehaviour
                     }
 
                     // Load main menu scene
-                    SceneManager.LoadScene(mainMenuSceneName);
+                    LoadingScreenManager.EnsureInstance().LoadSceneAsync(mainMenuSceneName);
                 },
                 null // onCancel - do nothing
             );

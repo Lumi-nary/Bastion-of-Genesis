@@ -16,7 +16,7 @@ public class TopBarResourceGroup : MonoBehaviour
 
     [Header("Energy Settings")]
     [SerializeField] private ResourceType energyResource;
-    [SerializeField] private Color energySlotBackground = new Color(0.85f, 0.75f, 0.1f, 0.9f);
+    [SerializeField] private Color energySlotBackground = new Color(0.15f, 0.15f, 0.2f, 0.85f);
     [SerializeField] private Color energyNormalColor = Color.white;
     [SerializeField] private Color energyWarningColor = new Color(1f, 0.5f, 0f);
     [SerializeField] private Color energyCriticalColor = Color.red;
@@ -136,7 +136,7 @@ public class TopBarResourceGroup : MonoBehaviour
                     currentEnergy = amount;
                     maxEnergy = Mathf.Max(1, capacity);
 
-                    // Yellow background for energy slot
+                    // Match the standard resource slot background while preserving energy-specific warning text.
                     var bg = go.GetComponent<Image>();
                     if (bg != null) bg.color = energySlotBackground;
                 }

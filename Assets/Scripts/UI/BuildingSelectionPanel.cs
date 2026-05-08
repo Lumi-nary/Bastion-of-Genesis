@@ -51,6 +51,7 @@ public class BuildingSelectionPanel : MonoBehaviour
 
     private List<GameObject> categoryButtons = new List<GameObject>();
     private List<GameObject> buildingButtons = new List<GameObject>();
+    private Dictionary<BuildingCategory, Button> categoryButtonByCategory = new Dictionary<BuildingCategory, Button>();
 
     private BuildingCategory currentCategory;
     private Button selectedCategoryButton;
@@ -92,11 +93,41 @@ public class BuildingSelectionPanel : MonoBehaviour
     private void Start()
     {
         HidePanel();
+        SubscribeTutorialGuide();
+    }
+
+    private void OnEnable()
+    {
+        SubscribeTutorialGuide();
     }
 
     private void OnDisable()
     {
         UnsubscribeFromBuildModeEnded();
+        UnsubscribeTutorialGuide();
+    }
+
+    private void SubscribeTutorialGuide()
+    {
+        if (TutorialGuideManager.Instance == null)
+            return;
+
+        TutorialGuideManager.Instance.OnTutorialObjectiveChanged -= OnTutorialObjectiveChanged;
+        TutorialGuideManager.Instance.OnTutorialObjectiveChanged += OnTutorialObjectiveChanged;
+    }
+
+    private void UnsubscribeTutorialGuide()
+    {
+        if (TutorialGuideManager.Instance != null)
+            TutorialGuideManager.Instance.OnTutorialObjectiveChanged -= OnTutorialObjectiveChanged;
+    }
+
+    private void OnTutorialObjectiveChanged(MissionObjective objective)
+    {
+        ApplyCategoryTutorialHighlights();
+
+        if (IsBuildingListVisible())
+            ShowBuildingsForCategory(currentCategory);
     }
 
     private void Update()
@@ -224,6 +255,7 @@ public class BuildingSelectionPanel : MonoBehaviour
             {
                 BuildingCategory captured = category;
                 button.onClick.AddListener(() => SelectCategory(captured, button));
+                categoryButtonByCategory[category] = button;
 
                 TextMeshProUGUI text = buttonGO.GetComponentInChildren<TextMeshProUGUI>();
                 if (text != null)
@@ -232,6 +264,8 @@ public class BuildingSelectionPanel : MonoBehaviour
                 SetButtonColor(button, normalCategoryColor);
             }
         }
+
+        ApplyCategoryTutorialHighlights();
     }
 
     private void ClearCategoryButtons()
@@ -239,6 +273,7 @@ public class BuildingSelectionPanel : MonoBehaviour
         foreach (GameObject btn in categoryButtons)
             Destroy(btn);
         categoryButtons.Clear();
+        categoryButtonByCategory.Clear();
     }
 
     private void SelectCategory(BuildingCategory category, Button button)
@@ -534,14 +569,42 @@ public class BuildingSelectionPanel : MonoBehaviour
             return;
 
         Image image = button.GetComponent<Image>();
-        if (image == null)
+        if (image != null)
+        {
+            TutorialPulseHighlight pulse = image.GetComponent<TutorialPulseHighlight>();
+            if (highlighted)
+            {
+                if (pulse == null)
+                    pulse = image.gameObject.AddComponent<TutorialPulseHighlight>();
+
+                pulse.SetHighlighted(true);
+            }
+            else
+            {
+                if (pulse != null)
+                    pulse.SetHighlighted(false);
+
+                image.color = Color.white;
+            }
+        }
+
+        SetTutorialTextHighlight(button, highlighted);
+    }
+
+    private void SetTutorialTextHighlight(Button button, bool highlighted)
+    {
+        if (button == null)
             return;
 
-        TutorialPulseHighlight pulse = image.GetComponent<TutorialPulseHighlight>();
+        TextMeshProUGUI text = button.GetComponentInChildren<TextMeshProUGUI>();
+        if (text == null)
+            return;
+
+        TutorialPulseHighlight pulse = text.GetComponent<TutorialPulseHighlight>();
         if (highlighted)
         {
             if (pulse == null)
-                pulse = image.gameObject.AddComponent<TutorialPulseHighlight>();
+                pulse = text.gameObject.AddComponent<TutorialPulseHighlight>();
 
             pulse.SetHighlighted(true);
             return;
@@ -549,8 +612,31 @@ public class BuildingSelectionPanel : MonoBehaviour
 
         if (pulse != null)
             pulse.SetHighlighted(false);
+    }
 
-        image.color = Color.white;
+    private void ApplyCategoryTutorialHighlights()
+    {
+        foreach (KeyValuePair<BuildingCategory, Button> entry in categoryButtonByCategory)
+        {
+            bool selected = selectedCategoryButton == entry.Value;
+            SetButtonColor(entry.Value, selected ? selectedCategoryColor : normalCategoryColor);
+            SetTutorialTextHighlight(entry.Value, IsTutorialTargetCategory(entry.Key));
+        }
+    }
+
+    private bool IsTutorialTargetCategory(BuildingCategory category)
+    {
+        if (TutorialGuideManager.Instance == null ||
+            !TutorialGuideManager.Instance.IsTargetAction(TutorialTargetAction.SelectBuilding))
+        {
+            return false;
+        }
+
+        MissionObjective objective = TutorialGuideManager.Instance.ActiveObjective;
+        return objective != null &&
+            objective.type == ObjectiveType.BuildStructures &&
+            objective.requiredBuilding != null &&
+            objective.requiredBuilding.category == category;
     }
 
     private string GetCategoryDisplayName(BuildingCategory category)

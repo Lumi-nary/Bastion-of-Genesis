@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// BackButton provides generic back navigation to main menu from any subscreen or scene.
@@ -46,7 +45,7 @@ public class BackButton : MonoBehaviour
             // Cross-scene behavior: Load MenuScene (used in WorldMapScene, CutsceneScene, etc.)
             // AC6: Returning to MenuScene, base creation cancelled, no save file created
             Debug.Log("[BackButton] Returning to MenuScene, base creation cancelled");
-            SceneManager.LoadSceneAsync("MenuScene");
+            LoadingScreenManager.EnsureInstance().LoadSceneAsync("MenuScene");
         }
     }
 }

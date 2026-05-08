@@ -25,6 +25,8 @@ public class FactoryRowUI : MonoBehaviour
 
     private WorkerData workerType;
     private List<WorkerFactoryComponent> factories = new List<WorkerFactoryComponent>();
+    private bool subscribedToResources;
+    private bool subscribedToWorkers;
     private readonly Color readyColor = new Color(0.55f, 0.95f, 1f, 1f);
     private readonly Color blockedColor = new Color(1f, 0.42f, 0.32f, 1f);
     private readonly Color mutedColor = new Color(0.55f, 0.7f, 0.82f, 1f);
@@ -71,6 +73,7 @@ public class FactoryRowUI : MonoBehaviour
 
         // Get factories and subscribe to events
         RefreshFactories();
+        TrySubscribeToLiveStateChanges();
         UpdateDisplay();
     }
 
@@ -85,6 +88,8 @@ public class FactoryRowUI : MonoBehaviour
                 factory.OnProgressChanged -= UpdateProgress;
             }
         }
+
+        UnsubscribeFromLiveStateChanges();
     }
 
     private void RefreshFactories()
@@ -119,6 +124,8 @@ public class FactoryRowUI : MonoBehaviour
     public void UpdateDisplay()
     {
         if (BuildingManager.Instance == null || workerType == null) return;
+
+        TrySubscribeToLiveStateChanges();
 
         // Refresh factory list in case it changed
         RefreshFactories();
@@ -155,6 +162,69 @@ public class FactoryRowUI : MonoBehaviour
 
         // Update progress
         UpdateProgressFromFactories();
+    }
+
+    private void TrySubscribeToLiveStateChanges()
+    {
+        if (!subscribedToResources && ResourceManager.Instance != null)
+        {
+            ResourceManager.Instance.OnResourceChanged += HandleResourceChanged;
+            subscribedToResources = true;
+        }
+
+        if (!subscribedToWorkers && WorkerManager.Instance != null)
+        {
+            WorkerManager.Instance.OnWorkerCountChanged += HandleWorkerCountChanged;
+            subscribedToWorkers = true;
+        }
+    }
+
+    private void UnsubscribeFromLiveStateChanges()
+    {
+        if (subscribedToResources && ResourceManager.Instance != null)
+            ResourceManager.Instance.OnResourceChanged -= HandleResourceChanged;
+        subscribedToResources = false;
+
+        if (subscribedToWorkers && WorkerManager.Instance != null)
+            WorkerManager.Instance.OnWorkerCountChanged -= HandleWorkerCountChanged;
+        subscribedToWorkers = false;
+    }
+
+    private void HandleResourceChanged(ResourceType resourceType, int amount)
+    {
+        if (workerType == null || workerType.cost == null)
+            return;
+
+        foreach (ResourceCost cost in workerType.cost)
+        {
+            if (cost != null && IsSameResource(cost.resourceType, resourceType))
+            {
+                UpdateDisplay();
+                return;
+            }
+        }
+    }
+
+    private void HandleWorkerCountChanged(WorkerData changedWorkerType, int amount)
+    {
+        if (IsSameWorker(workerType, changedWorkerType))
+            UpdateDisplay();
+    }
+
+    private static bool IsSameResource(ResourceType a, ResourceType b)
+    {
+        if (a == null || b == null)
+            return false;
+
+        return a == b || a.ResourceName == b.ResourceName;
+    }
+
+    private static bool IsSameWorker(WorkerData a, WorkerData b)
+    {
+        if (a == null || b == null)
+            return false;
+
+        return a == b || a.workerName == b.workerName;
     }
 
     private void Update()
